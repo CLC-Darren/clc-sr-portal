@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CLC SR | 權限管理後台</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase App & Auth SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              teal: '#007E8A',
+              tealHover: '#006C77',
+              surface: '#11131B',
+              card: '#161924',
+              border: 'rgba(255, 255, 255, 0.1)',
+              muted: '#8A92A6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 長輩友善字體排版 */
+    html { font-size: 17px; }
+    @media (min-width: 1024px) { html { font-size: 19px; } }
+    body {
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .field {
+      background: #161924;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px 14px;
+      width: 100%;
+      font-size: 16px;
+    }
+    html:not(.dark) .field {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+    .primary-btn {
+      background: #007E8A;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      min-height: 48px;
+    }
+    .primary-btn:hover { background: #006C77; }
+  </style>
+
+  <script>
+    (function () {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+      function savedTheme() {
+        const value = localStorage.getItem('theme');
+        return value === 'light' || value === 'dark' ? value : null;
+      }
+      function applyTheme() {
+        const chosen = savedTheme();
+        document.documentElement.classList.toggle('dark', chosen ? chosen === 'dark' : systemTheme.matches);
+      }
+      applyTheme();
+    })();
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-slate-100 min-h-screen flex flex-col justify-between selection:bg-[#007E8A] selection:text-white">
+
+  <!-- ★ 全站共用 Header ★ -->
+  <header id="clc-header"></header>
+
+  <!-- 權限管理核心控制面板 -->
+  <main class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10 space-y-6 flex-1">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 pb-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black flex items-center">
+          <span class="mr-2">👤</span> 帳號與角色權限管理
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          管理系統 4 種角色：系統管理員、區長 (管轄牧區)、小組長 (管轄小組)、一般同工 (僅查看)。
+        </p>
+      </div>
+      <a href="index.html" class="inline-flex items-center text-sm font-bold text-[#007E8A] dark:text-teal-400 hover:underline">
+        ← 返回首頁
+      </a>
+    </div>
+
+    <!-- 身分驗證中或權限不足提示 -->
+    <div id="accessCheckCard" class="rounded-2xl p-6 border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161924] text-center space-y-3">
+      <div class="text-4xl">🔐</div>
+      <div id="accessCheckMsg" class="text-base font-bold text-slate-700 dark:text-slate-300">
+        正在驗證您的系統管理員 (Admin) 權限...
+      </div>
+      <p class="text-xs text-slate-400">若尚未登入，請點擊右上角鑰匙圖示使用授權之 Google 帳號登入。</p>
+    </div>
+
+    <!-- 主要授權操作面板 (僅 Admin 可見) -->
+    <div id="mainAdminPanel" class="hidden space-y-6">
+
+      <!-- 區塊 1：手動新增同工 Google 帳號授權 -->
+      <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161924] p-5 sm:p-6 shadow-sm">
+        <h2 class="text-lg font-black text-slate-900 dark:text-white flex items-center mb-3">
+          <span>➕ 預先指派同工授權</span>
+        </h2>
+        <form id="inviteUserForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">同工姓名 *</label>
+              <input id="formUserName" class="field" type="text" placeholder="例如：林長老、王小美" required>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Google Email *</label>
+              <input id="formUserEmail" class="field" type="email" placeholder="name@gmail.com" required>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">指派角色 *</label>
+              <select id="formUserRole" class="field font-bold" onchange="handleRoleSelectionChange(this.value)">
+                <option value="viewer">一般同工 (僅可查看)</option>
+                <option value="group_leader">小組長 (可管理自己小組)</option>
+                <option value="district_leader">區長 (可管理所屬牧區)</option>
+                <option value="admin">系統管理員 (全開)</option>
+              </select>
+            </div>
+
+            <div id="fieldDistrictContainer" class="hidden">
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">所屬牧區 *</label>
+              <input id="formUserDistrict" class="field" type="text" placeholder="例如：加樂一區、仁愛牧區">
+            </div>
+
+            <div id="fieldGroupContainer" class="hidden">
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">所屬小組 *</label>
+              <input id="formUserGroup" class="field" type="text" placeholder="例如：仁愛小組、喜樂小組">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <label class="flex items-center space-x-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+              <input id="formUserActive" type="checkbox" checked class="w-5 h-5 rounded text-[#007E8A]">
+              <span>立即開通權限 (設為啟用)</span>
+            </label>
+            <button type="submit" class="primary-btn flex items-center space-x-2">
+              <span>儲存並開通</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 區塊 2：現有同工名冊與快速調整 -->
+      <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161924] p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-black text-slate-900 dark:text-white flex items-center">
+              <span>📋 同工與管理員清單</span>
+              <span id="userCountBadge" class="ml-2 text-xs px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-white/10 font-bold">0 位</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">點擊各同工卡片可直接變更角色、指定牧區小組或隨時停用。</p>
+          </div>
+          <button onclick="loadUserListFromFirestore()" class="text-xs px-3 py-1.5 rounded-xl border border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-bold transition">
+            🔄 重新整理清單
+          </button>
+        </div>
+
+        <!-- 同工卡片清單容器 (長輩大字卡片) -->
+        <div id="userListContainer" class="space-y-3">
+          <div class="text-center py-8 text-slate-400">正在讀取雲端同工權限資料...</div>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-slate-200 dark:border-white/10 py-4 text-center text-xs text-slate-500 dark:text-slate-400">
+    加樂團契控台 · 權限安全管理中心
+  </footer>
+
+  <!-- 引入共用 Header 與管理邏輯 -->
+  <script src="header.js?v=20261104-sr-v1"></script>
+  <script src="admin-users.js?v=20261104-sr-v1"></script>
+</body>
+</html>
