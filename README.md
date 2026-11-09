@@ -1,64 +1,42 @@
-# CLC SR Portal｜YA 同款介面 × 共用歌詞試行版（2026-11-09）
+# CLC SR Portal｜YA 視覺統一 × 共用歌詞 × SR 權限管理（2026-11-09）
 
-本包以使用者提供的 `clc-sr-portal-main.zip` 為基礎，**完整保留 SR 原有 Firebase 專案、使用者與權限管理資料結構**，將首頁與 Header 對齊 YA 的介面模式。SR 和 YA 依舊是**不同 GitHub Repository、不同 Firebase 專案、不同 Admin**。
+此版根據原始 `clc-sr-portal-main.zip` 及上一版 SR Portal 完整包製作。**SR 與 YA 的 Repository、Firebase 專案、Superuser 與業務資料仍獨立。** SR 的歌詞 iframe 只讀取 YA 主站唯一的中性歌詞系統。
 
-## 已完成
+## 主要更新
 
-- **SR 首頁**：YA 同款精簡頂部 Header、CLC SR Logo、深淺切換、登入／角色選單、置中標題及 2×2 正方形功能卡片，適用手機和電腦。
-- **功能入口**：只開放「🎵 詩歌歌詞下載」，另外三個 `＋` 僅顯示預留位置，不連到尚未開發的檔案。SR Admin 仍從 Header 登入後的權限選單進入。
-- **共用歌詞頁**：SR 新增 `/hymn-lyrics.html`，上方顯示 **SR 自己的 Header**，下方 iframe 指向 `https://clc-ya-portal.pages.dev/hymn-lyrics?neutral=1`。未複製 YA 歌詞程式或資料庫，因此 YA 主站更新，SR 下次載入便取得新版本。
-- **回退入口**：右上角「在原站開啟」可直接用新分頁開啟 YA 中性版，供 iframe 不允許顯示或手機列印／下載不順時使用。
-- **PWA 基礎**：新增 SR 專屬 manifest、192/512 圖示、Apple icon、安裝入口；Service Worker **不快取**使用者、歌詞、登入或管理資料。
-- **保留原後台**：`admin-users.html`、`admin-users.js`、`firestore.rules`（其中後兩者未修改），SR 的 Admin／區長／小組長／Viewer 角色邏輯不變。
+- **首頁**：與 YA 相近的暗／亮主題、置中標題、雙欄方形功能卡，完整保留原 SR 的「新朋友關懷／組員通訊錄／牧區與小組／權限管理」，加上「詩歌歌詞下載」。五個入口都可以點擊。
+- **三個尚未開發的 SR 功能**：原始 ZIP 沒有 `intakes.html`、`members.html`、`groups.html`，本次先製作「尚未開放」頁防止 404，沒有假裝完成業務功能，也沒有寫入任何資料。
+- **歌詞工具**：`hymn-lyrics.html` 移除重複的「詩歌歌詞下載／在原站開啟」工具列，SR Header 正下方直接顯示 YA 中性歌詞 iframe。日後 YA 更新，SR 不必更新歌曲工具的核心程式。
+- **SR Icon**：用使用者提供的 YA `favicon.svg` 作為比例、填色與留白參考，另製作真正向量輪廓的 SR `favicon.svg`，以及 192px／512px／Apple 圖示。無需轉存字型檔。
+- **權限後台**：`admin-users.html` 參考 YA 的緊湊管理介面，SR 保留四種角色 `admin`、`district_leader`、`group_leader`、`viewer`。可預先新增 Google Email、啟停、調整角色／範圍、移除授權、保護固定初始 Superuser。
+- **修正舊版預授權問題**：新方案使用 `user_invites/{email}` 寫入預先授權，首次 Google 登入後安全建立 `users/{uid}`。管理員修改角色會同步兩份資料。舊版 `users/user_...` 的授權會在後台顯示，可點「套用舊授權」轉接；不會自動刪除舊資料。
+- **登入錯誤提示**：如果 SR 原始 Firebase Web Config 仍是佔位符，顯示明確的未設定提醒，而不再試圖用無效 API Key 登入。
 
-## 最重要：部署前核對 SR Firebase 設定
+## 必須先完成的兩項遠端設定（此 ZIP 不會自動部署）
 
-使用者提供的原 ZIP 中，`header.js` 的 `window.firebaseConfig` 仍是：
+### A. 補入真正的 SR Firebase Web Config
 
-```
-apiKey: "YOUR_FIREBASE_API_KEY"
-messagingSenderId: "YOUR_MESSAGING_SENDER_ID"
-appId: "YOUR_APP_ID"
-```
+原始 ZIP 只有 `YOUR_FIREBASE_API_KEY`、`YOUR_MESSAGING_SENDER_ID` 和 `YOUR_APP_ID`，本次**無法憑空產生有效設定**，亦不可把 YA Config 當 SR 的。
 
-**這份更新包刻意原樣保留占位符，因為我們沒有你實際 SR Firebase Web App 的值，不能憑空填入或拿 YA 的設定取代。**
+請到 SR Firebase Console → 專案設定 → 一般 → Web 應用程式，取得 `firebaseConfig`，填入 **`header.js` 最上方**；並在 Firebase Authentication 開啟 Google Provider、核對 Authorized Domains 包含 `clc-sr-portal.pages.dev`。Firebase Web Config 是公開設定資訊，不是服務帳號私鑰。
 
-如果線上 SR 曾經設定過真實 Firebase，部署時請先從目前 GitHub SR `header.js` 把 `window.firebaseConfig` 的真實欄位複製到此包新版 `header.js`；其他登入／角色相關程式則維持新版。若尚未設定，請先到 SR Firebase Console → Project Settings → Web App 取得設定，填妥後再部署。不要把 YA Firebase Config 貼到 SR。
+### B. 將本包的 `firestore.rules` 正確部署到 SR 專案
 
-SR Google 登入還需確保 Firebase Authentication 已啟用 Google 供應商，且 Authorized Domains 包含 `clc-sr-portal.pages.dev`。`firestore.rules` 本包不重新發布；如 SR 尚未設定，請依原有權限模型自行部署。
+新的 `user_invites` 功能與 UID 自動建檔需要新版規則，只有上傳 `firestore.rules` 到 GitHub **不等於已發布到 Firebase**。
 
-## 如何更新 GitHub
+可以在 Firebase Console 的 Firestore Rules 編輯器中，先備份線上現有規則、比對差異、再貼上並發布。若使用 Firebase CLI，應**明確指定 SR 專案**與已驗證的 `firebase.json` 路徑；使用 CLI 部署整份 Rules 會覆寫 Console 中目前已存在的規則。部署前先測試初始管理員、一般 Viewer 與未授權帳號。
 
-1. 將本 ZIP 解壓縮，**內部檔案直接放 Repository 根目錄**（不要再多包一層資料夾）。
-2. **先核對上述 Firebase Config**，再將檔案上傳到 `clc-sr-portal` Repository（或你目前 SR 實際使用的 Repository）。
-3. 保留現有 `admin-users.js` 和 `firestore.rules`；不要拿 YA 的登入 JS 或規則覆寫。
-4. GitHub Commit 後由 Cloudflare Pages 自動部署。進入 SR 首頁點「詩歌歌詞下載」驗證。
+## 部署順序
 
-## iframe 的真實限制
+1. 備份 SR 線上 Firebase Rules 及 GitHub 目前檔案。
+2. 在 `header.js` 填入 **SR 自己** 的 Firebase Web Config。
+3. 在 SR Firebase Console 測試／發布新的 `firestore.rules`。
+4. 將本 ZIP 的檔案上傳至 SR GitHub Repository 根目錄並 Commit；Cloudflare Pages 應從原連線的 Repository 自動部署。
+5. 測試：SR 初始 Superuser 登入、預先授權 Email、其他同工首次登入、角色修改／停用／移除、五個首頁連結、歌詞 iframe、手機列印與 PPTX 下載。
 
-- iframe 外的 **SR Header 登入 ≠ iframe 內的 YA 登入**；兩站 Firebase 仍各自管理。中性模式會隱藏 YA Header，但不能讓 SR 的登入自動取得 YA 的權限。
-- **管理歌詞**仍使用 YA 原有管理後台。SR 使用者不因為是 SR Admin 就自動取得 YA 歌詞編輯權限。
-- 瀏覽器可能限制第三方 Cookie／登入儲存、iframe 內列印、PDF 或 PPTX 下載；YA 端若設定禁止 iframe 的 `X-Frame-Options` 或 CSP `frame-ancestors`，嵌入也可能被擋。此包無法替 YA 網站修改這些安全政策。
-- 如果 iframe 無法顯示，請使用已預留的「在原站開啟」。若確認為安全政策問題，需在 YA 主站做**明確且限縮到 SR 網域**的允許設定，不建議放開任意網站嵌入。
-- 正式網域嵌入及手機列印需部署後實測；本包已完成靜態路由、桌面／手機版型與程式檢查，但不聲稱已線上測得跨站嵌入成功。
+## 安全與 iframe 注意事項
 
-## 檔案結構
-
-```
-index.html             # SR 首頁（YA 同款 2×2）
-header.js              # SR 共用 Header、獨立 Firebase 登入與權限
-hymn-lyrics.html       # SR 歌詞 iframe 容器（唯一 YA 來源）
-admin-users.html       # SR 管理員頁（保留業務）
-admin-users.js         # 原版未修改
-firestore.rules        # 原版未修改
-favicon.svg            # 原版 SR 標誌
-manifest.json          # SR PWA
-portal-pwa.js          # PWA 安裝入口
-sw.js                  # 不快取資料的 service worker
-icon-192.png
-icon-512.png
-apple-touch-icon.png
-README.md
-```
-
-後續可以用相同的「SR Header＋共用 App iframe」模式新增其他功能，不需要改變現有 Firebase 的資料分工。
+- SR Header 登入與 YA 歌詞 iframe 的 Firebase Auth 仍各自獨立。SR Admin 不會自動成為 YA 歌詞 Admin。
+- YA 主站如使用禁止 iframe 的 CSP／X-Frame-Options，SR 歌詞頁會被阻擋。請先在 YA 站**只放行 SR 網域**，不要開放任何網站嵌入。必要時直接開啟 `https://clc-ya-portal.pages.dev/hymn-lyrics?neutral=1`。
+- 部分手機瀏覽器限制跨網域 iframe 的下載、列印與第三方登入儲存；上線後應實機測試。
+- 此 ZIP 僅完成程式與本地模擬，**沒有登入你的 Firebase／Cloudflare，也沒有發布任何線上設定**。

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CLC SR | 詩歌歌詞下載</title>
+  <meta name="theme-color" content="#007E8A">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>
+    tailwind.config = {darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','"Noto Sans TC"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    html,body {margin:0; width:100%; height:100%;}
+    body { font-family: "Plus Jakarta Sans","Noto Sans TC",sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden; }
+    .frame-shell {display:flex; flex-direction:column; height:100dvh; height:100vh;}
+    @supports (height:100dvh) {.frame-shell {height:100dvh;}}
+    #clc-header {flex:none;}
+    .frame-content {flex:1; min-height:0; width:100%; display:block; border:0; background:transparent;}
+    .dark .frame-shell {background:#090A0F; color:#f8fafc;}
+  </style>
+  <script>
+    (function(){const media=window.matchMedia('(prefers-color-scheme: dark)'); const saved=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&media.matches));})();
+  </script>
+</head>
+<body>
+  <div class="frame-shell">
+    <header id="clc-header"></header>
+    <iframe
+      id="clcHymnFrame"
+      class="frame-content"
+      title="CLC 共用歌詞工具（YA 主站）"
+      src="https://clc-ya-portal.pages.dev/hymn-lyrics?neutral=1"
+      loading="eager"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+  </div>
+  <script src="header.js?v=20261109-sr-v2"></script>
+</body>
+</html>

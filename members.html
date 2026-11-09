@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>CLC SR | 組員通訊錄</title>
+<link rel="manifest" href="/manifest.json"><link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+<script src="https://cdn.tailwindcss.com"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>html{font-family:'Plus Jakarta Sans','Noto Sans TC',sans-serif}body{margin:0}</style>
+<script>(function(){const saved=localStorage.getItem('theme');const m=matchMedia('(prefers-color-scheme:dark)');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&m.matches))})();</script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-white">
+<header id="clc-header"></header>
+<main class="max-w-3xl mx-auto px-5 py-12 sm:py-20">
+  <a class="text-[#007E8A] dark:text-teal-300 text-sm font-bold" href="index.html">← 返回首頁</a>
+  <section class="mt-5 rounded-3xl bg-white dark:bg-[#161924] border border-slate-200 dark:border-white/10 p-8 sm:p-12 text-center space-y-4">
+    <div class="text-5xl" aria-hidden="true">📖</div>
+    <h1 class="text-2xl sm:text-3xl font-extrabold">組員通訊錄</h1>
+    <p class="text-base text-slate-500 dark:text-slate-400">此功能已保留在原本的 SR 功能選單，後續開發完成後在這裡啟用。</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400">目前尚未開放資料操作。</p>
+  </section>
+</main>
+<script src="header.js?v=20261109-sr-v2"></script>
+</body></html>
