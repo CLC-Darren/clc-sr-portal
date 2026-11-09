@@ -45,6 +45,7 @@ function getCurrentPage() {
   if (path.includes('admin-users')) return 'admin-users';
   if (path.includes('members')) return 'members';
   if (path.includes('intakes')) return 'intakes';
+  if (path.includes('hymn-lyrics')) return 'hymn-lyrics';
   return 'index';
 }
 
@@ -58,28 +59,36 @@ function renderHeaderComponent() {
     const style = document.createElement('style');
     style.id = 'clc-header-fixed-style';
     style.textContent = `
-      #clc-header { box-sizing: border-box !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
-      #clc-header > div { max-width: 1024px !important; height: 52px !important; min-height: 52px !important; padding: 0 16px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; }
-      #clc-header .logo-badge { font-size: 15px !important; height: 38px !important; line-height: 38px !important; padding: 0 14px !important; border-radius: 10px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; }
-      #clc-header .header-btn { width: 40px !important; height: 40px !important; border-radius: 10px !important; font-size: 17px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; }
+      #clc-header { box-sizing: border-box !important; border-bottom-width: 1px !important; }
+      #clc-header > div { max-width: 1024px !important; height: 46px !important; min-height: 46px !important; padding: 0 14px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: space-between !important; }
+      #clc-header .logo-badge { font-size: 13.5px !important; height: 34px !important; line-height: 34px !important; padding: 0 12px !important; border-radius: 9px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; letter-spacing: .05em; }
+      #clc-header .header-btn { width: 34px !important; min-width: 34px !important; height: 34px !important; border-radius: 9px !important; font-size: 15px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; }
+      #clc-header #installAppBtn { height: 34px !important; font-size: 12px !important; padding: 0 10px !important; border-radius: 9px !important; }
+      #clc-header #userDropdown { width: 230px !important; margin-top: 8px !important; z-index: 100 !important; }
       #clc-header #userRoleTag { font-size: 11px !important; padding: 3px 8px !important; border-radius: 9999px !important; font-weight: 700 !important; }
+      #clc-header #authActiveDot { width: 7px !important; height: 7px !important; top: 6px !important; right: 6px !important; }
+      @media (min-width: 640px) {
+        #clc-header > div { height: 48px !important; min-height: 48px !important; padding: 0 20px !important; }
+        #clc-header .logo-badge { font-size: 14px !important; height: 36px !important; line-height: 36px !important; padding: 0 14px !important; border-radius: 10px !important; }
+        #clc-header .header-btn { width: 36px !important; min-width: 36px !important; height: 36px !important; border-radius: 10px !important; font-size: 16px !important; }
+        #clc-header #installAppBtn { height: 36px !important; font-size: 13px !important; padding: 0 12px !important; border-radius: 10px !important; }
+      }
     `;
     document.head.appendChild(style);
   }
 
-  headerContainer.className = "border-b border-slate-200 dark:border-white/10 backdrop-blur-xl bg-white/80 dark:bg-[#090A0F]/80 sticky top-0 z-40";
+  headerContainer.className = "border-b border-slate-200 dark:border-white/10 backdrop-blur-xl bg-white/70 dark:bg-[#090A0F]/70 sticky top-0 z-40";
   headerContainer.innerHTML = `
     <div class="max-w-5xl mx-auto flex items-center justify-between">
       
       <!-- Logo 區塊 -->
-      <a href="index.html" class="flex items-center space-x-2.5">
+      <a href="index.html" class="flex items-center" aria-label="CLC SR 首頁">
         <div class="logo-badge shadow-sm">CLC SR</div>
-        <span class="text-sm sm:text-base font-extrabold tracking-wide text-slate-800 dark:text-white hidden xs:inline">加樂團契控台</span>
       </a>
 
       <!-- 右側動作群 -->
       <div class="flex items-center space-x-2 sm:space-x-3">
-        
+        ${getCurrentPage() === 'index' ? '<button id="installAppBtn" type="button" onclick="window.triggerPwaInstall && window.triggerPwaInstall()" class="hidden items-center px-3 py-2 rounded-xl bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 font-semibold transition active:scale-95">📲 安裝</button>' : ''}
         <!-- 使用者登入 / 狀態選單 -->
         <div class="relative">
           <button id="authActionBtn" onclick="toggleUserDropdown()" title="登入 / 使用者選單" class="header-btn bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 transition relative active:scale-95">
@@ -112,7 +121,7 @@ function renderHeaderComponent() {
           </div>
         </div>
 
-        <!-- 深淺主題切換 (高對比友善長輩) -->
+        <!-- 深淺主題切換：與 YA Header 一致 -->
         <button onclick="toggleTheme()" aria-label="切換深淺模式" class="header-btn bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 transition">
           <span class="dark:hidden">🌙</span>
           <span class="hidden dark:inline">☀️</span>

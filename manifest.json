@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "CLC SR | 加樂團契控台",
+  "short_name": "CLC SR",
+  "description": "加樂團契管理與共用工具",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090A0F",
+  "theme_color": "#007E8A",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

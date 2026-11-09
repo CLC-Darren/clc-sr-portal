@@ -10,7 +10,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CLC SR | 加樂團契控台">
   <meta name="theme-color" content="#007E8A">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/favicon.svg?v=sr-portal-v1" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -48,33 +50,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    /* 長輩友善字體設定：基準字體提高，閱讀更舒適 */
     html { font-size: 16px; }
-    @media (min-width: 1024px) { html { font-size: 18px; } }
+    @media (min-width: 1024px) { html { font-size: 19px; } }
     body {
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    
-    .single-line-btn {
-      white-space: nowrap !important;
-      word-break: keep-all !important;
-    }
-
-    /* 與社青完全一致的現代大按鈕微光效果 */
-    .portal-btn {
-      background-color: #007E8A;
-      box-shadow: 0 10px 25px -5px rgba(0, 126, 138, 0.35);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .portal-btn:hover {
-      background-color: #006C77;
-      box-shadow: 0 14px 28px -4px rgba(0, 126, 138, 0.45);
-      transform: translateY(-2px);
-    }
-    .portal-btn:active {
-      transform: scale(0.98);
     }
   </style>
 
@@ -103,74 +84,42 @@
   </script>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-slate-100 min-h-screen flex flex-col justify-between selection:bg-[#007E8A] selection:text-white">
-
-  <!-- ★ 全站共用獨立 Header 元件容器 ★ -->
   <header id="clc-header"></header>
 
-  <!-- 主視覺核心區 (完全對齊參考頁面的置中視覺、間距與排版) -->
-  <main class="max-w-4xl w-full mx-auto px-6 py-12 lg:py-20 flex-1 flex flex-col justify-center items-center text-center">
-    
-    <div class="max-w-2xl mx-auto w-full space-y-8 lg:space-y-10">
-      
-      <!-- 標題與說明文字區 -->
-      <div class="space-y-4 lg:space-y-5">
-        <p class="text-xs lg:text-sm font-bold tracking-[0.3em] text-[#007E8A] dark:text-[#00A3B4] uppercase">
-          CLC SENIOR MINISTRY
-        </p>
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
-          加樂團契控台
-        </h1>
-        <p class="text-base lg:text-xl text-slate-600 dark:text-[#8A92A6] font-normal leading-relaxed max-w-lg mx-auto">
-          加樂服事管理系統，相關功能將陸續整合。
-        </p>
+  <main class="max-w-4xl w-full mx-auto px-6 py-10 lg:py-16 flex-1 flex flex-col justify-center items-center text-center">
+    <div class="max-w-2xl mx-auto w-full space-y-6 lg:space-y-8">
+      <div class="space-y-3 lg:space-y-4">
+        <p class="text-xs lg:text-sm font-bold tracking-[0.3em] text-[#007E8A] dark:text-[#00A3B4] uppercase">CLC Senior Ministry</p>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">加樂團契控台</h1>
+        <p class="text-sm lg:text-base text-slate-600 dark:text-[#8A92A6] font-normal leading-relaxed max-w-lg mx-auto">加樂團契管理與共用工具，更多功能將陸續加入。</p>
       </div>
 
-      <!-- 核心四大功能按鈕 (2x2 對齊大觸控區，長輩容易點擊) -->
-      <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 w-full max-w-xl mx-auto">
-        
-        <!-- 按鈕 1：新朋友關懷 -->
-        <a href="intakes.html" class="portal-btn w-full flex items-center justify-center space-x-2.5 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl text-white border border-transparent whitespace-nowrap">
-          <span class="text-xl sm:text-2xl shrink-0">🌱</span>
-          <span class="text-base sm:text-lg lg:text-xl font-bold tracking-tight sm:tracking-wide">新朋友關懷</span>
+      <!-- 與 YA 首頁相同的 2 × 2 方形入口。僅歌詞工具已啟用，其他功能保留位置。 -->
+      <nav aria-label="功能選單" class="pt-2 grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[300px] sm:max-w-[390px] mx-auto">
+        <a href="hymn-lyrics.html" class="w-full aspect-square flex flex-col items-center justify-center p-3 sm:p-4 rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group" aria-label="開啟詩歌歌詞工具">
+          <span class="text-3xl sm:text-4xl mb-2 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">🎵</span>
+          <span class="text-sm sm:text-base font-extrabold tracking-tight whitespace-nowrap">詩歌歌詞下載</span>
         </a>
-
-        <!-- 按鈕 2：組員通訊錄 -->
-        <a href="members.html" class="portal-btn w-full flex items-center justify-center space-x-2.5 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl text-white border border-transparent whitespace-nowrap">
-          <span class="text-xl sm:text-2xl shrink-0">📖</span>
-          <span class="text-base sm:text-lg lg:text-xl font-bold tracking-tight sm:tracking-wide">組員通訊錄</span>
-        </a>
-
-        <!-- 按鈕 3：牧區與小組 -->
-        <a href="groups.html" class="portal-btn w-full flex items-center justify-center space-x-2.5 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl text-white border border-transparent whitespace-nowrap">
-          <span class="text-xl sm:text-2xl shrink-0">👥</span>
-          <span class="text-base sm:text-lg lg:text-xl font-bold tracking-tight sm:tracking-wide">牧區與小組</span>
-        </a>
-
-        <!-- 按鈕 4：權限管理 -->
-        <a href="admin-users.html" class="portal-btn w-full flex items-center justify-center space-x-2.5 px-4 sm:px-6 py-4 sm:py-5 rounded-2xl text-white border border-transparent whitespace-nowrap">
-          <span class="text-xl sm:text-2xl shrink-0">👤</span>
-          <span class="text-base sm:text-lg lg:text-xl font-bold tracking-tight sm:tracking-wide">權限管理</span>
-        </a>
-
+        <div aria-label="尚未開放的功能位置" class="w-full aspect-square flex flex-col items-center justify-center p-3 sm:p-4 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 cursor-default select-none">
+          <span class="text-4xl sm:text-5xl font-light leading-none" aria-hidden="true">+</span>
+        </div>
+        <div aria-label="尚未開放的功能位置" class="w-full aspect-square flex flex-col items-center justify-center p-3 sm:p-4 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 cursor-default select-none">
+          <span class="text-4xl sm:text-5xl font-light leading-none" aria-hidden="true">+</span>
+        </div>
+        <div aria-label="尚未開放的功能位置" class="w-full aspect-square flex flex-col items-center justify-center p-3 sm:p-4 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 cursor-default select-none">
+          <span class="text-4xl sm:text-5xl font-light leading-none" aria-hidden="true">+</span>
+        </div>
+      </nav>
+      <div class="pt-3 flex items-center justify-center space-x-6 text-xs text-slate-500 dark:text-[#8A92A6]">
+        <span>• 彼此關懷</span><span>• 彼此造就</span><span>• 同心服事</span>
       </div>
-
-      <!-- 最後一行字（長輩專屬暖心名言） -->
-      <div class="pt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm lg:text-base text-slate-500 dark:text-[#8A92A6] font-medium">
-        <span>• 家有一老，如有一寶！</span>
-        <span>• 長輩是教會的寶！</span>
-      </div>
-
     </div>
-
   </main>
 
-  <!-- 底部版權 Footer (完全對齊參考頁面的樣式與文字規格) -->
   <footer class="border-t border-slate-200 dark:border-white/10 py-3.5 text-center text-[10px] md:text-xs text-slate-500 dark:text-brand-muted">
     <p>© 2026 CLC Senior Ministry. Powered by Cloudflare & GitHub.</p>
   </footer>
-
-  <!-- 引入獨立共用 Header 腳本 -->
-  <script src="header.js?v=20261105-sr-layout-align"></script>
-
+  <script src="header.js?v=20261109-sr-ya-ui"></script>
+  <script src="portal-pwa.js?v=20261109"></script>
 </body>
 </html>
