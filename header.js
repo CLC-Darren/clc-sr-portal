@@ -65,16 +65,19 @@ function renderHeaderComponent() {
   const headerContainer = document.getElementById('clc-header') || document.querySelector('header');
   if (!headerContainer) return;
 
-  // 固化頂部 Header 的專屬固定樣式 (長輩友善防跑版)
+  // 與 YA 共用相同的 Header 尺寸、邊距與斷點，SR 登入及權限邏輯維持獨立。
   if (!document.getElementById('clc-header-fixed-style')) {
     const style = document.createElement('style');
     style.id = 'clc-header-fixed-style';
     style.textContent = `
       #clc-header { box-sizing: border-box !important; border-bottom-width: 1px !important; }
-      #clc-header > div { max-width: 1024px !important; height: 46px !important; min-height: 46px !important; padding: 0 14px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: space-between !important; }
-      #clc-header .logo-badge { font-size: 13.5px !important; height: 34px !important; line-height: 34px !important; padding: 0 12px !important; border-radius: 9px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; letter-spacing: .05em; }
-      #clc-header .header-btn { width: 34px !important; min-width: 34px !important; height: 34px !important; border-radius: 9px !important; font-size: 15px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; }
-      #clc-header #installAppBtn { height: 34px !important; font-size: 12px !important; padding: 0 10px !important; border-radius: 9px !important; }
+      #clc-header > div { width: 100% !important; max-width: none !important; height: 46px !important; min-height: 46px !important; padding: 0 14px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: space-between !important; }
+      #clc-header > div > a { display: flex !important; align-items: center !important; text-decoration: none !important; }
+      #clc-header .logo-badge { font-size: 13.5px !important; height: 34px !important; line-height: 34px !important; box-sizing: border-box !important; padding: 0 12px !important; border-radius: 9px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; letter-spacing: .05em; }
+      #clc-header > div > div { gap: 6px !important; display: flex !important; align-items: center !important; }
+      #clc-header > div > div > * + * { margin-left: 0 !important; }
+      #clc-header .header-btn { width: 34px !important; min-width: 34px !important; height: 34px !important; border-radius: 9px !important; font-size: 15px !important; padding: 0 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; }
+      #clc-header #installAppBtn { height: 34px !important; box-sizing: border-box !important; font-size: 12px !important; padding: 0 10px !important; border-radius: 9px !important; }
       #clc-header #userDropdown { width: 230px !important; margin-top: 8px !important; z-index: 100 !important; }
       #clc-header #userRoleTag { font-size: 11px !important; padding: 3px 8px !important; border-radius: 9999px !important; font-weight: 700 !important; }
       #clc-header #authActiveDot { width: 7px !important; height: 7px !important; top: 6px !important; right: 6px !important; }
@@ -84,13 +87,19 @@ function renderHeaderComponent() {
         #clc-header .header-btn { width: 36px !important; min-width: 36px !important; height: 36px !important; border-radius: 10px !important; font-size: 16px !important; }
         #clc-header #installAppBtn { height: 36px !important; font-size: 13px !important; padding: 0 12px !important; border-radius: 10px !important; }
       }
+      @media (min-width: 1024px) {
+        #clc-header > div { padding-left: 24px !important; padding-right: 24px !important; }
+      }
+      @media (min-width: 1440px) {
+        #clc-header > div { padding-left: 32px !important; padding-right: 32px !important; }
+      }
     `;
     document.head.appendChild(style);
   }
 
   headerContainer.className = "border-b border-slate-200 dark:border-white/10 backdrop-blur-xl bg-white/70 dark:bg-[#090A0F]/70 sticky top-0 z-40";
   headerContainer.innerHTML = `
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <div class="w-full mx-auto flex items-center justify-between">
       
       <!-- Logo 區塊 -->
       <a href="index.html" class="flex items-center" aria-label="CLC SR 首頁">
@@ -98,8 +107,7 @@ function renderHeaderComponent() {
       </a>
 
       <!-- 右側動作群 -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        ${getCurrentPage() === 'index' ? '<button id="installAppBtn" type="button" onclick="window.triggerPwaInstall && window.triggerPwaInstall()" class="hidden items-center px-3 py-2 rounded-xl bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 font-semibold transition active:scale-95">📲 安裝</button>' : ''}
+      <div class="flex items-center">
         <!-- 使用者登入 / 狀態選單 -->
         <div class="relative">
           <button id="authActionBtn" onclick="toggleUserDropdown()" title="登入 / 使用者選單" class="header-btn bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 transition relative active:scale-95">
@@ -131,6 +139,9 @@ function renderHeaderComponent() {
             </button>
           </div>
         </div>
+
+        <!-- 首頁安裝按鈕：沿用 SR 安裝狀態判斷，位置與 YA 一致。 -->
+        ${getCurrentPage() === 'index' ? '<button id="installAppBtn" type="button" onclick="window.triggerPwaInstall && window.triggerPwaInstall()" class="hidden items-center px-3.5 py-2 rounded-xl bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-white/10 text-xs sm:text-sm font-semibold transition active:scale-95"><span class="mr-1">📲</span><span class="whitespace-nowrap">安裝</span></button>' : ''}
 
         <!-- 深淺主題切換：與 YA Header 一致 -->
         <button onclick="toggleTheme()" aria-label="切換深淺模式" class="header-btn bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-300/60 dark:border-white/10 transition">
