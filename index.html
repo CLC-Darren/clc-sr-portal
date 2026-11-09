@@ -103,11 +103,11 @@
         <p class="text-sm lg:text-base text-slate-600 dark:text-[#8A92A6] font-normal leading-relaxed max-w-lg mx-auto">加樂服事管理系統，相關功能將陸續整合。</p>
       </div>
 
-      <!-- 五個原有功能入口：詩歌歌詞優先，三欄兩排；第六格與 YA 一樣留作新增功能。 -->
-      <nav aria-label="功能選單" class="pt-2 grid grid-cols-3 gap-2 sm:gap-4 w-full max-w-[350px] sm:max-w-[480px] mx-auto">
+      <!-- 首頁顯示四個業務入口與右下角虛線＋；權限管理後台仍可透過管理員選單進入。 -->
+      <nav aria-label="功能選單" class="pt-2 grid grid-cols-3 gap-2 sm:gap-4 w-full max-w-[350px] sm:max-w-[540px] mx-auto">
         <a href="hymn-lyrics.html" class="w-full aspect-square flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟詩歌歌詞下載">
           <span class="text-2xl sm:text-4xl mb-1.5 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">🎵</span>
-          <span class="text-xs sm:text-base font-extrabold tracking-tight text-center">詩歌歌詞下載</span>
+          <span class="text-[10px] min-[360px]:text-xs sm:text-base font-extrabold tracking-tight text-center whitespace-nowrap">詩歌歌詞下載</span>
         </a>
         <a href="intakes.html" class="w-full aspect-square flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟新朋友關懷">
           <span class="text-2xl sm:text-4xl mb-1.5 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">🌱</span>
@@ -121,10 +121,8 @@
           <span class="text-2xl sm:text-4xl mb-1.5 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">👥</span>
           <span class="text-xs sm:text-base font-extrabold tracking-tight text-center">牧區與小組</span>
         </a>
-        <a href="admin-users.html" class="w-full aspect-square flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟權限管理">
-          <span class="text-2xl sm:text-4xl mb-1.5 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">👤</span>
-          <span class="text-xs sm:text-base font-extrabold tracking-tight text-center">權限管理</span>
-        </a>
+        <!-- 權限管理入口暫時從首頁隱藏；保留位置，讓虛線＋仍在第二排第三格。 -->
+        <div aria-hidden="true" class="invisible"></div>
         <!-- 與 YA 首頁相同的虛線「＋」預留格：不連結尚未開發的功能 -->
         <div aria-label="預留功能位置" class="w-full aspect-square flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 select-none">
           <span class="text-4xl sm:text-5xl font-light leading-none" aria-hidden="true">+</span>
