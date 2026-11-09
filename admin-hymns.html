@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CLC YA | 歌詞管理</title>
+  <meta name="theme-color" content="#007E8A">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/favicon.svg?v=ya-pwa-fix-20261103" type="image/svg+xml">
+  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- .docx 用 JSZip；.doc 用純瀏覽器 JavaScript MS-DOC 解析器（0BSD） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Alpaq92/JSDoc@main/src/docToText.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'] },
+        colors: { brand: { teal: '#007E8A', tealHover: '#006C77', surface: '#11131B', card: '#161924', border: 'rgba(255, 255, 255, 0.1)', muted: '#8A92A6' } }
+      } }
+    }
+  </script>
+  <style>
+    html { font-size: 15px; }
+    body { -webkit-font-smoothing: antialiased; transition: background-color .3s ease, color .3s ease; font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif; }
+    #clc-header { font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif !important; font-size: 16px; }
+    /* 歌詞清單固定單行：不受 Tailwind CDN 載入狀態影響，手機可以橫向滑動。 */
+    .hymn-admin-one-row { display:flex; align-items:center; flex-wrap:nowrap; gap:8px; min-width:600px; }
+    .hymn-admin-one-row .hymn-row-title { flex:1; min-width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hymn-admin-one-row > button, .hymn-admin-one-row > select { flex-shrink:0; }
+    .hymn-admin-one-row select.field { width:92px !important; min-width:92px !important; }
+    .field { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 8px 11px; width: 100%; font-size: 13px; color: #1e293b; }
+    .dark .field { background: #11131B; border-color: rgba(255,255,255,.12); color: #e2e8f0; }
+    .field:focus { outline: none; box-shadow: 0 0 0 2px #007E8A; }
+    .field:disabled { opacity: .55; }
+    .btn { border-radius: 12px; padding: 7px 13px; font-size: 12px; font-weight: 700; transition: transform .1s; }
+    .btn:active { transform: scale(.96); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary { background: #007E8A; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #006C77; }
+    .btn-ghost { border: 1px solid #cbd5e1; color: #334155; }
+    .dark .btn-ghost { border-color: rgba(255,255,255,.14); color: #cbd5e1; }
+    .btn-danger { border: 1px solid rgba(244,63,94,.5); color: #e11d48; }
+    .chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+    .tab-on { background: #007E8A; color: #fff; }
+    .modal-bg { background: rgba(0,0,0,.72); backdrop-filter: blur(4px); }
+  </style>
+  <script>
+    (function () {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+      function savedTheme() { const v = localStorage.getItem('theme'); return v === 'light' || v === 'dark' ? v : null; }
+      function applyTheme() { const c = savedTheme(); document.documentElement.classList.toggle('dark', c ? c === 'dark' : systemTheme.matches); }
+      applyTheme();
+      const onChange = () => { if (!savedTheme()) applyTheme(); };
+      if (typeof systemTheme.addEventListener === 'function') systemTheme.addEventListener('change', onChange);
+      else if (typeof systemTheme.addListener === 'function') systemTheme.addListener(onChange);
+    })();
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-[#090A0F] dark:text-slate-100 min-h-screen flex flex-col">
+  <header id="clc-header"></header>
+
+  <main class="max-w-5xl w-full mx-auto px-3 sm:px-6 py-5 flex-1 space-y-4">
+    <div class="flex items-center justify-between gap-3">
+      <h1 class="text-lg sm:text-xl font-extrabold">🎵 歌詞管理</h1>
+      <div class="relative shrink-0">
+        <button id="hymnAdminGear" type="button" onclick="toggleHymnPageMenu()" title="歌詞頁面選單（管理員）" aria-label="歌詞頁面選單（管理員）"
+                class="w-7 h-7 rounded-lg bg-slate-200/70 hover:bg-slate-300/70 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-300/60 dark:border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button>
+      </div>
+    </div>
+
+    <div id="gate" role="status" class="rounded-2xl border border-slate-200 dark:border-brand-border bg-white dark:bg-brand-card p-4 text-sm">正在驗證管理員身分…</div>
+    <div id="viewerNote" class="hidden rounded-xl p-3 border border-sky-500/30 bg-sky-500/10 text-sm text-sky-600 dark:text-sky-300">👁️ 目前為唯讀檢視權限：可查看歌詞與設定，無法新增、修改、停用或刪除。</div>
+
+    <section id="panel" class="hidden space-y-4">
+      <div class="flex gap-2 text-sm font-bold">
+        <button id="tabBtnSongs" class="btn tab-on" onclick="HymnAdmin.showTab('songs')">🎼 歌詞清單</button>
+        <button id="tabBtnSources" class="btn btn-ghost" onclick="HymnAdmin.showTab('sources')">🔎 搜尋來源設定</button>
+      </div>
+
+      <!-- ===== 歌詞清單 ===== -->
+      <div id="tabSongs" class="space-y-3">
+        <div id="syncBox" class="text-xs rounded-xl p-2.5 border border-slate-200 dark:border-brand-border bg-white dark:bg-brand-card"></div>
+        <div class="rounded-2xl border border-slate-200 dark:border-brand-border bg-white dark:bg-brand-card p-3 space-y-3">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="fSearch" class="field sm:flex-1" placeholder="搜尋歌名、英文歌名、別名…" autocomplete="off">
+            <select id="fCategory" class="field sm:w-36"><option value="">全部分類</option></select>
+            <select id="fStatus" class="field sm:w-32"><option value="">全部狀態</option><option value="on">啟用中</option><option value="off">已停用</option></select>
+            <select id="fSource" class="field sm:w-36"><option value="">全部來源</option><option value="static">靜態原始</option><option value="override">靜態＋已覆寫</option><option value="custom">後台新增</option></select>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div id="songCount" class="text-xs text-slate-500 dark:text-slate-400"></div>
+            <div class="flex gap-2">
+              <button id="btnRebuild" class="btn btn-ghost" onclick="HymnAdmin.rebuildIndex()" title="從 Firestore 歌曲重新產生前台搜尋索引">🛠️ 重建搜尋索引</button>
+              <button id="btnNew" class="btn btn-primary" onclick="HymnAdmin.openEditor(null)">＋ 新增歌詞</button>
+            </div>
+          </div>
+          <div id="listStatus" role="status" class="text-xs text-slate-500 dark:text-slate-400"></div>
+        </div>
+        <!-- V3：多個 Word 直接拖曳，檢查後才真正寫入 Firestore；不接收 ZIP -->
+        <section id="bulkArea" class="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-brand-card p-3 space-y-2">
+          <div id="bulkDrop" role="button" tabindex="0" aria-label="拖曳或選取多個 Word 檔案"
+               class="rounded-xl border-2 border-dashed border-teal-500/35 hover:border-teal-500/70 p-3 text-center text-xs cursor-pointer transition-colors">
+            <b>📄 多首歌詞匯入</b>　拖曳多個 Word 檔到此，或 <span class="text-teal-600 dark:text-teal-300 underline">點選檔案</span>
+            <div class="text-[11px] text-slate-500 mt-1">支援 .docx／.doc，可多選；先檢查同名與備註，確認後才儲存。不支援 ZIP。</div>
+          </div>
+          <input id="bulkFiles" type="file" accept=".docx,.doc" multiple class="hidden">
+          <div id="bulkPanel" class="hidden space-y-2">
+            <div id="bulkStatus" class="text-xs text-slate-600 dark:text-slate-300" role="status"></div>
+            <div id="bulkRows" class="space-y-2 max-h-[34rem] overflow-y-auto"></div>
+            <div class="flex flex-wrap justify-end gap-2">
+              <button id="bulkClear" type="button" class="btn btn-ghost">清除清單</button>
+              <button id="bulkSave" type="button" class="btn btn-primary">匯入新增／已確認覆蓋歌曲</button>
+            </div>
+          </div>
+        </section>
+        <div id="songList" class="space-y-2 overflow-x-auto"></div>
+        <div class="flex items-center justify-center gap-3 text-xs">
+          <button id="pgPrev" class="btn btn-ghost" onclick="HymnAdmin.page(-1)">上一頁</button>
+          <span id="pgInfo" class="text-slate-500"></span>
+          <button id="pgNext" class="btn btn-ghost" onclick="HymnAdmin.page(1)">下一頁</button>
+        </div>
+      </div>
+
+      <!-- ===== 搜尋來源設定 ===== -->
+      <div id="tabSources" class="hidden space-y-3">
+        <div class="rounded-2xl border border-slate-200 dark:border-brand-border bg-white dark:bg-brand-card p-4 space-y-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p><b>搜尋順序：</b>歌詞頁會先查「教會歌詞庫」，再依下方順序查詢其他來源。</p>
+          <p><b>🟢 自動搜尋：</b>只有內建並已驗證的解析器（台灣聖經網、讚美之泉）能自動擷取歌詞。修改它們的網址只會改變頁面上的連結，不會改變解析器抓取的位置。</p>
+          <p><b>🟠 連結搜尋：</b>您新增的任何網站都屬於連結搜尋，只會帶入歌名開啟外部網頁，<u>不會</u>自動取得歌詞，也不會由伺服器抓取（避免 SSRF）。網址可用 <code class="px-1 rounded bg-slate-200 dark:bg-white/10">{q}</code> 代表歌名，例如 https://example.com/search?q={q}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 dark:border-brand-border bg-white dark:bg-brand-card p-3 space-y-2">
+          <div class="flex items-center gap-2 rounded-xl border border-teal-500/40 bg-teal-500/10 p-3">
+            <span class="text-base">🔒</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-sm">第 1 順位：教會歌詞庫（Firestore 後台最新版 ＋ 靜態歌詞庫）</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">固定第一順位：不可移動、停用、刪除或被取代。</div>
+            </div>
+            <span class="chip bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">自動搜尋</span>
+          </div>
+          <div id="sourceRows" class="space-y-2"></div>
+          <div id="sourceStatus" role="status" class="text-xs text-slate-500 dark:text-slate-400"></div>
+          <div class="flex flex-wrap gap-2 justify-between pt-1">
+            <div class="flex gap-2">
+              <button id="btnAddSource" class="btn btn-ghost" onclick="HymnAdmin.addSource()">＋ 新增來源</button>
+              <button id="btnRestoreSources" class="btn btn-ghost" onclick="HymnAdmin.restoreDefaultSources()">還原內建來源</button>
+            </div>
+            <button id="btnSaveSources" class="btn btn-primary" onclick="HymnAdmin.saveSources()">💾 儲存來源設定</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== 歌詞編輯器 ===== -->
+  <div id="editorModal" class="hidden fixed inset-0 z-50 modal-bg overflow-y-auto p-3 sm:p-6">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-brand-surface border border-slate-200 dark:border-brand-border rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h2 id="edTitle" class="font-extrabold text-base">新增歌詞</h2>
+        <button class="text-xl text-slate-400 hover:text-slate-600" onclick="HymnAdmin.closeEditor()" aria-label="關閉">✕</button>
+      </div>
+      <div id="edNote" class="hidden text-xs rounded-xl p-2.5 border border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"></div>
+      <div id="edModeBar" class="flex gap-2 text-xs">
+        <button id="modeText" class="btn tab-on" onclick="HymnAdmin.setMode('text')">✍️ 直接輸入文字</button>
+        <button id="modeWord" class="btn btn-ghost" onclick="HymnAdmin.setMode('word')">📄 上傳 Word（.docx）</button>
+      </div>
+      <div id="wordBox" class="hidden rounded-xl border border-dashed border-slate-300 dark:border-white/20 p-3 text-xs space-y-2">
+        <input id="wordFile" type="file" accept=".docx,.doc,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="text-xs">
+        <p class="text-slate-500 dark:text-slate-400">支援 .docx 與傳統 .doc；檔案在瀏覽器端解析，文字會先顯示預覽，確認後才儲存。僅圖片的 Word 仍需手動輸入。</p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="text-xs font-bold block">歌名<input id="edName" class="field mt-1" maxlength="100"></label>
+        <label class="text-xs font-bold block">分類
+          <div class="flex gap-2 mt-1"><select id="edCat" class="field"></select><input id="edCatOther" class="field hidden" placeholder="自訂分類" maxlength="20"></div>
+        </label>
+      </div>
+      <label class="text-xs font-bold block">英文歌名／其他別名（逗號或換行分隔，最多 20 個）<textarea id="edAliases" rows="2" class="field mt-1"></textarea></label>
+      <label class="text-xs font-bold block">版本備註（如「台語版」「CLC版」；同名歌曲必填且不可重複）<input id="edVersionNote" class="field mt-1" maxlength="80" placeholder="可留空；若與其他歌曲同名則必填"></label>
+      <div class="grid lg:grid-cols-2 gap-3">
+        <label class="text-xs font-bold block">歌詞全文（段落標籤獨立一行：Verse / Chorus / Bridge，可寫 Verse 1、Verse 2）
+          <textarea id="edLyrics" rows="16" class="field mt-1 font-mono leading-relaxed" spellcheck="false"></textarea>
+        </label>
+        <div>
+          <div class="text-xs font-bold mb-1">儲存前預覽</div>
+          <div id="edPreview" class="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-3 text-center text-sm space-y-3 max-h-[26rem] overflow-y-auto"></div>
+        </div>
+      </div>
+      <div id="edIssues" class="space-y-1 text-xs" role="status" aria-live="polite"></div>
+      <label class="flex items-center gap-2 text-xs font-bold"><input id="edActive" type="checkbox" checked class="accent-[#007E8A]">啟用（取消勾選＝前台搜尋不到）</label>
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" onclick="HymnAdmin.tidy()">整理格式</button>
+          <button class="btn btn-ghost" onclick="HymnAdmin.dedupe()">移除重複段落</button>
+          <button id="btnHistory" class="btn btn-ghost hidden" onclick="HymnAdmin.openHistory()">🕘 修改紀錄</button>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" onclick="HymnAdmin.closeEditor()">取消</button>
+          <button id="edSave" class="btn btn-primary" onclick="HymnAdmin.save()">💾 儲存</button>
+        </div>
+      </div>
+      <div id="edError" role="alert" class="hidden text-xs rounded-xl p-2.5 border border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400"></div>
+    </div>
+  </div>
+
+  <!-- ===== 修改紀錄 ===== -->
+  <div id="historyModal" class="hidden fixed inset-0 z-[60] modal-bg overflow-y-auto p-3 sm:p-6">
+    <div class="max-w-2xl mx-auto bg-white dark:bg-brand-surface border border-slate-200 dark:border-brand-border rounded-2xl p-4 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between"><h2 class="font-extrabold text-base">🕘 修改紀錄</h2><button class="text-xl text-slate-400" onclick="HymnAdmin.closeHistory()" aria-label="關閉">✕</button></div>
+      <div id="historyBody" class="space-y-2 text-xs"></div>
+    </div>
+  </div>
+
+  <script src="header.js?v=20261109-hymn-nav"></script>
+  <script src="js/hymn-core.js?v=20261108"></script>
+  <script src="js/hymn-admin.js?v=20261109-safe-overwrite"></script>
+</body>
+</html>
