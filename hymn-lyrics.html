@@ -29,6 +29,15 @@
   <script>
     (function(){const media=window.matchMedia('(prefers-color-scheme: dark)'); const saved=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&media.matches));})();
   </script>
+  <!-- SR 共用 Header 全寬：只調整容器，不修改登入或 Firebase 邏輯。 -->
+  <style id="sr-header-full-width">
+    html body #clc-header > div {
+      width: 100% !important;
+      max-width: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+  </style>
 </head>
 <body>
   <div class="frame-shell">

@@ -28,6 +28,15 @@
     .btn-danger{color:#f87171;border-color:rgba(244,63,94,.5)}
     html:not(.dark) .btn-danger{color:#be123c}
   </style>
+  <!-- SR 共用 Header 全寬：只調整容器，不修改登入或 Firebase 邏輯。 -->
+  <style id="sr-header-full-width">
+    html body #clc-header > div {
+      width: 100% !important;
+      max-width: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-slate-100">
   <header id="clc-header"></header>

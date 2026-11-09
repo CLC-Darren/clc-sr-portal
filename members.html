@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>html{font-family:'Plus Jakarta Sans','Noto Sans TC',sans-serif}body{margin:0}</style>
 <script>(function(){const saved=localStorage.getItem('theme');const m=matchMedia('(prefers-color-scheme:dark)');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&m.matches))})();</script>
+  <!-- SR 共用 Header 全寬：只調整容器，不修改登入或 Firebase 邏輯。 -->
+  <style id="sr-header-full-width">
+    html body #clc-header > div {
+      width: 100% !important;
+      max-width: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-white">
 <header id="clc-header"></header>
