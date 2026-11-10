@@ -2,7 +2,8 @@
 (function () {
   'use strict';
 
-  const MAX_SIZE = 10 * 1024 * 1024;
+  // 放寬至 50 MB
+  const MAX_SIZE = 50 * 1024 * 1024;
   const VIDEO_PATH = '/home-background.mp4';
   const DEFAULT = Object.freeze({ enabled: false, videoUrl: '', storagePath: '', overlayOpacity: 0.79 });
 
@@ -61,15 +62,30 @@
         <button type="button" data-home-action="close" aria-label="取消編輯並關閉">×</button>
       </div>
       <p class="home-appearance-hint">直接預覽首頁，儲存後才會套用給所有人。</p>
-      <label class="home-appearance-field home-appearance-check"><input type="checkbox" data-home-enabled> 啟用背景影片</label>
-      <label class="home-appearance-field">背景影片
-        <input type="file" accept="video/mp4,.mp4" data-home-file>
-        <span class="home-appearance-hint" data-home-filename>尚未設定影片</span>
+      
+      <label class="home-appearance-field home-appearance-check">
+        <input type="checkbox" data-home-enabled> 啟用背景影片
       </label>
-      <p class="home-appearance-hint">MP4，最多 10 MB、30 秒。影片會靜音循環播放；建議使用 720p 的短片。</p>
-      <label class="home-appearance-field" for="homeAppearanceOpacity">黑色遮罩深淺 <output id="homeAppearanceOpacityValue" for="homeAppearanceOpacity">79%</output>
+
+      <!-- 方式一：上傳檔案 -->
+      <label class="home-appearance-field">上傳背景影片檔案
+        <input type="file" accept="video/mp4,.mp4" data-home-file>
+        <span class="home-appearance-hint" data-home-filename>尚未選擇新影片檔案</span>
+      </label>
+
+      <!-- 方式二：網路串流超連結 -->
+      <label class="home-appearance-field">或輸入網路影片網址 (URL)
+        <input type="url" data-home-url placeholder="https://example.com/video.mp4" spellcheck="false">
+        <span class="home-appearance-hint">支援直連 MP4、WebM 或 CDN 串流連結。</span>
+      </label>
+
+      <p class="home-appearance-hint">檔案最多 50 MB；影片會靜音循環播放。</p>
+
+      <label class="home-appearance-field" for="homeAppearanceOpacity">
+        黑色遮罩深淺 <output id="homeAppearanceOpacityValue" for="homeAppearanceOpacity">79%</output>
         <input id="homeAppearanceOpacity" type="range" min="0" max="95" step="1" value="79" data-home-opacity>
       </label>
+
       <progress data-home-progress max="100" value="0" hidden aria-label="影片上傳進度"></progress>
       <div class="home-appearance-actions">
         <button type="button" data-home-action="reset">恢復預設</button>
@@ -81,13 +97,13 @@
 
     const enabledInput = panel.querySelector('[data-home-enabled]');
     const fileInput = panel.querySelector('[data-home-file]');
+    const urlInput = panel.querySelector('[data-home-url]');
     const opacityInput = panel.querySelector('[data-home-opacity]');
     const opacityValue = panel.querySelector('output');
     const filename = panel.querySelector('[data-home-filename]');
     const status = panel.querySelector('[data-home-status]');
     const saveButton = panel.querySelector('[data-home-action="save"]');
 
-    // 依需求：SR 權限尚未建立前，預設直接開放使用
     function authorized() {
       return true;
     }
@@ -158,7 +174,7 @@
       video.addEventListener('error', () => {
         if (version !== playbackVersion) return;
         hideBackground();
-        if (editing) statusText('此裝置目前無法播放影片，首頁會保留原本背景。', true);
+        if (editing) statusText('無法播放此影片網址，請確認連結是否允許跨域或格式正確。', true);
       });
       video.src = source;
       background.insertBefore(video, shade);
@@ -168,14 +184,24 @@
       }
     }
 
-    function renderDraft() { applyAppearance(draft, previewUrl || draft.videoUrl || VIDEO_PATH); }
+    function renderDraft() {
+      applyAppearance(draft, previewUrl || draft.videoUrl || VIDEO_PATH);
+    }
 
     function updateControls() {
       enabledInput.checked = draft.enabled;
       opacityInput.value = String(Math.round(draft.overlayOpacity * 100));
       opacityValue.value = opacityInput.value + '%';
       opacityValue.textContent = opacityInput.value + '%';
-      filename.textContent = pendingFile ? pendingFile.name + '（儲存時自動上傳）' : (draft.videoUrl ? '已設定背景影片' : '尚未設定影片');
+
+      if (!pendingFile && draft.videoUrl && !draft.videoUrl.startsWith('/home-background')) {
+        urlInput.value = draft.videoUrl;
+      }
+
+      filename.textContent = pendingFile
+        ? pendingFile.name + '（儲存時自動上傳）'
+        : (draft.videoUrl ? '目前設定：' + (draft.videoUrl.startsWith('http') ? '自訂網路網址' : '儲存庫影片') : '尚未設定影片');
+
       panel.querySelectorAll('input, [data-home-action="reset"]').forEach(el => { el.disabled = busy; });
       saveButton.disabled = busy || validating;
     }
@@ -249,15 +275,24 @@
       const version = ++operationVersion;
       busy = true;
       committing = true;
-      statusText(pendingFile ? '正在把影片上傳至 GitHub…' : '正在儲存設定…');
+      statusText(pendingFile ? '正在把 50MB 內影片上傳至 GitHub…' : '正在儲存設定…');
       updateControls();
       try {
         const next = { ...draft };
+        
+        // 若使用者選了本地檔案，優先上傳檔案
         if (pendingFile) {
           await uploadVideoToGitHub(pendingFile);
           next.videoUrl = VIDEO_PATH + '?v=' + Date.now();
           next.enabled = true;
+        } else {
+          // 若有輸入 URL 則採用 URL
+          const customUrl = (urlInput.value || '').trim();
+          if (customUrl) {
+            next.videoUrl = customUrl;
+          }
         }
+
         if (settingsRef) {
           await settingsRef.set({
             enabled: next.enabled,
@@ -284,16 +319,28 @@
       const file = fileInput.files && fileInput.files[0];
       if (!file) return;
       if (file.size > MAX_SIZE) {
-        statusText('請選擇不超過 10 MB 的 MP4 影片。', true);
+        statusText('請選擇不超過 50 MB 的 MP4 影片。', true);
         fileInput.value = '';
         return;
       }
       pendingFile = file;
+      urlInput.value = ''; // 清空 URL 輸入
       previewUrl = URL.createObjectURL(file);
       draft.enabled = true;
       renderDraft();
       updateControls();
     }
+
+    // 監聽超連結網址輸入
+    urlInput.addEventListener('input', () => {
+      const val = urlInput.value.trim();
+      if (val) {
+        clearPreviewFile();
+        draft.videoUrl = val;
+        draft.enabled = true;
+      }
+      renderDraft();
+    });
 
     editButton.addEventListener('click', () => { if (editing) closeEditor(); else openEditor(); });
     fileInput.addEventListener('change', chooseFile);
@@ -312,13 +359,14 @@
       if (action === 'save') saveAppearance();
       if (action === 'reset') {
         draft = { ...DEFAULT };
+        urlInput.value = '';
         renderDraft();
         clearPreviewFile();
         updateControls();
       }
     });
 
-    // 初始設定讀取
+    // 載入初始設定
     const local = localStorage.getItem('clc_sr_home_appearance');
     if (local) {
       try { saved = normalize(JSON.parse(local)); applyAppearance(saved); } catch (_) {}
