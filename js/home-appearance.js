@@ -4,7 +4,12 @@
 
   // 放寬至 50 MB
   const MAX_SIZE = 50 * 1024 * 1024;
-  const VIDEO_PATH = '/home-background.mp4';
+  // 目標存放在 clc-assets 倉庫下的 video/sr/home-background.mp4
+  const GITHUB_OWNER = 'CLC-Darren';
+  const GITHUB_REPO = 'clc-assets';
+  const GITHUB_BRANCH = 'main';
+  const ASSETS_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/video/sr/home-background.mp4`;
+
   const DEFAULT = Object.freeze({ enabled: false, videoUrl: '', storagePath: '', overlayOpacity: 0.79 });
 
   function start() {
@@ -67,7 +72,7 @@
         <input type="checkbox" data-home-enabled> 啟用背景影片
       </label>
 
-      <!-- 方式一：上傳檔案 -->
+      <!-- 方式一：上傳檔案至 clc-assets/video/sr -->
       <label class="home-appearance-field">上傳背景影片檔案
         <input type="file" accept="video/mp4,.mp4" data-home-file>
         <span class="home-appearance-hint" data-home-filename>尚未選擇新影片檔案</span>
@@ -119,7 +124,7 @@
         ? Math.min(1, Math.max(0, value.overlayOpacity)) : DEFAULT.overlayOpacity;
       return {
         enabled: value.enabled === true,
-        videoUrl: value.videoUrl || (value.enabled ? VIDEO_PATH : ''),
+        videoUrl: value.videoUrl || (value.enabled ? ASSETS_RAW_URL : ''),
         storagePath: '',
         overlayOpacity: opacity
       };
@@ -185,7 +190,7 @@
     }
 
     function renderDraft() {
-      applyAppearance(draft, previewUrl || draft.videoUrl || VIDEO_PATH);
+      applyAppearance(draft, previewUrl || draft.videoUrl || ASSETS_RAW_URL);
     }
 
     function updateControls() {
@@ -194,13 +199,13 @@
       opacityValue.value = opacityInput.value + '%';
       opacityValue.textContent = opacityInput.value + '%';
 
-      if (!pendingFile && draft.videoUrl && !draft.videoUrl.startsWith('/home-background')) {
+      if (!pendingFile && draft.videoUrl && !draft.videoUrl.includes('clc-assets')) {
         urlInput.value = draft.videoUrl;
       }
 
       filename.textContent = pendingFile
         ? pendingFile.name + '（儲存時自動上傳）'
-        : (draft.videoUrl ? '目前設定：' + (draft.videoUrl.startsWith('http') ? '自訂網路網址' : '儲存庫影片') : '尚未設定影片');
+        : (draft.videoUrl ? '目前設定：' + (draft.videoUrl.includes('clc-assets') ? 'clc-assets/video/sr' : '自訂網路網址') : '尚未設定影片');
 
       panel.querySelectorAll('input, [data-home-action="reset"]').forEach(el => { el.disabled = busy; });
       saveButton.disabled = busy || validating;
@@ -275,18 +280,17 @@
       const version = ++operationVersion;
       busy = true;
       committing = true;
-      statusText(pendingFile ? '正在把 50MB 內影片上傳至 GitHub…' : '正在儲存設定…');
+      statusText(pendingFile ? '正在把影片上傳至 clc-assets/video/sr…' : '正在儲存設定…');
       updateControls();
       try {
         const next = { ...draft };
         
-        // 若使用者選了本地檔案，優先上傳檔案
         if (pendingFile) {
           await uploadVideoToGitHub(pendingFile);
-          next.videoUrl = VIDEO_PATH + '?v=' + Date.now();
+          // 上傳至 clc-assets/video/sr 後，存取連結指向該 Raw 網址並加入 timestamp 防止快取
+          next.videoUrl = ASSETS_RAW_URL + '?v=' + Date.now();
           next.enabled = true;
         } else {
-          // 若有輸入 URL 則採用 URL
           const customUrl = (urlInput.value || '').trim();
           if (customUrl) {
             next.videoUrl = customUrl;
@@ -324,14 +328,13 @@
         return;
       }
       pendingFile = file;
-      urlInput.value = ''; // 清空 URL 輸入
+      urlInput.value = '';
       previewUrl = URL.createObjectURL(file);
       draft.enabled = true;
       renderDraft();
       updateControls();
     }
 
-    // 監聽超連結網址輸入
     urlInput.addEventListener('input', () => {
       const val = urlInput.value.trim();
       if (val) {
