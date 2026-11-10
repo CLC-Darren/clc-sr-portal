@@ -11,6 +11,7 @@
   overflow: hidden;
 }
 
+/* 本地 MP4 滿版樣式 */
 #homeAppearanceBackground video {
   position: absolute;
   top: 50%;
@@ -29,12 +30,34 @@
   opacity: 1;
 }
 
+/* YouTube 滿版樣式：等比例放大至 130% 並置中，將 YouTube Logo 與控制項擠到可視範圍外 */
+#homeAppearanceBackground iframe.home-appearance-youtube-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130vw;
+  height: 73.125vw; /* 130 * 9 / 16 (16:9 比例) */
+  min-height: 130vh;
+  min-width: 231.11vh; /* 130 * 16 / 9 (16:9 比例) */
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* 穿透滑鼠，不影響網頁按鈕與操作 */
+  border: none;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  z-index: 0;
+}
+
+#homeAppearanceBackground[data-playing="true"] iframe.home-appearance-youtube-frame {
+  opacity: 1;
+}
+
 .home-appearance-shade {
   position: absolute;
   inset: 0;
   background-color: #000;
   opacity: var(--home-overlay-opacity, 0.79);
   transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
 /* 確保主要內容浮在影片上方 */
