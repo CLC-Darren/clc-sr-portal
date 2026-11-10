@@ -108,6 +108,11 @@ service cloud.firestore {
       allow create: if isActiveWorker();
       allow update, delete: if isAdmin();
     }
+    // 首頁外觀設定（背景影片）：所有人可讀，僅 Admin 可寫
+    match /system_config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     match /statusOptions/{docId} {
       allow read: if isActiveWorker();
       allow write: if isAdmin();

@@ -123,8 +123,16 @@
     const saveButton = panel.querySelector('[data-home-action="save"]');
 
     function authorized() {
-      return true;
+      return window.isAdmin === true;
     }
+
+    // 只有管理員看得到編輯按鈕；登入狀態改變時更新
+    function syncEditAccess() {
+      const ok = authorized();
+      editButton.hidden = !ok;
+      if (!ok && editing) closeEditor(false);
+    }
+    window.addEventListener('clc-auth-ready', syncEditAccess);
 
     function statusText(message, error = false) {
       status.textContent = message;
@@ -283,6 +291,7 @@
     }
 
     function openEditor() {
+      if (!authorized()) return;
       originalFocus = document.activeElement;
       editing = true;
       draft = { ...saved };
@@ -331,6 +340,7 @@
     }
 
     async function saveAppearance() {
+      if (!authorized()) { statusText('只有管理員可以儲存首頁設定。', true); return; }
       if (!editing || busy || validating) return;
       const version = ++operationVersion;
       busy = true;
@@ -338,6 +348,9 @@
       statusText(pendingFile ? '正在把影片上傳至 clc-assets/videos/sr…' : '正在儲存設定…');
       updateControls();
       try {
+        if (!settingsRef) {
+          throw new Error('Firebase 尚未設定完成，設定只會存在本機，其他人看不到。請先在 header.js 填入 Firebase 設定。');
+        }
         const next = { ...draft };
         
         if (pendingFile) {
@@ -351,7 +364,7 @@
           }
         }
 
-        if (settingsRef) {
+        {
           await settingsRef.set({
             enabled: next.enabled,
             videoUrl: next.videoUrl,
@@ -440,6 +453,8 @@
       }
     });
 
+    syncEditAccess();
+
     // 載入初始設定
     const local = localStorage.getItem('clc_sr_home_appearance');
     if (local) {
@@ -452,8 +467,11 @@
           loaded = true;
           applyAppearance(saved);
         }
-      }).catch(() => {});
+      }).catch(err => {
+        console.error('[home-appearance] 讀取 system_config/home_appearance 失敗（請檢查 Firestore 規則）:', err);
+      });
     } else {
+      console.warn('[home-appearance] Firebase 未初始化，首頁背景設定只能讀取本機 localStorage。');
       loaded = true;
     }
   }

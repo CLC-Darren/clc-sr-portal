@@ -9,12 +9,13 @@
 
 // ★ 請在此填入加樂團契專屬 Firebase 專案設定 ★
 window.firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
+  apiKey: "AIzaSyDq4QVCPxV9RHC0ciWSJgrZ9QnOsKK4B9w",
   authDomain: "clc-sr-portal.firebaseapp.com",
   projectId: "clc-sr-portal",
   storageBucket: "clc-sr-portal.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  messagingSenderId: "670007709518",
+  appId: "1:670007709518:web:63373def384af0dd55981f",
+  measurementId: "G-NVTHJLBT53"
 };
 
 // 初始管理員白名單 (可登入直接進入後台開通其他同工)
