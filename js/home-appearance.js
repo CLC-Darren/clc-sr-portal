@@ -90,16 +90,10 @@
       <!-- 方式二：網路串流或 YouTube 超連結 -->
       <label class="home-appearance-field">或輸入網路影片 / YouTube 網址
         <input type="url" data-home-url placeholder="支援 YouTube 連結或 MP4 網址" spellcheck="false">
-        <div class="home-appearance-url-status-wrap">
-          <span class="home-appearance-hint" data-home-urlhint>支援 YouTube 網址、直連 MP4、WebM 或 CDN 串流。</span>
-          <button type="button" class="home-appearance-copy-btn" data-home-action="copy-url" hidden>
-            <span>複製目前影片連結</span>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-            </svg>
-          </button>
-        </div>
+        <span class="home-appearance-hint">
+          支援 YouTube 網址、直連 MP4。
+          <button type="button" data-home-action="copy-url" style="background:none;border:none;padding:0;margin:0;color:#38bdf8;font:inherit;cursor:pointer;text-decoration:underline;" hidden>複製目前背景連結</button>
+        </span>
       </label>
 
       <p class="home-appearance-hint">檔案最多 50 MB；影片會靜音循環播放。</p>
@@ -124,7 +118,6 @@
     const opacityInput = panel.querySelector('[data-home-opacity]');
     const opacityValue = panel.querySelector('output');
     const filename = panel.querySelector('[data-home-filename]');
-    const urlHint = panel.querySelector('[data-home-urlhint]');
     const copyBtn = panel.querySelector('[data-home-action="copy-url"]');
     const status = panel.querySelector('[data-home-status]');
     const saveButton = panel.querySelector('[data-home-action="save"]');
@@ -190,6 +183,7 @@
         iframe.className = 'home-appearance-youtube-frame';
         iframe.setAttribute('aria-hidden', 'true');
         iframe.tabIndex = -1;
+        // 隱藏控制項 (controls=0)、隱藏 Logo 與資訊 (modestbranding=1, showinfo=0, rel=0)、完全靜音循環
         iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0`;
         iframe.allow = 'autoplay; encrypted-media';
         iframe.onload = () => {
@@ -245,7 +239,6 @@
       const isAssetRepo = draft.videoUrl && draft.videoUrl.includes('clc-assets');
       const isCustomUrl = draft.videoUrl && !isAssetRepo;
 
-      // 檔案狀態文字
       if (pendingFile) {
         filename.textContent = pendingFile.name + '（儲存時自動上傳）';
       } else if (isAssetRepo) {
@@ -254,13 +247,11 @@
         filename.textContent = '尚未選擇新影片檔案';
       }
 
-      // 網址狀態：若目前為自訂連結，隱藏說明文字並顯示「複製目前影片連結」按鈕
+      // 控制複製按鈕顯示
       if (isCustomUrl) {
-        urlHint.hidden = true;
         copyBtn.hidden = false;
         copyBtn.dataset.url = draft.videoUrl;
       } else {
-        urlHint.hidden = false;
         copyBtn.hidden = true;
         copyBtn.removeAttribute('data-url');
       }
@@ -285,6 +276,7 @@
       busy = false;
       panel.hidden = true;
       editButton.setAttribute('aria-expanded', 'false');
+      // 取消/關閉編輯時，完全還原回上次儲存的狀態
       applyAppearance(saved);
       clearPreviewFile();
       if (returnFocus) editButton.focus();
@@ -297,11 +289,11 @@
       panel.hidden = false;
       editButton.setAttribute('aria-expanded', 'true');
       statusText('調整會立即預覽，按「儲存套用」才會發布。');
-
-      // 每次打開時輸入框保持清空乾淨
+      
+      // 打開面板時清空網址輸入框
       urlInput.value = '';
       clearPreviewFile();
-
+      
       updateControls();
       renderDraft();
       enabledInput.focus();
@@ -397,6 +389,7 @@
       updateControls();
     }
 
+    // 即時偵測輸入（包含貼上整串帶有播放清單的 YouTube 網址）
     urlInput.addEventListener('input', () => {
       const val = urlInput.value.trim();
       clearPreviewFile();
@@ -438,10 +431,9 @@
         if (!link) return;
         try {
           await navigator.clipboard.writeText(link);
-          const label = copyBtn.querySelector('span');
-          const original = label.textContent;
-          label.textContent = '已複製！';
-          setTimeout(() => { label.textContent = original; }, 2000);
+          const original = copyBtn.textContent;
+          copyBtn.textContent = '已複製！';
+          setTimeout(() => { copyBtn.textContent = original; }, 2000);
         } catch (_) {
           statusText('複製失敗，請手動複製。', true);
         }
