@@ -16,7 +16,6 @@
   function parseYouTubeId(url) {
     if (!url || typeof url !== 'string') return null;
     const cleanUrl = url.trim();
-    // 匹配 youtu.be/ID 或 youtube.com/watch?v=ID 或 youtube.com/embed/ID
     const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
     const match = cleanUrl.match(regExp);
     return match ? match[1] : null;
@@ -149,7 +148,7 @@
       playbackVersion++;
       hideBackground();
       if (activePlayer) {
-        if (activePlayer.tagName.toLowerCase() === 'video') {
+        if (activePlayer.tagName && activePlayer.tagName.toLowerCase() === 'video') {
           activePlayer.pause();
           activePlayer.removeAttribute('src');
           activePlayer.load();
@@ -180,12 +179,8 @@
         iframe.className = 'home-appearance-youtube-frame';
         iframe.setAttribute('aria-hidden', 'true');
         iframe.tabIndex = -1;
-        // 關鍵參數設定：
-        // mute=1 自動播放必須靜音
-        // autoplay=1 自動播放
-        // loop=1 循環播放
-        // playlist=ytId 必須綁定自己的 ID 才能無限循環播放，並避免被 &list 官方電台參數干擾
-        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&enablejsapi=1`;
+        // 隱藏控制項 (controls=0)、隱藏 Logo 與資訊 (modestbranding=1, showinfo=0, rel=0)、完全靜音循環
+        iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0`;
         iframe.allow = 'autoplay; encrypted-media';
         iframe.onload = () => {
           if (version !== playbackVersion) return;
@@ -265,6 +260,7 @@
       busy = false;
       panel.hidden = true;
       editButton.setAttribute('aria-expanded', 'false');
+      // 取消/關閉編輯時，完全還原回上次儲存的狀態
       applyAppearance(saved);
       clearPreviewFile();
       if (returnFocus) editButton.focus();
@@ -375,10 +371,11 @@
     // 即時偵測輸入（包含貼上整串帶有播放清單的 YouTube 網址）
     urlInput.addEventListener('input', () => {
       const val = urlInput.value.trim();
+      clearPreviewFile();
+      draft.videoUrl = val;
       if (val) {
-        clearPreviewFile();
-        draft.videoUrl = val;
         draft.enabled = true;
+        enabledInput.checked = true;
       }
       renderDraft();
     });
