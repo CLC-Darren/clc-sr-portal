@@ -90,7 +90,7 @@
       <!-- 方式二：網路串流或 YouTube 超連結 -->
       <label class="home-appearance-field">或輸入網路影片 / YouTube 網址
         <input type="url" data-home-url placeholder="支援 YouTube 連結或 MP4 網址" spellcheck="false">
-        <span class="home-appearance-hint">支援 YouTube 網址、直連 MP4、WebM 或 CDN 串流。</span>
+        <span class="home-appearance-hint" data-home-urlstatus>支援 YouTube 網址、直連 MP4、WebM 或 CDN 串流。</span>
       </label>
 
       <p class="home-appearance-hint">檔案最多 50 MB；影片會靜音循環播放。</p>
@@ -115,6 +115,7 @@
     const opacityInput = panel.querySelector('[data-home-opacity]');
     const opacityValue = panel.querySelector('output');
     const filename = panel.querySelector('[data-home-filename]');
+    const urlStatus = panel.querySelector('[data-home-urlstatus]');
     const status = panel.querySelector('[data-home-status]');
     const saveButton = panel.querySelector('[data-home-action="save"]');
 
@@ -232,13 +233,26 @@
       opacityValue.value = opacityInput.value + '%';
       opacityValue.textContent = opacityInput.value + '%';
 
-      if (!pendingFile && draft.videoUrl && !draft.videoUrl.includes('clc-assets')) {
-        urlInput.value = draft.videoUrl;
+      const isAssetRepo = draft.videoUrl && draft.videoUrl.includes('clc-assets');
+      const isCustomUrl = draft.videoUrl && !isAssetRepo;
+
+      // 檔案狀態文字
+      if (pendingFile) {
+        filename.textContent = pendingFile.name + '（儲存時自動上傳）';
+      } else if (isAssetRepo) {
+        filename.textContent = '目前設定：clc-assets/videos/sr';
+      } else {
+        filename.textContent = '尚未選擇新影片檔案';
       }
 
-      filename.textContent = pendingFile
-        ? pendingFile.name + '（儲存時自動上傳）'
-        : (draft.videoUrl ? '目前設定：' + (parseYouTubeId(draft.videoUrl) ? 'YouTube 影片' : (draft.videoUrl.includes('clc-assets') ? 'clc-assets/videos/sr' : '自訂直連網址')) : '尚未設定影片');
+      // 網址狀態文字（若目前正在使用網址播放，顯示在下方提示）
+      if (isCustomUrl) {
+        urlStatus.textContent = '目前設定：' + draft.videoUrl;
+        urlStatus.style.color = '#38bdf8';
+      } else {
+        urlStatus.textContent = '支援 YouTube 網址、直連 MP4、WebM 或 CDN 串流。';
+        urlStatus.style.color = '';
+      }
 
       panel.querySelectorAll('input, [data-home-action="reset"]').forEach(el => { el.disabled = busy; });
       saveButton.disabled = busy || validating;
@@ -273,6 +287,11 @@
       panel.hidden = false;
       editButton.setAttribute('aria-expanded', 'true');
       statusText('調整會立即預覽，按「儲存套用」才會發布。');
+
+      // 每次打開時輸入框保持清空乾淨
+      urlInput.value = '';
+      clearPreviewFile();
+
       updateControls();
       renderDraft();
       enabledInput.focus();
@@ -372,12 +391,15 @@
     urlInput.addEventListener('input', () => {
       const val = urlInput.value.trim();
       clearPreviewFile();
-      draft.videoUrl = val;
       if (val) {
+        draft.videoUrl = val;
         draft.enabled = true;
         enabledInput.checked = true;
+      } else {
+        draft.videoUrl = saved.videoUrl;
       }
       renderDraft();
+      updateControls();
     });
 
     editButton.addEventListener('click', () => { if (editing) closeEditor(); else openEditor(); });
