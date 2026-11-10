@@ -1,7 +1,8 @@
 /* Cloudflare Worker - CLC SR Portal Background Video Upload */
 
 const HOME_VIDEO_MAX_SIZE = 50 * 1024 * 1024; // 50MB
-const HOME_VIDEO_FILE_PATH = 'home-background.mp4';
+// 指定路徑：clc-assets 倉庫底下的 video/sr/home-background.mp4
+const HOME_VIDEO_FILE_PATH = 'video/sr/home-background.mp4';
 const HOME_VIDEO_MAX_BASE64 = Math.ceil(HOME_VIDEO_MAX_SIZE / 3) * 4;
 
 const response = (data, status = 200) =>
@@ -75,7 +76,7 @@ async function uploadHomeVideo(request, env) {
 
   const token = env.GITHUB_VIDEO_TOKEN || env.GITHUB_TOKEN;
   const owner = env.GITHUB_OWNER || 'CLC-Darren';
-  const repo = env.GITHUB_REPO || 'clc-assets';
+  const repo = 'clc-assets';
   const branch = env.GITHUB_BRANCH || 'main';
 
   if (!token) {
@@ -119,13 +120,12 @@ async function uploadHomeVideo(request, env) {
     }
 
     const beginning = JSON.stringify({
-      message: 'Update homepage background video via CLC SR admin',
+      message: 'Update homepage background video for CLC SR',
       branch: branch,
       ...(oldSha ? { sha: oldSha } : {}),
       content: ''
     });
 
-    // 截取掉結尾的 `""}`，透過串流塞入 Base64 內容
     const prefix = beginning.slice(0, -2);
     const suffix = '"}';
     const body = videoCommitStream(request.body, prefix, suffix, encodedLength);
@@ -142,12 +142,12 @@ async function uploadHomeVideo(request, env) {
       const message = code === 401 || code === 403 
         ? 'GitHub Token 無效或缺少 Contents 寫入權限。'
         : code === 409 ? '檔案剛被更新產生衝突，請重新整理後再試。'
-        : code === 404 ? '找不到指定的 GitHub 倉庫或分支。'
+        : code === 404 ? '找不到指定的 GitHub 倉庫或目錄分支。'
         : `GitHub 更新失敗 (HTTP ${code})。`;
       return response({ error: message }, 502);
     }
 
-    return response({ ok: true, videoPath: '/home-background.mp4' });
+    return response({ ok: true, videoPath: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${HOME_VIDEO_FILE_PATH}` });
   } catch (error) {
     return response({ error: '連線 GitHub 處理失敗：' + error.message }, 502);
   }
