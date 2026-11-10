@@ -1,6 +1,7 @@
 /* Cloudflare Worker - CLC SR Portal Background Video Upload */
 
-const HOME_VIDEO_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+// 將原有的 10MB 改為 50MB
+const HOME_VIDEO_MAX_SIZE = 50 * 1024 * 1024; // 50MB
 const HOME_VIDEO_FILE_PATH = 'home-background.mp4';
 
 const response = (data, status = 200) =>
