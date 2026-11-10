@@ -4,13 +4,21 @@
 
   // 放寬至 50 MB
   const MAX_SIZE = 50 * 1024 * 1024;
-  // 目標存放在 clc-assets 倉庫下的 video/sr/home-background.mp4
+  // 目標存放在 clc-assets 倉庫下的 videos/sr/home-background.mp4
   const GITHUB_OWNER = 'CLC-Darren';
   const GITHUB_REPO = 'clc-assets';
   const GITHUB_BRANCH = 'main';
-  const ASSETS_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/video/sr/home-background.mp4`;
+  const ASSETS_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/videos/sr/home-background.mp4`;
 
   const DEFAULT = Object.freeze({ enabled: false, videoUrl: '', storagePath: '', overlayOpacity: 0.79 });
+
+  // 檢查是否為 YouTube 網址並解析 Video ID
+  function parseYouTubeId(url) {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+    const match = url.match(regExp);
+    return match ? match[1] : null;
+  }
 
   function start() {
     if (!document.querySelector('main') || document.getElementById('homeAppearanceBackground')) return;
@@ -32,7 +40,7 @@
     let operationVersion = 0;
     let playbackVersion = 0;
     let currentSource = '';
-    let activeVideo = null;
+    let activePlayer = null; // video 或 iframe
     let originalFocus = null;
 
     const background = document.createElement('div');
@@ -72,16 +80,16 @@
         <input type="checkbox" data-home-enabled> 啟用背景影片
       </label>
 
-      <!-- 方式一：上傳檔案至 clc-assets/video/sr -->
+      <!-- 方式一：上傳檔案 -->
       <label class="home-appearance-field">上傳背景影片檔案
         <input type="file" accept="video/mp4,.mp4" data-home-file>
         <span class="home-appearance-hint" data-home-filename>尚未選擇新影片檔案</span>
       </label>
 
-      <!-- 方式二：網路串流超連結 -->
-      <label class="home-appearance-field">或輸入網路影片網址 (URL)
-        <input type="url" data-home-url placeholder="https://example.com/video.mp4" spellcheck="false">
-        <span class="home-appearance-hint">支援直連 MP4、WebM 或 CDN 串流連結。</span>
+      <!-- 方式二：網路串流或 YouTube 超連結 -->
+      <label class="home-appearance-field">或輸入網路影片 / YouTube 網址
+        <input type="url" data-home-url placeholder="支援 YouTube 連結或 MP4 網址" spellcheck="false">
+        <span class="home-appearance-hint">支援 YouTube 網址、直連 MP4、WebM 或 CDN 串流。</span>
       </label>
 
       <p class="home-appearance-hint">檔案最多 50 MB；影片會靜音循環播放。</p>
@@ -138,12 +146,14 @@
     function stopVideo() {
       playbackVersion++;
       hideBackground();
-      if (activeVideo) {
-        activeVideo.pause();
-        activeVideo.removeAttribute('src');
-        activeVideo.load();
-        activeVideo.remove();
-        activeVideo = null;
+      if (activePlayer) {
+        if (activePlayer.tagName.toLowerCase() === 'video') {
+          activePlayer.pause();
+          activePlayer.removeAttribute('src');
+          activePlayer.load();
+        }
+        activePlayer.remove();
+        activePlayer = null;
       }
       currentSource = '';
     }
@@ -155,12 +165,33 @@
         stopVideo();
         return;
       }
-      if (source === currentSource && activeVideo) return;
+      if (source === currentSource && activePlayer) return;
       stopVideo();
       currentSource = source;
       const version = playbackVersion;
+
+      // 判斷是否為 YouTube 網址
+      const ytId = parseYouTubeId(source);
+      if (ytId) {
+        const iframe = document.createElement('iframe');
+        activePlayer = iframe;
+        iframe.className = 'home-appearance-youtube-frame';
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.tabIndex = -1;
+        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&enablejsapi=1`;
+        iframe.allow = 'autoplay; encrypted-media';
+        iframe.onload = () => {
+          if (version !== playbackVersion) return;
+          background.dataset.playing = 'true';
+          document.body.classList.add('home-appearance-playing');
+        };
+        background.insertBefore(iframe, shade);
+        return;
+      }
+
+      // 一般 MP4 / 直連影片檔案
       const video = document.createElement('video');
-      activeVideo = video;
+      activePlayer = video;
       video.muted = true;
       video.defaultMuted = true;
       video.autoplay = true;
@@ -205,7 +236,7 @@
 
       filename.textContent = pendingFile
         ? pendingFile.name + '（儲存時自動上傳）'
-        : (draft.videoUrl ? '目前設定：' + (draft.videoUrl.includes('clc-assets') ? 'clc-assets/video/sr' : '自訂網路網址') : '尚未設定影片');
+        : (draft.videoUrl ? '目前設定：' + (parseYouTubeId(draft.videoUrl) ? 'YouTube 影片' : (draft.videoUrl.includes('clc-assets') ? 'clc-assets/videos/sr' : '自訂直連網址')) : '尚未設定影片');
 
       panel.querySelectorAll('input, [data-home-action="reset"]').forEach(el => { el.disabled = busy; });
       saveButton.disabled = busy || validating;
@@ -280,14 +311,13 @@
       const version = ++operationVersion;
       busy = true;
       committing = true;
-      statusText(pendingFile ? '正在把影片上傳至 clc-assets/video/sr…' : '正在儲存設定…');
+      statusText(pendingFile ? '正在把影片上傳至 clc-assets/videos/sr…' : '正在儲存設定…');
       updateControls();
       try {
         const next = { ...draft };
         
         if (pendingFile) {
           await uploadVideoToGitHub(pendingFile);
-          // 上傳至 clc-assets/video/sr 後，存取連結指向該 Raw 網址並加入 timestamp 防止快取
           next.videoUrl = ASSETS_RAW_URL + '?v=' + Date.now();
           next.enabled = true;
         } else {
