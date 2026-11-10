@@ -27,7 +27,7 @@
     .dark .frame-shell {background:#090A0F; color:#f8fafc;}
   </style>
   <script>
-    (function(){const media=window.matchMedia('(prefers-color-scheme: dark)'); const saved=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&media.matches));})();
+    (function(){const media=window.matchMedia('(prefers-color-scheme: dark)'); const saved='dark';document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&media.matches));})();
   </script>
 </head>
 <body>

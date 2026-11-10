@@ -59,7 +59,7 @@
   <script>
     (function () {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
-      function savedTheme() { const v = localStorage.getItem('theme'); return v === 'light' || v === 'dark' ? v : null; }
+      function savedTheme() { const v = 'dark'; return v === 'light' || v === 'dark' ? v : null; }
       function applyTheme() { const c = savedTheme(); document.documentElement.classList.toggle('dark', c ? c === 'dark' : systemTheme.matches); }
       applyTheme();
       const onChange = () => { if (!savedTheme()) applyTheme(); };

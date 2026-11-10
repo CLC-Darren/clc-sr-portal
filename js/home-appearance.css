@@ -89,6 +89,10 @@ body > footer {
   transition: all 0.2s ease;
 }
 
+#homeAppearanceEditButton[hidden] {
+  display: none;
+}
+
 #homeAppearanceEditButton:hover {
   background-color: rgba(0, 126, 138, 0.95);
   transform: scale(1.05);
