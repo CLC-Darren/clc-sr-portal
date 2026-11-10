@@ -126,7 +126,7 @@ body > footer {
   font-weight: 700;
 }
 
-/* === 此處為修正第 110 行的「×」完全置中 === */
+/* === 修正「×」水平與垂直完全置中 === */
 #homeAppearancePanel button[data-home-action="close"] {
   display: grid;
   place-items: center;
@@ -164,6 +164,23 @@ body > footer {
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+/* === 支援網路串流網址 (URL) 輸入框樣式 === */
+#homeAppearancePanel input[type="url"] {
+  width: 100%;
+  padding: 7px 10px;
+  background-color: #090a0f;
+  border: 1px solid #465366;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+#homeAppearancePanel input[type="url"]:focus {
+  outline: 2px solid #007e8a;
+  border-color: #007e8a;
 }
 
 .home-appearance-actions {
