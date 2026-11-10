@@ -1,8 +1,8 @@
 /* Cloudflare Worker - CLC SR Portal Background Video Upload */
 
 const HOME_VIDEO_MAX_SIZE = 50 * 1024 * 1024; // 50MB
-// 指定路徑：clc-assets 倉庫底下的 video/sr/home-background.mp4
-const HOME_VIDEO_FILE_PATH = 'video/sr/home-background.mp4';
+// 指定路徑：clc-assets 倉庫底下的 videos/sr/home-background.mp4
+const HOME_VIDEO_FILE_PATH = 'videos/sr/home-background.mp4';
 const HOME_VIDEO_MAX_BASE64 = Math.ceil(HOME_VIDEO_MAX_SIZE / 3) * 4;
 
 const response = (data, status = 200) =>
