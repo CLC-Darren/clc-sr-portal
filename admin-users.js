@@ -1,151 +1,188 @@
-/** CLC SR 管理員後台：YA 同款緊湊介面、SR 原有四個角色與範圍。
- *  `user_invites/{email}` 是預先指派；`users/{firebaseUid}` 是登入後的正式權限。
- *  Firebase Rules 必須先部署；本程式不會提升未獲授權的使用者。
- */
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const EMAIL=/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/;
-const ROLES={viewer:'檢視者（唯讀）',group_leader:'小組長',district_leader:'區長',admin:'管理員'};
-let busy=false, rows=[], allowed=false;
-const isBootstrap=email=>(window.INITIAL_ADMIN_WHITELIST||[]).some(s=>s.toLowerCase()===String(email||'').toLowerCase());
-const norm=s=>String(s||'').trim().toLowerCase();
-function status(s){$('usersListStatus').textContent=s||'';}
-function scope(role,v){return role==='district_leader'?{districtId:v||null,groupId:null}:role==='group_leader'?{districtId:null,groupId:v||null}:{districtId:null,groupId:null};}
-function needsScope(role){return role==='district_leader'||role==='group_leader';}
-function addFormScope(){const need=needsScope($('newRole').value);$('newScopeWrap').classList.toggle('hidden',!need);$('newScope').required=need;if(!need)$('newScope').value='';$('newScope').placeholder=$('newRole').value==='district_leader'?'牧區 ID／名稱':'小組 ID／名稱';}
-function baseRows(){return (window.INITIAL_ADMIN_WHITELIST||[]).map(email=>({email:norm(email),name:'初始管理員',role:'admin',isActive:true,bootstrap:true,docId:null,invited:false}));}
-function keyOf(row){return norm(row.email);}
-function sanitizeRow(r){return {email:norm(r.email),name:String(r.name||''),role:ROLES[r.role]?r.role:'viewer',isActive:r.isActive===true,districtId:r.districtId||null,groupId:r.groupId||null};}
-async function render(){
-  if(!allowed||!window.db)return;
-  status('正在讀取同工與預先授權名單…');
-  let userDocs,inviteDocs;
-  try{[userDocs,inviteDocs]=await Promise.all([window.db.collection('users').get(),window.db.collection('user_invites').get()]);}
-  catch(e){status('名單讀取失敗：'+e.message+'。請先部署 SR Firebase Rules。');$('usersList').innerHTML='';return;}
-  const map=new Map(baseRows().map(x=>[keyOf(x),x]));
-  for(const doc of inviteDocs.docs){
-    const r=sanitizeRow({...doc.data(),email:doc.id});if(!r.email)continue;
-    if(map.has(r.email)){map.get(r.email).invited=true;continue;}
-    map.set(r.email,{...r,invited:true,inviteId:doc.id,docId:null,legacyId:null,bootstrap:false});
-  }
-  // 正式 UID 文件優先；舊版 user_email 形式只顯示供管理員修復，不隱藏。
-  for(const doc of userDocs.docs){
-    const data=doc.data()||{};const r=sanitizeRow(data);if(!r.email)continue;
-    const base=map.get(r.email);if(base?.bootstrap)continue;
-    const legacy=doc.id.startsWith('user_')&&!data.uid;
-    if(base){
-      if(legacy){base.legacyId=doc.id;base.legacyGrant=r;if(!base.docId&&!base.invited)Object.assign(base,r);}else Object.assign(base,r,{docId:doc.id});
-    }else map.set(r.email,{...r,docId:legacy?null:doc.id,legacyId:legacy?doc.id:null,legacyGrant:legacy?r:null,invited:false,bootstrap:false});
-  }
-  rows=[...map.values()].sort((a,b)=>Number(b.bootstrap)-Number(a.bootstrap)||a.email.localeCompare(b.email));
-  $('usersCount').textContent=`${rows.length} 位`;
-  $('usersList').innerHTML=rows.map(r=>{
-    const active=r.bootstrap||r.isActive;
-    const detail=r.role==='district_leader'&&r.districtId?'牧區：'+r.districtId:r.role==='group_leader'&&r.groupId?'小組：'+r.groupId:'';
-    const id=esc(r.email);
-    const lockedSelf=!!(r.docId && r.docId===window.auth?.currentUser?.uid);
-    return `<div class="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div class="min-w-0 flex-1">
-        <div class="flex flex-wrap items-center gap-2"><span class="font-bold text-sm">${esc(r.name||r.email)}</span><span class="text-xs ${active?'text-emerald-600 dark:text-emerald-400':'text-rose-500'}">${active?'● 已啟用':'● 已停用'}</span></div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 break-all">${id}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${r.bootstrap?'🔒 Superuser · 永久保留':esc(ROLES[r.role]||'檢視者')}${detail?' · '+esc(detail):''}${!r.docId&&!r.bootstrap?' · 尚未首次登入':''}${r.legacyId&&!r.invited?' · 舊版授權待同步':''}</div>
-      </div>
-      ${r.bootstrap?'<span class="text-xs text-amber-600 dark:text-amber-400 font-bold">不可刪除／停用／降權</span>':lockedSelf?'<span class="text-xs text-slate-500">不可修改自己的權限</span>':`
-      <div class="flex flex-wrap gap-1.5 sm:justify-end" data-email="${id}">
-        <select class="field text-xs sm:w-auto max-w-[150px]" data-action="role" aria-label="${id} 權限等級">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${r.role===k?'selected':''}>${esc(v)}</option>`).join('')}</select>
-        <button class="btn btn-ghost" data-action="scope" title="設定牧區／小組">範圍</button>
-        ${r.legacyId&&!r.invited?'<button class="btn btn-ghost" data-action="sync" title="將舊版授權設定同步到正式 UID 與新的邀請機制">套用舊授權</button>':''}
-        <button class="btn btn-ghost" data-action="toggle">${active?'停用':'啟用'}</button>
-        <button class="btn btn-danger" data-action="delete">移除</button>
-      </div>`}
-    </div>`;
-  }).join('');
-  status('');
-}
-async function updateRow(row,patch){
-  const email=keyOf(row);if(!EMAIL.test(email)||row.bootstrap)throw new Error('固定管理員或信箱格式無效，不允許修改。');
-  const dest={...sanitizeRow(row),...patch,email};
-  const update={name:dest.name,role:dest.role,isActive:dest.isActive,districtId:dest.districtId||null,groupId:dest.groupId||null,email,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-  const batch=window.db.batch();
-  // 提前授權資料與既有 UID 權限同步更新，避免停用後再次登入時恢復舊權限。
-  batch.set(window.db.collection('user_invites').doc(email),update,{merge:true});
-  if(row.docId)batch.set(window.db.collection('users').doc(row.docId),update,{merge:true});
-  // 老版本殘留的 user_email 也是有權限的資料，維持同步直到人工清理。
-  if(row.legacyId)batch.set(window.db.collection('users').doc(row.legacyId),update,{merge:true});
-  await batch.commit();
-}
-async function removeRow(row){
-  if(row.bootstrap)throw new Error('不能移除固定 Superuser');
-  const batch=window.db.batch();
-  batch.delete(window.db.collection('user_invites').doc(row.email));
-  if(row.docId)batch.delete(window.db.collection('users').doc(row.docId));
-  if(row.legacyId)batch.delete(window.db.collection('users').doc(row.legacyId));
-  await batch.commit();
-}
-async function operate(button){
-  if(!allowed||busy)return;
-  const holder=button.closest('[data-email]');if(!holder)return;
-  const row=rows.find(r=>r.email===holder.dataset.email);if(!row||row.bootstrap)return;
-  const type=button.dataset.action;let patch=null;
-  if(type==='role'){
-    const newRole=button.value;
-    if(!ROLES[newRole]||newRole===row.role)return;
-    let sc='';
-    if(needsScope(newRole)){
-      sc=prompt(`請輸入 ${row.email} 的${newRole==='district_leader'?'牧區':'小組'} ID／名稱：`,newRole==='district_leader'?row.districtId||'':row.groupId||'');
-      if(sc===null)return;sc=sc.trim();if(!sc){alert('此角色必須填寫管轄範圍。');button.value=row.role;return;}
-    }
-    if(!confirm(`確定將 ${row.email} 的角色改為「${ROLES[newRole]}」？`)){button.value=row.role;return;}
-    patch={role:newRole,...scope(newRole,sc)};
-  }else if(type==='scope'){
-    if(!needsScope(row.role)){alert('此角色不需要指定管轄範圍。');return;}
-    const key=row.role==='district_leader'?'districtId':'groupId';const sc=prompt('請輸入新的'+(key==='districtId'?'牧區':'小組')+' ID／名稱：',row[key]||'');if(sc===null)return;if(!sc.trim()){alert('範圍不可空白。');return;}patch=scope(row.role,sc.trim());
-  }else if(type==='sync'){
-    if(!confirm(`確定將「${row.email}」的既有授權同步到新版 Email 邀請機制？`))return;
-    patch=row.legacyGrant?{name:row.legacyGrant.name,role:row.legacyGrant.role,isActive:row.legacyGrant.isActive,districtId:row.legacyGrant.districtId,groupId:row.legacyGrant.groupId}:{};
-  }else if(type==='toggle'){
-    if(!confirm(`確定要${row.isActive?'停用':'啟用'}「${row.email}」嗎？`))return;
-    patch={isActive:!row.isActive};
-  }else if(type==='delete'){
-    if(!confirm(`確定移除「${row.email}」的 SR 授權？\n其 Firebase/Google 帳號不會被刪除。`))return;
-    if(!confirm('再次確認：移除後如需恢復，必須重新新增授權。'))return;
-  }else return;
-  busy=true;button.disabled=true;status('正在儲存權限變更…');
-  try{if(type==='delete')await removeRow(row);else await updateRow(row,patch);await render();status('權限已更新；對方登入後會套用新的 SR 權限。');}
-  catch(e){alert('權限更新失敗：'+e.message);await render();}finally{busy=false;}
-}
-window.addEventListener('clc-auth-ready',e=>{
-  allowed=!!(e.detail?.signedIn&&window.isAdmin===true&&window.db);
-  $('mainPanel').classList.toggle('hidden',!allowed);$('access').classList.toggle('hidden',allowed);
-  if(allowed)render();
-  else $('access').textContent=window.SR_FIREBASE_READY===false?'SR Firebase 設定尚未完成：請先在 header.js 填入 SR 專案的有效 Web App Config。':window.auth?.currentUser?'此帳號不是 SR 系統管理員，無法查看或修改權限。':'請點右上角登入已授權的 SR 管理員 Google 帳號。';
-});
-document.addEventListener('DOMContentLoaded',()=>{
-  $('newRole').addEventListener('change',addFormScope);addFormScope();
-  $('usersList').addEventListener('click',e=>{const el=e.target.closest('button[data-action]');if(el)operate(el);});
-  $('usersList').addEventListener('change',e=>{const el=e.target.closest('select[data-action]');if(el)operate(el);});
-  $('addForm').addEventListener('submit',async e=>{
-    e.preventDefault();if(!allowed||busy)return;
-    const email=norm($('newEmail').value),name=$('newName').value.trim(),role=$('newRole').value,sc=$('newScope').value.trim();
-    if(!EMAIL.test(email)){alert('請填寫有效的 Google Email。');return;}
-    if(isBootstrap(email)){alert('此帳號已是固定 Superuser。');return;}
-    if(needsScope(role)&&!sc){alert('區長／小組長必須指定管轄範圍。');return;}
-    if(rows.some(r=>r.email===email)){alert('此 Email 已存在，請在下方名單直接調整角色或啟用。');return;}
-    if(!ROLES[role])return;
-    busy=true;status('正在新增預先授權…');
-    try{
-      const ref=window.db.collection('user_invites').doc(email);
-      // 用 transaction 確認還沒有其他管理員建立同一個預先授權。
-      await window.db.runTransaction(async tx=>{
-        const existing=await tx.get(ref);
-        if(existing.exists)throw new Error('同一 Email 已存在預先授權，請重新整理。');
-        tx.set(ref,{email,name,role,isActive:$('newActive').checked,...scope(role,sc),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+// CLC SR 權限管理：與 YA 相同的 Admin / Viewer 模型。
+// 固定 Superuser 永遠顯示；其餘名單存放於 Firestore admin_users/{email}。
+// 審核功能尚未串接：notifyReview 欄位先保留，日後串接時直接使用。
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const baseAdmins = (window.ADMIN_WHITELIST || []).map(x => String(x).trim().toLowerCase());
+  let busy = false;
+  let canEdit = false; // 只有 admin 可編輯；viewer 為唯讀
+
+  const BTN = 'rounded-md px-2.5 py-1.5 border text-xs disabled:opacity-40';
+
+  function baseRows(records, loaded) {
+    const rows = [];
+    const used = new Set();
+    // 固定 Superuser 永遠顯示：不依賴 Firestore 查詢成功才呈現。
+    baseAdmins.forEach(email => {
+      const data = records && records.get(email);
+      rows.push({email, bootstrap:true, active:true, role:'superuser',
+        notifyReview: data ? data.notifyReview === true : false,
+        exists: !!data, known:loaded});
+      used.add(email);
+    });
+    if (records) {
+      [...records.values()].sort((a,b)=>a.email.localeCompare(b.email)).forEach(data => {
+        if (used.has(data.email)) return;
+        rows.push({...data,bootstrap:false,exists:true,known:true});
       });
-      $('addForm').reset();addFormScope();await render();status('已新增授權；同工首次登入後會套用對應角色。');
-    }catch(err){alert('新增授權失敗：'+err.message);await render();}finally{busy=false;}
+    }
+    return rows;
+  }
+
+  function showRows(records, loaded) {
+    const rows = baseRows(records, loaded);
+    const editable = loaded && canEdit;
+    $('usersCount').textContent = `${rows.length} 位管理員`;
+    $('usersList').innerHTML = rows.map(u => {
+      const active = u.bootstrap || u.active === true;
+      const notice = !u.known ? '無法讀取' : (u.role === 'viewer' ? '檢視者・不寄信' : !active ? '帳號停用・不寄信' : (u.notifyReview ? '審核通知：開（尚未串接）' : '審核通知：關'));
+      return `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="min-w-0">
+          <div class="font-semibold break-all">${esc(u.email)}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${u.bootstrap ? '🔒 Superuser · 永久保留（不可刪除、不可降權）' : ((u.role==='viewer'?'檢視者（唯讀）':'管理員')+(active?' · 已啟用':' · 已停用'))}</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+          <label class="flex items-center gap-1.5 text-xs ${editable && u.role!=='viewer'?'':'opacity-60'}">
+            <input type="checkbox" class="accent-[#007E8A]" data-notify="${esc(u.email)}" ${u.known && u.notifyReview && u.role!=='viewer'?'checked':''} ${editable && u.role!=='viewer'?'':'disabled'} aria-label="${esc(u.email)} 接收審核 Email（保留選項）">接收審核 Email
+          </label>
+          <span class="text-[11px] ${u.known?(u.notifyReview?'text-emerald-500':'text-slate-500 dark:text-slate-400'):'text-amber-500'}">${notice}</span>
+          ${u.bootstrap?'':`<button type="button" class="${BTN} border-slate-300 dark:border-slate-600 text-teal-700 dark:text-teal-300" data-role="${esc(u.email)}" ${editable?'':'disabled'}>${u.role==='viewer'?'改為管理員':'改為檢視者'}</button><button type="button" class="${BTN} border-slate-300 dark:border-slate-600 ${active?'text-rose-600 dark:text-rose-400':'text-emerald-600 dark:text-emerald-400'}" data-toggle="${esc(u.email)}" ${editable?'':'disabled'}>${active?'停用':'啟用'}</button><button type="button" class="${BTN} border-rose-400/70 dark:border-rose-700/70 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10" data-delete="${esc(u.email)}" ${editable?'':'disabled'} title="永久移除 ${esc(u.email)} 的管理員權限">刪除</button>`}
+        </div>
+      </div>`;
+    }).join('');
+    if (!loaded) return;
+    $('usersList').querySelectorAll('[data-notify]').forEach(el=>el.addEventListener('change',async()=>{
+      if(busy)return;
+      const email=el.dataset.notify;
+      const row=rows.find(r=>r.email===email);
+      if(!row)return;
+      busy=true;el.disabled=true;
+      $('usersListStatus').textContent='正在儲存審核通知設定…';
+      try {
+        const ref=window.db.collection('admin_users').doc(email);
+        if(row.exists && row.bootstrap) {
+          // 初始管理員權限不可停用；兼容先前可能儲存過 active:false 的舊文件。
+          await ref.set({role:'admin',active:true,notifyReview:el.checked,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        } else if(row.exists) {
+          // 只變更通知設定；不能因勾選而不小心啟用已停用的管理員。
+          await ref.update({notifyReview:el.checked,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        } else {
+          // 初始管理員原本可能只有固定白名單，第一次勾選時建立偏好文件。
+          await ref.set({role:'admin',active:true,notifyReview:el.checked,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        }
+        await render();
+        $('usersListStatus').textContent='審核通知設定已儲存（日後串接審核功能後生效）。';
+      }catch(e){
+        $('usersListStatus').textContent='設定儲存失敗：'+e.message;
+        alert('設定儲存失敗：'+e.message+'\n請先更新 Firestore Security Rules。');
+        await render();
+      }finally{busy=false;}
+    }));
+    // 僅允許刪除新增的管理員；固定 Superuser 不顯示刪除按鈕，Rules 也禁止刪除。
+    $('usersList').querySelectorAll('[data-delete]').forEach(el=>el.addEventListener('click',async()=>{
+      if(busy)return;
+      const email=el.dataset.delete;
+      const row=rows.find(r=>r.email===email);
+      if(!row || row.bootstrap)return;
+      if(!confirm(`確定永久刪除管理員「${email}」？\n\n將移除其後台權限與通知設定；日後如需恢復，必須重新新增。`))return;
+      busy=true;el.disabled=true;
+      $('usersListStatus').textContent=`正在刪除 ${email}…`;
+      try {
+        await window.db.collection('admin_users').doc(email).delete();
+        await render();
+        $('usersListStatus').textContent=`已刪除 ${email} 的管理員設定。`;
+      }catch(e){
+        alert('刪除失敗：'+e.message);
+        await render();
+      }finally{busy=false;}
+    }));
+    // 變更權限等級（管理員 <-> 檢視者）；檢視者一律不接收審核通知。
+    $('usersList').querySelectorAll('[data-role]').forEach(el=>el.addEventListener('click',async()=>{
+      if(busy||!canEdit)return;
+      const row=rows.find(r=>r.email===el.dataset.role);
+      if(!row||row.bootstrap)return;
+      const next=row.role==='viewer'?'admin':'viewer';
+      if(!confirm(`確定將「${row.email}」改為${next==='viewer'?'檢視者（唯讀）':'管理員（可編輯）'}？`))return;
+      busy=true;el.disabled=true;
+      try{
+        const data={role:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+        if(next==='viewer') data.notifyReview=false;
+        await window.db.collection('admin_users').doc(row.email).update(data);
+        await render();
+        $('usersListStatus').textContent='權限等級已更新，對方需重新整理以同步畫面。';
+      }catch(e){alert('權限等級更新失敗：'+e.message);await render();}
+      finally{busy=false;}
+    }));
+    $('usersList').querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',async()=>{
+      if(busy)return;
+      const row=rows.find(r=>r.email===el.dataset.toggle);
+      if(!row || row.bootstrap || !confirm(`確定要${row.active?'停用':'啟用'}「${row.email}」？`)) return;
+      busy=true;el.disabled=true;
+      try {
+        await window.db.collection('admin_users').doc(row.email).update({active:!row.active,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        await render();
+        $('usersListStatus').textContent='管理員權限已更新，對方需重新整理以同步畫面。';
+      }catch(e){alert('權限更新失敗：'+e.message);await render();}
+      finally{busy=false;}
+    }));
+  }
+
+  async function render() {
+    const roleNow = (window.auth && window.auth.currentUser) ? await window.clcGetAdminRole(window.auth.currentUser) : null;
+    canEdit = roleNow === 'admin';
+    if(!roleNow) {
+      $('access').classList.remove('hidden');
+      $('access').textContent='請先從右上角使用已授權的 Google 管理員帳號登入。';
+      $('mainPanel').classList.add('hidden');
+      return;
+    }
+    $('access').classList.add('hidden');
+    $('mainPanel').classList.remove('hidden');
+    $('addForm').classList.toggle('hidden', !canEdit);
+    $('viewerNote').classList.toggle('hidden', canEdit);
+    // 即使 Firestore 權限尚未開放，也要先顯示固定的 Superuser。
+    showRows(null,false);
+    $('usersListStatus').textContent='正在讀取 Firestore 管理員設定…';
+    try {
+      const snap=await window.db.collection('admin_users').get();
+      const records=new Map(snap.docs.map(d=> {
+        const email=d.id.trim().toLowerCase();
+        const data = d.data() || {};
+        return [email,{...data,email,active:data.active !== false}];
+      }));
+      showRows(records,true);
+      $('usersListStatus').textContent='新管理員使用相同 Google Email 登入；勾選或取消勾選後會立即儲存。';
+    }catch(e){
+      showRows(null,false);
+      $('usersListStatus').innerHTML='<span class="text-amber-500 font-semibold">Firestore 權限尚未設定：</span>固定 Superuser 仍可登入，但無法讀取其他管理員或儲存設定。請到 Firebase Console 發布本包的 Firestore Rules。錯誤：'+esc(e.message);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    $('addForm').addEventListener('submit',async event=>{
+      event.preventDefault();
+      if(busy || !canEdit)return;
+      const input=$('newEmail');
+      const email=input.value.trim().toLowerCase();
+      if(!/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(email)){alert('請輸入有效的 Google 帳號 Email。');return;}
+      if(baseAdmins.includes(email)){alert('這個帳號已是固定 Superuser，請在下方直接設定通知選項。');return;}
+      busy=true;
+      try {
+        const ref=window.db.collection('admin_users').doc(email);
+        const old=await ref.get();
+        if(old.exists){alert('管理員已存在，請在下方名單啟用或調整設定。');return;}
+        const newRole=$('newRole').value==='viewer'?'viewer':'admin';
+        await ref.set({role:newRole,active:true,notifyReview:newRole==='admin'&&$('newNotify').checked,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        input.value='';
+        await render();
+        alert('管理員已新增：'+email+'\n對方可使用此 Google 帳號登入。');
+      }catch(e){alert('新增失敗：'+e.message+'\n請先更新 Firestore Security Rules。');await render();}
+      finally{busy=false;}
+    });
+    $('newRole').addEventListener('change',()=>{const v=$('newRole').value==='viewer';$('newNotify').disabled=v;if(v)$('newNotify').checked=false;});
+    window.addEventListener('clc-admin-changed',render);
+    render();
   });
-  if(window.SR_FIREBASE_READY===false){$('access').textContent='SR Firebase Web App 設定不完整，請先完成部署前檢查清單。';}
-});
 })();

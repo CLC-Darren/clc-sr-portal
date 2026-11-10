@@ -1,3 +1,13 @@
+# 2026-11-10 更新：權限登入改為與 YA 相同
+
+- 權限模型：Superuser（`header.js` 的 `ADMIN_WHITELIST`）／Admin／Viewer，名單存於 Firestore `admin_users/{email}`。
+- 右上角 🔐 登入，登入後 👑（Admin／Superuser）或 👁️（Viewer）；下拉選單：👤 權限管理、🚪 登出管理員。
+- 舊的 `users`、`user_invites`、區長／小組長角色已移除。SR 目前沒有審核功能，`notifyReview`（接收審核 Email）欄位先保留，日後串接。
+- 首頁背景影片設定存於 `system_config/home_appearance`，所有人可讀、僅 Admin 可寫。
+- **務必**到 Firebase Console → Firestore → Rules 發布本包的 `firestore.rules`。
+
+---
+
 # CLC SR Portal｜YA 視覺統一 × 共用歌詞 × SR 權限管理（2026-11-09）
 
 此版根據原始 `clc-sr-portal-main.zip` 及上一版 SR Portal 完整包製作。**SR 與 YA 的 Repository、Firebase 專案、Superuser 與業務資料仍獨立。** SR 的歌詞 iframe 只讀取 YA 主站唯一的中性歌詞系統。

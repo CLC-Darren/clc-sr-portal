@@ -123,7 +123,7 @@
     const saveButton = panel.querySelector('[data-home-action="save"]');
 
     function authorized() {
-      return window.isAdmin === true;
+      return window.isAdmin === true && !!window.auth?.currentUser?.uid && window.auth.currentUser.emailVerified === true;
     }
 
     // 只有管理員看得到編輯按鈕；登入狀態改變時更新
@@ -132,7 +132,7 @@
       editButton.hidden = !ok;
       if (!ok && editing) closeEditor(false);
     }
-    window.addEventListener('clc-auth-ready', syncEditAccess);
+    window.addEventListener('clc-admin-changed', syncEditAccess);
 
     function statusText(message, error = false) {
       status.textContent = message;

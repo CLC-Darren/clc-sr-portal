@@ -1,120 +1,87 @@
 rules_version = '2';
+// CLC SR｜Firestore 規則（權限模型與 YA 一致：Superuser / Admin / Viewer）
+// 注意：只提交 GitHub 不會自動變更 Firebase 線上規則，必須到 Firebase Console → Firestore → Rules 發布。
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
+    // ---------- 共用函式 ----------
+    function signedIn() {
       return request.auth != null && request.auth.token.email_verified == true;
     }
-    function signedEmail() { return request.auth.token.email.lower(); }
-    function isProtectedEmail(email) {
-      return email.lower() == 'darren710404@gmail.com' ||
-             email.lower() == 'darren.lin@twclc.org';
+    function myEmail() { return request.auth.token.email.lower(); }
+    function bootstrapAdmin() {
+      return signedIn() && myEmail() in ['darren710404@gmail.com', 'darren.lin@twclc.org'];
     }
-    function isSuperuser() { return isSignedIn() && isProtectedEmail(signedEmail()); }
-    function userPath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
-    function getUserRecord() { return get(userPath()).data; }
+    function adminDoc() {
+      return get(/databases/$(database)/documents/admin_users/$(myEmail())).data;
+    }
+    function hasAdminDoc() {
+      return exists(/databases/$(database)/documents/admin_users/$(myEmail()));
+    }
     function isAdmin() {
-      return isSuperuser() || (
-        isSignedIn() && exists(userPath()) &&
-        getUserRecord().role == 'admin' && getUserRecord().isActive == true
-      );
+      return signedIn() && (bootstrapAdmin() ||
+        (hasAdminDoc() && adminDoc().role == 'admin' && adminDoc().active == true));
     }
-    function isActiveWorker() {
-      return isSuperuser() || (
-        isSignedIn() && exists(userPath()) && getUserRecord().isActive == true
-      );
+    function isViewer() {
+      return signedIn() && !bootstrapAdmin() &&
+        hasAdminDoc() && adminDoc().role == 'viewer' && adminDoc().active == true;
     }
-    function myInvitePath() {
-      return /databases/$(database)/documents/user_invites/$(signedEmail());
-    }
-    function hasMyInvite() { return isSignedIn() && exists(myInvitePath()); }
-    function myInvite() { return get(myInvitePath()).data; }
-    // 首次登入者只可建立預先授權的角色，不能自行修改角色或啟用自己。
-    function matchesOwnInvite() {
-      return hasMyInvite() &&
-        request.resource.data.email == signedEmail() &&
-        request.resource.data.role == myInvite().role &&
-        request.resource.data.isActive == myInvite().isActive &&
-        request.resource.data.districtId == myInvite().districtId &&
-        request.resource.data.groupId == myInvite().groupId;
-    }
-    function isValidRole(role) {
-      return role in ['admin','district_leader','group_leader','viewer'];
-    }
-    function validInvite(email) {
-      return request.resource.data.email == email &&
-        isValidRole(request.resource.data.role) &&
-        request.resource.data.isActive is bool &&
-        request.resource.data.name is string &&
-        // 範圍由 Admin 在後台輸入；viewer 與 admin 不需範圍。
-        ((request.resource.data.role != 'district_leader') ||
-          request.resource.data.districtId is string) &&
-        ((request.resource.data.role != 'group_leader') ||
-          request.resource.data.groupId is string);
+    function isBootstrapId(id) {
+      return id in ['darren710404@gmail.com', 'darren.lin@twclc.org'];
     }
 
-    // 登入前由 Admin 授權 Google Email；使用者僅能讀自己的邀請。
-    match /user_invites/{email} {
-      allow get: if isAdmin() || (isSignedIn() && signedEmail() == email);
-      allow list: if isAdmin();
-      allow create, update: if isAdmin() && !isProtectedEmail(email) && validInvite(email);
-      allow delete: if isAdmin() && !isProtectedEmail(email);
+    // ---------- 管理員名單 ----------
+    match /admin_users/{email} {
+      // 登入時需要讀「自己的」文件來判斷權限；名單列表只有管理員 / 檢視者可讀。
+      allow get: if signedIn() && (myEmail() == email || isAdmin() || isViewer());
+      allow list: if isAdmin() || isViewer();
+
+      // 只有管理員可新增 / 修改；欄位與權限值固定；文件 ID 必須是小寫 Email。
+      allow create, update: if isAdmin()
+        && email == email.lower()
+        && request.resource.data.keys().hasOnly(['role', 'active', 'notifyReview', 'updatedAt', 'email'])
+        && request.resource.data.keys().hasAll(['role', 'active', 'notifyReview'])
+        && request.resource.data.role in ['admin', 'viewer']
+        && request.resource.data.active is bool
+        && request.resource.data.notifyReview is bool
+        // 初始管理員永遠是啟用中的 admin，只能調整通知設定。
+        && (!isBootstrapId(email) || (request.resource.data.role == 'admin' && request.resource.data.active == true))
+        // 檢視者不能接收審核通知。
+        && (request.resource.data.role != 'viewer' || request.resource.data.notifyReview == false);
+
+      // 初始管理員不可刪除。
+      allow delete: if isAdmin() && !isBootstrapId(email);
     }
 
-    match /users/{userId} {
-      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-      allow list: if isAdmin();
-      allow create: if isAdmin() || (
-        isSignedIn() && request.auth.uid == userId &&
-        request.resource.data.email == signedEmail() &&
-        ((request.resource.data.role == 'viewer' && request.resource.data.isActive == false) || matchesOwnInvite())
-      );
-      // 固定 Superuser 不能被後台停權或刪除；非管理員不能修改自己。
-      allow update, delete: if isAdmin() && !isProtectedEmail(resource.data.email) &&
-        !(request.auth.uid == userId);
-    }
-
-    // SR 原有獨立業務規則仍保留；不修改其存取範圍。
-    match /districts/{districtId} {
-      allow read: if isActiveWorker();
-      allow write: if isAdmin();
-    }
-    match /groups/{groupId} {
-      allow read: if isActiveWorker();
-      allow write: if isAdmin();
-    }
-    match /persons/{personId} {
-      allow read: if isActiveWorker();
-      allow create, update: if isAdmin() || (
-        isActiveWorker() && (
-          (getUserRecord().role == 'district_leader' && request.resource.data.districtId == getUserRecord().districtId) ||
-          (getUserRecord().role == 'group_leader' && request.resource.data.groupId == getUserRecord().groupId)
-        )
-      );
-      allow delete: if isAdmin();
-    }
-    match /intakes/{intakeId} {
-      allow read: if isActiveWorker();
-      allow create, update: if isAdmin() || (
-        isActiveWorker() && (
-          (getUserRecord().role == 'district_leader' && request.resource.data.districtId == getUserRecord().districtId) ||
-          (getUserRecord().role == 'group_leader' && request.resource.data.groupId == getUserRecord().groupId)
-        )
-      );
-      allow delete: if isAdmin();
-    }
-    match /careRecords/{recordId} {
-      allow read: if isActiveWorker();
-      allow create: if isActiveWorker();
-      allow update, delete: if isAdmin();
-    }
-    // 首頁外觀設定（背景影片）：所有人可讀，僅 Admin 可寫
-    match /system_config/{docId} {
+    // ---------- 系統設定（首頁背景影片等）：所有人可讀，僅 Admin 可寫 ----------
+    match /system_config/{doc} {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // ---------- SR 業務資料（頁面尚未開放；先以 Admin 可寫、Viewer 唯讀保護）----------
+    match /districts/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin();
+    }
+    match /groups/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin();
+    }
+    match /persons/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin();
+    }
+    match /intakes/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin();
+    }
+    match /careRecords/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin();
+    }
     match /statusOptions/{docId} {
-      allow read: if isActiveWorker();
+      allow read: if isAdmin() || isViewer();
       allow write: if isAdmin();
     }
   }
