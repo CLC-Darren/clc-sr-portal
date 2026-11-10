@@ -75,7 +75,7 @@ async function uploadHomeVideo(request, env) {
 
   const token = env.GITHUB_VIDEO_TOKEN || env.GITHUB_TOKEN;
   const owner = env.GITHUB_OWNER || 'CLC-Darren';
-  const repo = env.GITHUB_REPO || 'clc-sr-portal';
+  const repo = env.GITHUB_REPO || 'clc-assets';
   const branch = env.GITHUB_BRANCH || 'main';
 
   if (!token) {
