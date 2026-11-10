@@ -356,7 +356,15 @@ async function triggerAdminLogin() {
     console.error("登入錯誤:", error);
     // 使用者自行關閉登入視窗不用提示；其他錯誤避免讓按鈕看起來「沒有反應」。
     if (!['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error?.code)) {
-      alert('管理員登入未完成，請確認網路連線與瀏覽器是否允許 Google 登入彈出視窗。');
+      const code = error?.code || 'unknown';
+      const hint = {
+        'auth/unauthorized-domain': '此網域尚未加入 Firebase 的 Authorized domains（Authentication → Settings → Authorized domains），請加入 ' + location.hostname,
+        'auth/operation-not-allowed': 'Firebase 尚未啟用 Google 登入（Authentication → Sign-in method → Google → Enable）。',
+        'auth/popup-blocked': '瀏覽器擋住了登入彈出視窗，請允許彈出視窗後再試。',
+        'auth/network-request-failed': '網路連線失敗，請稍後再試。',
+        'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Firebase apiKey 無效，請檢查 header.js 的設定。'
+      }[code] || '請確認網路連線與瀏覽器是否允許 Google 登入彈出視窗。';
+      alert('管理員登入未完成。\n\n原因：' + hint + '\n（錯誤代碼：' + code + '）');
     }
   }
 }
