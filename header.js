@@ -98,7 +98,7 @@ function renderHeaderComponent() {
       #clc-header > div > a,
       #clc-header #clcLogoWrap > a { display: flex !important; align-items: center !important; text-decoration: none !important; }
       #clc-header #clcLogoLink { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
-      #clc-header #siteSwitcher { width: 180px; margin-top: 7.5px; padding: 6px 0; border-radius: 11.25px; z-index: 100; }
+      #clc-header #siteSwitcher { top: 100%; width: 180px; margin-top: 7.5px; padding: 6px 0; border-radius: 11.25px; z-index: 100; }
       #clc-header #siteSwitcher a { display: block; padding: 9px 15px; font-size: 13.5px; font-weight: 700; }
       #clc-header .logo-badge { font-size: 13.5px !important; height: 34px !important; line-height: 34px !important; box-sizing: border-box !important; padding: 0 12px !important; border-radius: 9px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; letter-spacing: .05em; }
       #clc-header > div > div { gap: 6px !important; display: flex !important; align-items: center !important; }
