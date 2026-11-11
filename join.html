@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-  <title>CLC SR | 新朋友登記</title>
+  <title>CLC SR | 新朋友留名單</title>
   <meta name="theme-color" content="#000000">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=sr-icon-20261109-v2">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,43 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/sr-ui.css?v=20261111d">
+  <style>
+    /* ===== 新朋友留名單（與通訊錄相同的 Apple 風格：深色底＋白色分組卡片；給長輩填，字放大） ===== */
+    html, body { font-size: 18px; }
+    .j-sec { font-size: 16px; font-weight: 800; color: rgba(235,235,245,.65); margin: 26px 6px 8px; }
+    .j-group { background: #fff; color: #1D1D1F; border-radius: 18px; overflow: hidden; }
+    .j-row { padding: 16px 18px; border-top: 1px solid #E5E5EA; }
+    .j-row:first-child { border-top: 0; }
+    .j-lab { display: block; font-size: 17px; font-weight: 800; color: #1D1D1F; margin-bottom: 10px; }
+    .j-req { color: #D70015; margin-left: 2px; }
+    .j-help { font-size: 15px; color: #6E6E73; margin-top: 8px; line-height: 1.5; }
+    .j-in { width: 100%; box-sizing: border-box; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid #D1D1D6; background: #F7F7F9; font: inherit; font-size: 20px; color: #1D1D1F; }
+    .j-in::placeholder { color: #AEAEB2; }
+    .j-in:focus { outline: 3px solid rgba(0,126,138,.35); border-color: #007E8A; background: #fff; }
+    textarea.j-in { min-height: 110px; line-height: 1.5; }
+    select.j-in { appearance: none; padding-right: 36px; background: #F7F7F9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; }
+    .j-invalid .j-in, .j-in.j-bad { border-color: #D70015; background: #FFF5F5; }
+    .j-err { font-size: 16px; font-weight: 800; color: #D70015; margin-top: 8px; }
+    /* 大按鈕單選 */
+    .j-choices { display: grid; gap: 10px; }
+    .j-choice { min-height: 58px; padding: 8px 10px; border-radius: 14px; border: 1.5px solid #D1D1D6; background: #F7F7F9; color: #1D1D1F; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+    .j-choice[aria-pressed="true"] { background: #007E8A; border-color: #007E8A; color: #fff; }
+    .j-choice[aria-pressed="true"]::before { content: '✓'; font-weight: 900; }
+    .j-choice:focus-visible, .j-check:focus-visible { outline: 3px solid rgba(0,126,138,.45); outline-offset: 2px; }
+    /* 複選（像 iPhone 設定的勾選列） */
+    .j-check { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 4px; border: 0; border-top: 1px solid #EFEFF4; background: transparent; font: inherit; font-size: 19px; font-weight: 600; color: #1D1D1F; text-align: left; cursor: pointer; }
+    .j-check:first-of-type { border-top: 0; }
+    .j-box { flex: none; width: 28px; height: 28px; border-radius: 8px; border: 2px solid #AEAEB2; display: flex; align-items: center; justify-content: center; color: transparent; font-weight: 900; font-size: 18px; }
+    .j-check[aria-pressed="true"] .j-box { background: #007E8A; border-color: #007E8A; color: #fff; }
+    .j-submit { width: 100%; min-height: 64px; border: 0; border-radius: 16px; background: #007E8A; color: #fff; font: inherit; font-size: 21px; font-weight: 800; cursor: pointer; }
+    .j-submit:active { background: #006C77; }
+    .j-ghost { width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: #1C1C1E; color: #fff; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; }
+    .j-photo { width: 104px; height: 104px; border-radius: 27px; flex: none; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #F2F2F7; border: 2px dashed #C7C7CC; color: #AEAEB2; }
+    .j-photo.has { border-style: solid; border-color: #E5E5EA; }
+    .j-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .j-small-btn { min-height: 50px; padding: 0 16px; border-radius: 14px; border: 0; font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .j-dt { width: 6.5em; flex: none; color: #6E6E73; font-weight: 700; }
+  </style>
 </head>
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
@@ -23,111 +60,150 @@
   <main class="max-w-xl mx-auto px-4 pt-6 pb-16">
     <!-- 填寫畫面 -->
     <section id="formView">
-      <div class="text-center space-y-2 mb-6">
-        <div class="text-5xl" aria-hidden="true">🌱</div>
-        <h1 class="text-[1.9rem] font-extrabold leading-tight">新朋友登記</h1>
-        <p class="text-[1.02rem] text-slate-300 leading-relaxed">歡迎來到江翠加樂！<br>請留下您的資料，讓我們可以關心您。</p>
+      <div class="flex flex-col items-center text-center gap-3 mb-4">
+        <div class="w-[76px] h-[76px] rounded-[20px] bg-[#007E8A] flex items-center justify-center" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5 4 5c0 4 3 7 8 7z"/><path d="M12 14c0-3.5 2.5-6 7-6 0 3.5-2.5 6-7 6z"/></svg>
+        </div>
+        <h1 class="text-[32px] font-extrabold leading-tight">新朋友留名單</h1>
+        <p class="text-[18px] text-[rgba(235,235,245,.75)] leading-relaxed">歡迎來到江翠加樂！<br>請留下您的資料，讓我們可以關心您。</p>
       </div>
 
-      <div class="rounded-2xl border border-amber-400/40 bg-amber-400/10 text-amber-200 px-4 py-3 mb-5 text-[.95rem] font-bold" role="note">
+      <div class="rounded-2xl border border-amber-400/40 bg-amber-400/10 text-amber-200 px-4 py-3 text-[16px] font-bold" role="note">
         🛠️ 預覽版：目前按「送出」不會儲存資料。
       </div>
 
-      <p class="sr-help mb-4"><span class="sr-req">＊</span>為必填</p>
-
-      <form id="joinForm" novalidate class="space-y-4">
-        <div class="sr-card p-4 sm:p-5" data-field="name">
-          <label class="sr-label" for="fName">姓名<span class="sr-req">＊</span></label>
-          <input class="sr-field" id="fName" name="name" autocomplete="name" maxlength="30" placeholder="請輸入姓名">
-        </div>
-
-        <div class="sr-card p-4 sm:p-5">
-          <span class="sr-label">照片</span>
-          <div class="flex items-center gap-4">
-            <div id="photoPreview" class="w-24 h-24 rounded-[26px] bg-[#0f121a] border-[1.5px] border-dashed border-[#3b4558] flex items-center justify-center text-[#6b7488] shrink-0 overflow-hidden" aria-hidden="true">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            </div>
-            <div class="flex flex-col gap-2 flex-1">
-              <label class="sr-btn sr-btn-ghost w-full cursor-pointer">📷 拍照或選照片<input id="fPhoto" type="file" accept="image/*" class="sr-only"></label>
-              <button type="button" id="photoRemove" class="sr-btn sr-btn-danger sr-btn-sm hidden">移除照片</button>
+      <form id="joinForm" novalidate>
+        <p class="j-sec">基本資料　<span style="font-weight:600">（<span style="color:#FF6961">＊</span>必填）</span></p>
+        <div class="j-group">
+          <div class="j-row" data-field="name">
+            <label class="j-lab" for="fName">姓名<span class="j-req">＊</span></label>
+            <input class="j-in" id="fName" autocomplete="name" maxlength="30" placeholder="請輸入姓名">
+          </div>
+          <div class="j-row" data-field="gender">
+            <span class="j-lab" id="lGender">性別<span class="j-req">＊</span></span>
+            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lGender" data-choice="gender">
+              <button type="button" class="j-choice" data-value="女">女</button>
+              <button type="button" class="j-choice" data-value="男">男</button>
             </div>
           </div>
-          <p class="sr-help mt-2">可以不放。有照片的話，同工比較容易認識您。</p>
-        </div>
-
-        <div class="sr-card p-4 sm:p-5" data-field="gender">
-          <span class="sr-label" id="lGender">性別<span class="sr-req">＊</span></span>
-          <div class="grid grid-cols-2 gap-3" role="group" aria-labelledby="lGender" data-choice="gender">
-            <button type="button" class="sr-choice" data-value="女">女</button>
-            <button type="button" class="sr-choice" data-value="男">男</button>
+          <div class="j-row" data-field="birthday">
+            <span class="j-lab" id="lBirth">生日<span class="j-req">＊</span></span>
+            <div class="grid grid-cols-[1.3fr_1fr_1fr] gap-2" role="group" aria-labelledby="lBirth">
+              <label><span class="sr-only">出生年（民國或西元）</span><input class="j-in text-center" id="fYear" inputmode="numeric" maxlength="4" placeholder="年" aria-describedby="birthHint"></label>
+              <label><span class="sr-only">月</span><select class="j-in" id="fMonth"><option value="">月</option></select></label>
+              <label><span class="sr-only">日</span><select class="j-in" id="fDay"><option value="">日</option></select></label>
+            </div>
+            <p id="birthHint" class="j-help">年份填民國或西元都可以，例如「45」或「1956」。</p>
+          </div>
+          <div class="j-row">
+            <span class="j-lab" id="lMarital">婚姻</span>
+            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lMarital" data-choice="marital" data-optional></div>
+          </div>
+          <div class="j-row">
+            <span class="j-lab">照片</span>
+            <div class="flex items-center gap-4">
+              <div id="photoPreview" class="j-photo" aria-hidden="true"></div>
+              <div class="flex flex-col gap-2 flex-1 min-w-0">
+                <label class="j-small-btn bg-[#F2F2F7] text-[#1D1D1F] cursor-pointer">📷 拍照或選照片<input id="fPhoto" type="file" accept="image/*" class="sr-only"></label>
+                <button type="button" id="photoRemove" class="j-small-btn bg-transparent text-[#D70015] hidden">移除照片</button>
+              </div>
+            </div>
+            <p class="j-help">可以不放。有照片的話，同工比較容易認識您。</p>
           </div>
         </div>
 
-        <div class="sr-card p-4 sm:p-5" data-field="birthday">
-          <span class="sr-label" id="lBirth">生日<span class="sr-req">＊</span></span>
-          <div class="grid grid-cols-[1.25fr_1fr_1fr] gap-2" role="group" aria-labelledby="lBirth">
-            <label class="block">
-              <span class="sr-help block mb-1">出生年</span>
-              <input class="sr-field text-center" id="fYear" inputmode="numeric" maxlength="4" placeholder="例：45" aria-describedby="birthHint">
-            </label>
-            <label class="block">
-              <span class="sr-help block mb-1">月</span>
-              <select class="sr-field" id="fMonth"><option value="">月</option></select>
-            </label>
-            <label class="block">
-              <span class="sr-help block mb-1">日</span>
-              <select class="sr-field" id="fDay"><option value="">日</option></select>
-            </label>
+        <p class="j-sec">聯絡方式</p>
+        <div class="j-group">
+          <div class="j-row" data-field="mobile">
+            <label class="j-lab" for="fMobile">手機<span class="j-req">＊</span></label>
+            <input class="j-in" id="fMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0910-000-000">
           </div>
-          <p id="birthHint" class="sr-help mt-2">民國年或西元年都可以，例如「45」或「1956」。</p>
+          <div class="j-row">
+            <label class="j-lab" for="fPhone">聯繫電話（市話）</label>
+            <input class="j-in" id="fPhone" type="tel" inputmode="tel" placeholder="02-0000-0000">
+          </div>
+          <div class="j-row">
+            <label class="j-lab" for="fAddress">地址</label>
+            <input class="j-in" id="fAddress" autocomplete="street-address" maxlength="120" placeholder="請輸入地址">
+          </div>
+          <div class="j-row">
+            <span class="j-lab" id="lLiving">居住狀況</span>
+            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lLiving" data-choice="living" data-optional></div>
+          </div>
         </div>
 
-        <div class="sr-card p-4 sm:p-5" data-field="mobile">
-          <label class="sr-label" for="fMobile">手機<span class="sr-req">＊</span></label>
-          <input class="sr-field" id="fMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0910-000-000">
+        <p class="j-sec">關懷小組</p>
+        <div class="j-group">
+          <div class="j-row" data-field="group">
+            <span class="j-lab" id="lGroup">想加入的關懷小組<span class="j-req">＊</span></span>
+            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lGroup" data-choice="group" id="groupChoices"></div>
+            <button type="button" class="j-choice w-full mt-2.5" data-value="" data-choice-of="group" id="groupNone">暫不安排小組</button>
+            <p id="groupHint" class="j-help"></p>
+          </div>
         </div>
 
-        <div class="sr-card p-4 sm:p-5">
-          <label class="sr-label" for="fPhone">市話</label>
-          <input class="sr-field" id="fPhone" type="tel" inputmode="tel" placeholder="02-0000-0000">
+        <p class="j-sec">介紹人</p>
+        <div class="j-group">
+          <div class="j-row">
+            <label class="j-lab" for="fRefName">介紹人姓名</label>
+            <input class="j-in" id="fRefName" maxlength="30" placeholder="是誰帶您來的？">
+          </div>
+          <div class="j-row">
+            <label class="j-lab" for="fRefRel">與介紹人的關係</label>
+            <input class="j-in" id="fRefRel" maxlength="20" placeholder="例如：朋友、鄰居、女兒" list="relList">
+            <datalist id="relList"><option value="朋友"><option value="鄰居"><option value="同事"><option value="女兒"><option value="兒子"><option value="媳婦"><option value="母女"><option value="父女"></datalist>
+          </div>
+          <div class="j-row">
+            <label class="j-lab" for="fRefPhone">介紹人電話</label>
+            <input class="j-in" id="fRefPhone" type="tel" inputmode="tel" placeholder="0910-000-000">
+          </div>
         </div>
 
-        <div class="sr-card p-4 sm:p-5">
-          <label class="sr-label" for="fAddress">地址</label>
-          <input class="sr-field" id="fAddress" autocomplete="street-address" maxlength="120" placeholder="請輸入地址">
+        <p class="j-sec">認識您（可複選）</p>
+        <div class="j-group">
+          <div class="j-row">
+            <span class="j-lab" id="lFaith">您是基督徒嗎？</span>
+            <div role="group" aria-labelledby="lFaith" data-multi="faith">
+              <button type="button" class="j-check" data-value="第一次來教會"><span class="j-box">✓</span>第一次來教會</button>
+              <button type="button" class="j-check" data-value="我還不是基督徒"><span class="j-box">✓</span>我還不是基督徒</button>
+              <button type="button" class="j-check" data-value="我是受洗的基督徒"><span class="j-box">✓</span>我是受洗的基督徒</button>
+            </div>
+            <label class="block mt-2"><span class="sr-only">其他或原屬教會</span><input class="j-in" id="fFaithOther" maxlength="60" placeholder="其他／原屬教會（可不填）"></label>
+          </div>
+          <div class="j-row">
+            <span class="j-lab" id="lIntent">您希望……</span>
+            <div role="group" aria-labelledby="lIntent" data-multi="intent">
+              <button type="button" class="j-check" data-value="加入本堂聚會"><span class="j-box">✓</span>加入本堂聚會</button>
+              <button type="button" class="j-check" data-value="進一步認識神"><span class="j-box">✓</span>進一步認識神</button>
+              <button type="button" class="j-check" data-value="決志相信耶穌"><span class="j-box">✓</span>決志相信耶穌</button>
+              <button type="button" class="j-check" data-value="歡迎來拜訪我"><span class="j-box">✓</span>歡迎來拜訪我</button>
+            </div>
+            <label class="block mt-2"><span class="sr-only">其他或方便拜訪的時間</span><input class="j-in" id="fIntentOther" maxlength="60" placeholder="其他／方便拜訪的時間（可不填）"></label>
+          </div>
+          <div class="j-row">
+            <label class="j-lab" for="fNote">需要幫助或代禱的事項</label>
+            <textarea class="j-in" id="fNote" maxlength="500" placeholder="有任何需要，都可以寫在這裡"></textarea>
+          </div>
         </div>
 
-        <div class="sr-card p-4 sm:p-5">
-          <span class="sr-label" id="lMarital">婚姻</span>
-          <div class="grid grid-cols-2 gap-3" role="group" aria-labelledby="lMarital" data-choice="marital" data-optional></div>
-          <p class="sr-help mt-2">可不填；再點一次可取消。</p>
-        </div>
-
-        <div class="sr-card p-4 sm:p-5">
-          <span class="sr-label" id="lLiving">居住狀況</span>
-          <div class="grid grid-cols-2 gap-3" role="group" aria-labelledby="lLiving" data-choice="living" data-optional></div>
-        </div>
-
-        <div class="sr-card p-4 sm:p-5" data-field="group">
-          <span class="sr-label" id="lGroup">關懷小組<span class="sr-req">＊</span></span>
-          <div class="grid grid-cols-2 gap-2.5" role="group" aria-labelledby="lGroup" data-choice="group" id="groupChoices"></div>
-          <button type="button" class="sr-choice mt-2.5" data-value="" data-choice-of="group" id="groupNone">暫不安排小組</button>
-        </div>
-
-        <div class="pt-2">
-          <button type="submit" class="sr-btn sr-btn-primary w-full text-[1.15rem]" style="min-height:62px">送出資料</button>
+        <div class="mt-7">
+          <button type="submit" class="j-submit">送出資料</button>
         </div>
       </form>
     </section>
 
     <!-- 完成畫面 -->
-    <section id="doneView" class="hidden text-center space-y-5 pt-6" tabindex="-1">
-      <div class="text-6xl" aria-hidden="true">🙏</div>
-      <h1 class="text-[1.9rem] font-extrabold">謝謝您！</h1>
-      <p class="text-[1.05rem] text-slate-300">我們已經收到您的資料，<br>同工會再與您聯繫。</p>
-      <p class="text-[.95rem] font-bold text-amber-200">（預覽版：這筆資料沒有儲存）</p>
-      <dl id="summary" class="sr-card p-4 text-left space-y-2 text-[1rem]"></dl>
-      <button type="button" id="againBtn" class="sr-btn sr-btn-ghost w-full">再登記一位</button>
+    <section id="doneView" class="hidden pt-4" tabindex="-1">
+      <div class="flex flex-col items-center text-center gap-3 mb-5">
+        <div class="w-[76px] h-[76px] rounded-[20px] bg-[#30A46C] flex items-center justify-center" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <h1 class="text-[32px] font-extrabold">謝謝您！</h1>
+        <p class="text-[18px] text-[rgba(235,235,245,.75)]">我們已經收到您的資料，<br>同工會再與您聯繫。</p>
+        <p class="text-[16px] font-bold text-amber-200">（預覽版：這筆資料沒有儲存）</p>
+      </div>
+      <div class="j-group"><dl id="summary" class="px-[18px] py-2"></dl></div>
+      <div class="mt-6"><button type="button" id="againBtn" class="j-ghost">再登記一位</button></div>
     </section>
   </main>
 
@@ -136,28 +212,38 @@
   <script>
   (function () {
     const SR = window.SR;
-    const state = { gender: '', marital: '', living: '', group: null }; // group: null=未選、''=暫不安排
+    const $ = id => document.getElementById(id);
+    const state = { gender: '', marital: '', living: '', group: null, faith: [], intent: [] }; // group: null=未選、''=暫不安排
     let photo = null; // { thumb, full }，預覽版不會上傳
-    function showPhoto() {
-      const box = $('photoPreview');
-      box.innerHTML = photo ? `<img src="${photo.thumb}" alt="已選的照片" style="width:100%;height:100%;object-fit:cover">` : '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
-      box.style.borderStyle = photo ? 'solid' : 'dashed';
-      $('photoRemove').classList.toggle('hidden', !photo);
-    }
     // 「加樂同工」等同工組不給新朋友選
     const forNewcomer = g => g.active !== false && !/同工/.test(g.name);
     let groups = SR.DEFAULT_GROUPS.map(name => ({ id: '', name })).filter(forNewcomer);
     let options = { marital: SR.DEFAULT_OPTIONS.marital, living: SR.DEFAULT_OPTIONS.living };
+    const PERSON_ICON = '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
 
-    const $ = id => document.getElementById(id);
-    const fMonth = $('fMonth'), fDay = $('fDay'), fYear = $('fYear');
+    // ---------- 照片 ----------
+    function showPhoto() {
+      const box = $('photoPreview');
+      box.innerHTML = photo ? `<img src="${photo.thumb}" alt="已選的照片">` : PERSON_ICON;
+      box.classList.toggle('has', !!photo);
+      $('photoRemove').classList.toggle('hidden', !photo);
+    }
+    showPhoto();
     $('fPhoto').addEventListener('change', async e => {
       const file = e.target.files[0]; e.target.value = '';
       if (!file) return;
       try { photo = await SR.makePhoto(file); showPhoto(); } catch (err) { SR.toast(err.message, 'error'); }
     });
     $('photoRemove').addEventListener('click', () => { photo = null; showPhoto(); });
+
+    // ---------- 生日 ----------
+    const fMonth = $('fMonth'), fDay = $('fDay'), fYear = $('fYear');
     for (let m = 1; m <= 12; m++) fMonth.add(new Option(m + ' 月', m));
+    function toWesternYear(v) {
+      const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
+      if (!n) return 0;
+      return n < 200 ? n + 1911 : n;
+    }
     function fillDays() {
       const keep = fDay.value;
       const y = toWesternYear(fYear.value) || 2000, m = +fMonth.value || 1;
@@ -167,47 +253,53 @@
       if (keep && +keep <= max) fDay.value = keep;
     }
     fillDays();
-
-    function toWesternYear(v) {
-      const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
-      if (!n) return 0;
-      return n < 200 ? n + 1911 : n;
-    }
     function updateBirthHint() {
       const y = toWesternYear(fYear.value);
       const hint = $('birthHint');
-      if (!fYear.value) { hint.textContent = '民國年或西元年都可以，例如「45」或「1956」。'; return; }
+      if (!fYear.value) { hint.textContent = '年份填民國或西元都可以，例如「45」或「1956」。'; return; }
       if (y < 1900 || y > new Date().getFullYear()) { hint.textContent = '年份好像不太對，請再確認一下。'; return; }
-      const age = new Date().getFullYear() - y;
-      hint.textContent = `民國 ${y - 1911} 年 ＝ 西元 ${y} 年（約 ${age} 歲）`;
+      hint.textContent = `民國 ${y - 1911} 年 ＝ 西元 ${y} 年（約 ${new Date().getFullYear() - y} 歲）`;
     }
     fYear.addEventListener('input', () => { fYear.value = fYear.value.replace(/[^\d]/g, ''); updateBirthHint(); fillDays(); clearError('birthday'); });
     fMonth.addEventListener('change', () => { fillDays(); clearError('birthday'); });
     fDay.addEventListener('change', () => clearError('birthday'));
 
-    ['fMobile', 'fPhone'].forEach(id => $(id).addEventListener('blur', e => { e.target.value = SR.formatPhone(e.target.value); }));
+    ['fMobile', 'fPhone', 'fRefPhone'].forEach(id => $(id).addEventListener('blur', e => { e.target.value = SR.formatPhone(e.target.value); }));
     $('fMobile').addEventListener('input', () => clearError('mobile'));
     $('fName').addEventListener('input', () => clearError('name'));
 
-    // ---------- 大按鈕選項 ----------
+    // ---------- 大按鈕單選 ----------
     function renderChoices() {
       const box = name => document.querySelector(`[data-choice="${name}"]`);
-      box('marital').innerHTML = options.marital.map(v => `<button type="button" class="sr-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
-      box('living').innerHTML = options.living.map(v => `<button type="button" class="sr-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
+      box('marital').innerHTML = options.marital.map(v => `<button type="button" class="j-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
+      box('living').innerHTML = options.living.map(v => `<button type="button" class="j-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
       // 先選性別時，只列對應的小組（培榮、文泉是弟兄小組）
       const shown = groups.filter(g => !state.gender || !SR.groupGender(g) || SR.groupGender(g) === state.gender);
-      $('groupChoices').innerHTML = shown.map(g => `<button type="button" class="sr-choice" data-value="${SR.esc(g.name)}">${SR.esc(g.name.replace(/小組$/, ''))}<span class="text-[.85rem] font-bold opacity-75">小組</span></button>`).join('');
+      $('groupChoices').innerHTML = shown.map(g => `<button type="button" class="j-choice" data-value="${SR.esc(g.name)}">${SR.esc(g.name)}</button>`).join('');
+      $('groupHint').textContent = state.gender ? '' : '先選性別，這裡只會列出適合的小組。';
       syncPressed();
     }
     function syncPressed() {
       document.querySelectorAll('[data-choice]').forEach(boxEl => {
         const key = boxEl.dataset.choice;
-        boxEl.querySelectorAll('.sr-choice').forEach(b => b.setAttribute('aria-pressed', String(state[key] === b.dataset.value)));
+        boxEl.querySelectorAll('.j-choice').forEach(b => b.setAttribute('aria-pressed', String(state[key] === b.dataset.value)));
       });
       $('groupNone').setAttribute('aria-pressed', String(state.group === ''));
+      document.querySelectorAll('[data-multi]').forEach(boxEl => {
+        const list = state[boxEl.dataset.multi];
+        boxEl.querySelectorAll('.j-check').forEach(b => b.setAttribute('aria-pressed', String(list.includes(b.dataset.value))));
+      });
     }
     document.addEventListener('click', e => {
-      const btn = e.target.closest('.sr-choice');
+      const check = e.target.closest('.j-check');
+      if (check) {
+        const list = state[check.closest('[data-multi]').dataset.multi];
+        const i = list.indexOf(check.dataset.value);
+        if (i >= 0) list.splice(i, 1); else list.push(check.dataset.value);
+        syncPressed();
+        return;
+      }
+      const btn = e.target.closest('.j-choice');
       if (!btn) return;
       const boxEl = btn.closest('[data-choice]');
       const key = boxEl ? boxEl.dataset.choice : btn.dataset.choiceOf;
@@ -236,36 +328,32 @@
 
     // ---------- 檢查與送出 ----------
     function setError(field, message) {
-      const card = document.querySelector(`[data-field="${field}"]`);
-      if (!card) return;
+      const row = document.querySelector(`[data-field="${field}"]`);
+      if (!row) return;
       clearError(field);
       const p = document.createElement('p');
-      p.className = 'sr-error-text';
-      p.dataset.err = '1';
+      p.className = 'j-err'; p.dataset.err = '1';
       p.textContent = '⚠️ ' + message;
-      card.appendChild(p);
-      card.querySelectorAll('.sr-field').forEach(f => f.classList.add('sr-invalid'));
-      card.style.borderColor = 'rgba(251,113,133,.6)';
+      row.appendChild(p);
+      row.classList.add('j-invalid');
     }
     function clearError(field) {
-      const card = document.querySelector(`[data-field="${field}"]`);
-      if (!card) return;
-      card.querySelectorAll('[data-err]').forEach(n => n.remove());
-      card.querySelectorAll('.sr-field').forEach(f => f.classList.remove('sr-invalid'));
-      card.style.borderColor = '';
+      const row = document.querySelector(`[data-field="${field}"]`);
+      if (!row) return;
+      row.querySelectorAll('[data-err]').forEach(n => n.remove());
+      row.classList.remove('j-invalid');
     }
 
     $('joinForm').addEventListener('submit', e => {
       e.preventDefault();
       const data = {
-        name: $('fName').value.trim(),
-        gender: state.gender,
-        mobile: SR.formatPhone($('fMobile').value),
-        phone: SR.formatPhone($('fPhone').value),
-        address: $('fAddress').value.trim(),
-        marital: state.marital,
-        living: state.living,
-        group: state.group
+        name: $('fName').value.trim(), gender: state.gender,
+        mobile: SR.formatPhone($('fMobile').value), phone: SR.formatPhone($('fPhone').value),
+        address: $('fAddress').value.trim(), marital: state.marital, living: state.living, group: state.group,
+        refName: $('fRefName').value.trim(), refRelation: $('fRefRel').value.trim(), refPhone: SR.formatPhone($('fRefPhone').value),
+        faith: [...state.faith, $('fFaithOther').value.trim()].filter(Boolean),
+        intent: [...state.intent, $('fIntentOther').value.trim()].filter(Boolean),
+        note: $('fNote').value.trim()
       };
       const y = toWesternYear(fYear.value);
       data.birthday = fYear.value && fMonth.value && fDay.value ? SR.parseBirthday(`${y}-${fMonth.value}-${fDay.value}`) : '';
@@ -273,7 +361,7 @@
       const errors = [];
       if (!data.name) errors.push(['name', '請填寫姓名']);
       if (!data.gender) errors.push(['gender', '請選擇性別']);
-      if (!data.birthday) errors.push(['birthday', data.birthday === null || fYear.value ? '生日不完整或日期不正確' : '請填寫生日']);
+      if (!data.birthday) errors.push(['birthday', fYear.value ? '生日不完整或日期不正確' : '請填寫生日']);
       const digits = SR.phoneDigits(data.mobile);
       if (!digits) errors.push(['mobile', '請填寫手機號碼']);
       else if (!/^09\d{8}$/.test(digits)) errors.push(['mobile', '手機號碼應為 09 開頭的 10 碼數字']);
@@ -289,13 +377,15 @@
         return;
       }
 
-      // TODO（第二階段）：寫入 intakes，並以 Cloudflare Turnstile 防止機器人。
+      // TODO（第二階段）：寫入 intakes（含照片），並以 Cloudflare Turnstile 防止機器人。
       const rows = [
         ['姓名', data.name], ['性別', data.gender], ['生日', SR.formatRocLong(data.birthday)],
         ['手機', data.mobile], ['市話', data.phone], ['地址', data.address],
-        ['婚姻', data.marital], ['居住狀況', data.living], ['關懷小組', data.group || '暫不安排小組'], ['照片', photo ? '已附上' : '']
+        ['婚姻', data.marital], ['居住狀況', data.living], ['關懷小組', data.group || '暫不安排小組'],
+        ['照片', photo ? '已附上' : ''], ['介紹人', [data.refName, data.refRelation && `（${data.refRelation}）`, data.refPhone].filter(Boolean).join(' ')],
+        ['信仰', data.faith.join('、')], ['希望', data.intent.join('、')], ['代禱事項', data.note]
       ].filter(r => r[1]);
-      $('summary').innerHTML = rows.map(([k, v]) => `<div class="flex gap-3"><dt class="w-24 shrink-0 text-slate-400 font-bold">${k}</dt><dd class="font-bold break-all">${SR.esc(v)}</dd></div>`).join('');
+      $('summary').innerHTML = rows.map(([k, v]) => `<div class="flex gap-3 py-2.5 border-t border-[#EFEFF4] first:border-t-0 text-[18px]"><dt class="j-dt">${k}</dt><dd class="font-bold break-all" style="white-space:pre-line">${SR.esc(v)}</dd></div>`).join('');
       $('formView').classList.add('hidden');
       $('doneView').classList.remove('hidden');
       window.scrollTo(0, 0);
@@ -304,9 +394,9 @@
 
     $('againBtn').addEventListener('click', () => {
       $('joinForm').reset();
-      Object.assign(state, { gender: '', marital: '', living: '', group: null });
+      Object.assign(state, { gender: '', marital: '', living: '', group: null, faith: [], intent: [] });
       photo = null; showPhoto();
-      syncPressed(); fillDays(); updateBirthHint();
+      renderChoices(); fillDays(); updateBirthHint();
       $('doneView').classList.add('hidden');
       $('formView').classList.remove('hidden');
       window.scrollTo(0, 0);
