@@ -78,16 +78,28 @@ service cloud.firestore {
     // 組員通訊錄：含地址、生日等個資，只有登入的 Admin / Viewer 可讀，Admin 可寫。
     function validPerson(d) {
       return d.keys().hasOnly(['name', 'gender', 'birthday', 'phone', 'mobile', 'address', 'marital', 'living',
-          'groupId', 'status', 'note', 'source', 'createdAt', 'updatedAt', 'updatedBy'])
+          'groupId', 'status', 'note', 'source', 'memberNo', 'photoThumb', 'createdAt', 'updatedAt', 'updatedBy'])
         && d.name is string && d.name.size() > 0 && d.name.size() <= 60
         && (!('gender' in d) || d.gender in ['女', '男', ''])
         && (!('birthday' in d) || d.birthday == '' || d.birthday.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
         && (!('note' in d) || (d.note is string && d.note.size() <= 2000))
-        && (!('address' in d) || (d.address is string && d.address.size() <= 200));
+        && (!('address' in d) || (d.address is string && d.address.size() <= 200))
+        && (!('memberNo' in d) || (d.memberNo is string && d.memberNo.size() <= 20))
+        && (!('photoThumb' in d) || (d.photoThumb is string && d.photoThumb.size() <= 60000));
     }
     match /persons/{docId} {
       allow read: if isAdmin() || isViewer();
       allow create, update: if isAdmin() && validPerson(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    // 組員相片（大圖）：與通訊錄同權限；文件 ID 與組員相同。
+    match /personPhotos/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt', 'updatedBy'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 900000
+        && request.resource.data.data.matches('^data:image/(jpeg|png|webp);base64,.*');
       allow delete: if isAdmin();
     }
 

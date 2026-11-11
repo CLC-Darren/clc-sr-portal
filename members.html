@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark sr-compact">
+<html lang="zh-TW" class="dark sr-members">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
@@ -15,109 +15,186 @@
   <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','"Noto Sans TC"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/sr-ui.css?v=20261111c">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111d">
+  <style>
+    /* ===== 通訊錄（Apple 風格：電腦＝表格＋右側檢閱器；手機＝白色卡片） ===== */
+    html.sr-members, html.sr-members body { font-size: 16px; }
+    .m-dark-field { height: 38px; border-radius: 10px; background: #1C1C1E; border: 1px solid rgba(255,255,255,.08); color: #fff; font: inherit; font-size: 15px; padding: 0 12px; }
+    select.m-dark-field { appearance: none; padding-right: 30px; cursor: pointer;
+      background: #1C1C1E url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aeaeb2' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px; }
+    select.m-dark-field option { background: #1C1C1E; }
+    .m-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 11px; background: #1C1C1E; color: rgba(235,235,245,.5); }
+    .m-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; font-size: 16px; outline: none; }
+    .m-seg { display: inline-flex; padding: 2px; border-radius: 10px; background: #1C1C1E; }
+    .m-seg button { height: 34px; padding: 0 16px; border-radius: 8px; border: 0; background: transparent; color: rgba(235,235,245,.8); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .m-seg button[aria-pressed="true"] { background: #636366; color: #fff; }
+    .m-round { width: 38px; height: 38px; border-radius: 50%; border: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+    .sr-avatar { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; line-height: 1; }
+    .sr-pill { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+    /* 電腦版：白色表格 */
+    .m-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .m-table th { position: sticky; top: 0; z-index: 2; text-align: left; font-size: 13px; font-weight: 700; color: #6E6E73; padding: 10px 12px; background: #F9F9FB; border-bottom: 1px solid #D1D1D6; white-space: nowrap; }
+    .m-table td { font-size: 15px; color: #1D1D1F; padding: 8px 12px; border-bottom: 1px solid #EFEFF4; white-space: nowrap; }
+    .m-table tbody tr { cursor: pointer; }
+    .m-table tbody tr:nth-child(even) td { background: #FBFBFD; }
+    .m-table tbody tr:hover td { background: #F0F7F8; }
+    .m-table tbody tr[aria-selected="true"] td { background: #D9F1F3; }
+    .m-muted { color: #AEAEB2; }
+
+    /* 淺色面板（檢閱器、手機個人資料頁） */
+    .m-light { color: #1D1D1F; }
+    .m-group { background: #fff; border-radius: 14px; overflow: hidden; }
+    .m-row { display: flex; flex-direction: column; gap: 2px; padding: 11px 16px; border-top: 1px solid #E5E5EA; }
+    .m-row:first-child { border-top: 0; }
+    .m-lab { font-size: 13px; font-weight: 600; color: #6E6E73; }
+    .m-val { font-size: 18px; font-weight: 500; color: #1D1D1F; word-break: break-word; white-space: pre-line; }
+    .m-in { width: 100%; box-sizing: border-box; min-height: 40px; border-radius: 9px; border: 1px solid #D1D1D6; background: #fff; padding: 7px 10px; font: inherit; font-size: 16px; color: #1D1D1F; }
+    .m-in:focus { outline: 3px solid rgba(0,126,138,.35); border-color: #007E8A; }
+    .m-in:disabled { background: #F2F2F7; color: #3A3A3C; }
+    select.m-in { appearance: none; padding-right: 30px;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px; }
+    .m-in.sr-invalid { border-color: #E5484D; }
+    .m-lseg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 2px; border-radius: 9px; background: #E5E5EA; }
+    .m-lseg button { height: 34px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 15px; font-weight: 700; color: #3A3A3C; cursor: pointer; }
+    .m-lseg button[aria-pressed="true"] { background: #fff; color: #1D1D1F; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .m-btn { height: 40px; border-radius: 10px; border: 0; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 14px; text-decoration: none; }
+    .m-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .m-btn-teal { background: #007E8A; color: #fff; }
+    .m-btn-white { background: #fff; color: #1D1D1F; }
+    .m-btn-gray { background: #E5E5EA; color: #1D1D1F; }
+    .m-btn-red { background: transparent; color: #D70015; }
+    .m-act { flex: 1; height: 64px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 14px; font-weight: 700; text-decoration: none; }
+
+    /* 手機版：白色卡片 */
+    .m-card { display: flex; align-items: center; gap: 12px; background: #fff; color: #1D1D1F; border-radius: 18px; padding: 12px 12px 12px 14px; }
+    .m-card > button { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; text-align: left; font: inherit; color: inherit; padding: 0; cursor: pointer; }
+    .m-call { flex: none; width: 52px; height: 52px; border-radius: 50%; background: #007E8A; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .m-chip { flex: none; height: 36px; border-radius: 999px; border: 0; padding: 0 14px; font: inherit; font-size: 15px; font-weight: 700; background: #1C1C1E; color: rgba(235,235,245,.85); cursor: pointer; }
+    .m-chip[aria-pressed="true"] { background: #007E8A; color: #fff; }
+    .m-scroll-x { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .m-scroll-x::-webkit-scrollbar { display: none; }
+
+    /* 手機全螢幕個人資料頁 */
+    .m-sheet { position: fixed; inset: 0; z-index: 120; background: #000; overflow-y: auto; overscroll-behavior: contain; }
+    .m-sheet-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; height: 50px; padding: 0 8px; background: rgba(0,0,0,.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    #inspector [data-foot] { background: #F2F2F7; }
+    #sheetBody [data-foot] { background: #000; }
+    #sheetBody .m-head-name { color: #fff; }
+    .m-link { border: 0; background: transparent; color: #2DD4DF; font: inherit; font-size: 17px; font-weight: 600; padding: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; }
+  </style>
 </head>
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
 
-  <main class="max-w-[1500px] mx-auto px-4 lg:px-6 pt-5 pb-16">
-    <div class="flex items-center justify-between gap-3 mb-4">
-      <h1 class="text-xl font-extrabold">📖 組員通訊錄</h1>
-      <div class="flex items-center gap-2">
-        <div id="topActions" class="hidden"><button id="addBtn" type="button" class="sr-btn sr-btn-primary sr-btn-sm hidden">＋ 新增組員</button></div>
-        <div class="relative shrink-0"><button id="pageMenuGear" data-menu="members" type="button" onclick="togglePageMenu()" title="通訊錄選單" aria-label="通訊錄選單" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button></div>
-      </div>
-    </div>
-
+  <main class="max-w-[1500px] mx-auto px-4 lg:px-6 pt-4 pb-10">
     <!-- 權限檢查 -->
-    <section id="gateChecking" class="sr-card p-6 text-center text-[15px]" role="status">正在確認登入身分…</section>
-    <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
-      <div class="text-5xl" aria-hidden="true">🔐</div>
-      <p class="text-base font-bold">通訊錄含有個人資料，請先登入。</p>
-      <p class="sr-help">需使用已授權的 Google 帳號。如果還沒有權限，請聯絡管理員。</p>
-      <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
+    <section id="gateChecking" class="rounded-2xl bg-[#1C1C1E] p-6 text-center" role="status">正在確認登入身分…</section>
+    <section id="gateLogin" class="hidden rounded-2xl bg-[#1C1C1E] p-8 text-center space-y-4">
+      <p class="text-lg font-bold">通訊錄含有個人資料，請先登入。</p>
+      <p class="text-sm text-slate-400">需使用已授權的 Google 帳號。如果還沒有權限，請聯絡管理員。</p>
+      <button type="button" class="m-btn m-btn-teal" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
     </section>
 
     <section id="app" class="hidden">
-      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 mb-4 font-bold text-sm">👁️ 目前是唯讀權限，可以查看，不能修改。</div>
-
-      <!-- 搜尋與篩選 -->
-      <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-3">
-        <label class="relative flex-1 min-w-0">
-          <span class="sr-only">搜尋</span>
-          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true">🔍</span>
-          <input id="q" type="search" class="sr-field" style="padding-left:2.3rem" placeholder="搜尋姓名、電話或地址">
-        </label>
-        <div class="sr-seg self-start" role="group" aria-label="性別篩選" id="genderSeg">
-          <button type="button" data-g="" aria-pressed="true">全部</button>
-          <button type="button" data-g="女" aria-pressed="false">姊妹</button>
-          <button type="button" data-g="男" aria-pressed="false">弟兄</button>
+      <!-- 工具列：電腦一排、手機分行 -->
+      <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+        <div class="flex items-center justify-between lg:justify-start gap-3">
+          <div>
+            <h1 class="text-[28px] lg:text-[22px] font-extrabold leading-tight">組員通訊錄</h1>
+            <p id="countLine" class="text-sm text-[rgba(235,235,245,.6)] lg:hidden" role="status" aria-live="polite"></p>
+          </div>
+          <div class="flex gap-2 lg:hidden">
+            <button type="button" class="m-round admin-only bg-[#007E8A] text-white" data-new aria-label="新增組員"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            <div class="relative"><button id="pageMenuGear" data-menu="members" type="button" onclick="togglePageMenu()" class="m-round bg-[#1C1C1E] text-[rgba(235,235,245,.85)]" aria-label="通訊錄選單"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-2 lg:flex lg:w-auto">
-          <label><span class="sr-only">小組</span><select id="fGroup" class="sr-field lg:w-48"></select></label>
-          <label><span class="sr-only">狀態</span><select id="fStatus" class="sr-field lg:w-40"></select></label>
+
+        <!-- 電腦版篩選 -->
+        <div class="hidden lg:flex items-center gap-2 flex-1 min-w-0">
+          <div class="m-seg" role="group" aria-label="性別篩選" data-gender-seg>
+            <button type="button" data-g="" aria-pressed="true">全部</button><button type="button" data-g="女" aria-pressed="false">姊妹</button><button type="button" data-g="男" aria-pressed="false">弟兄</button>
+          </div>
+          <label><span class="sr-only">小組</span><select class="m-dark-field" data-filter="group"></select></label>
+          <label><span class="sr-only">狀態</span><select class="m-dark-field" data-filter="status"></select></label>
+          <label><span class="sr-only">排序</span><select class="m-dark-field" data-filter="sort"><option value="name">依姓名筆畫</option><option value="no">依編號</option></select></label>
+          <span class="flex-1"></span>
+          <label class="m-search w-[280px]"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr-only">搜尋</span><input type="search" data-q placeholder="搜尋姓名、電話、地址、編號"></label>
+          <button type="button" class="m-btn m-btn-teal admin-only" data-new>＋ 新增</button>
+          <div class="relative" id="gearDesktopSlot"></div>
+        </div>
+
+        <!-- 手機版篩選 -->
+        <div class="lg:hidden flex flex-col gap-3">
+          <label class="m-search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr-only">搜尋</span><input type="search" data-q placeholder="搜尋姓名或電話"></label>
+          <div class="m-scroll-x" role="group" aria-label="性別篩選" data-gender-chips>
+            <button type="button" class="m-chip" data-g="" aria-pressed="true">全部</button><button type="button" class="m-chip" data-g="女" aria-pressed="false">姊妹</button><button type="button" class="m-chip" data-g="男" aria-pressed="false">弟兄</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <label><span class="sr-only">小組</span><select class="m-dark-field w-full" data-filter="group"></select></label>
+            <label><span class="sr-only">狀態</span><select class="m-dark-field w-full" data-filter="status"></select></label>
+          </div>
         </div>
       </div>
-      <p id="countLine" class="sr-help mb-3" role="status" aria-live="polite"></p>
 
-      <!-- 電腦版（1280px 以上）：可直接點欄位編輯的表格 -->
-      <div class="hidden xl:block sr-card">
-        <table class="sr-table">
-          <thead>
-            <tr>
-              <th style="min-width:120px">姓名</th>
-              <th style="width:76px">性別</th>
-              <th style="width:118px">生日(民國)</th>
-              <th style="min-width:150px">手機</th>
-              <th style="min-width:150px">市話</th>
-              <th style="min-width:130px">小組</th>
-              <th style="min-width:120px">狀態</th>
-              <th style="min-width:180px">地址</th>
-              <th style="min-width:130px">備註</th>
-              <th style="width:56px"><span class="sr-only">更多</span></th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-        <p id="tableHint" class="sr-help px-4 py-3 border-t border-white/10">💡 點一下欄位就能直接修改，離開欄位或按 Enter 會自動儲存。</p>
+      <!-- 電腦版：表格＋檢閱器 -->
+      <div class="hidden lg:flex gap-4 items-start">
+        <section aria-label="名單" class="flex-1 min-w-0 bg-white rounded-[14px] overflow-hidden flex flex-col" style="height: calc(100vh - 150px)">
+          <div class="flex-1 overflow-auto">
+            <table class="m-table">
+              <thead><tr><th>姓名</th><th class="xl:table-cell hidden">性別</th><th>生日</th><th>手機</th><th>小組</th><th>狀態</th></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <p id="tableEmpty" class="hidden text-center text-[#6E6E73] py-16"></p>
+          </div>
+          <div id="tableFoot" class="px-4 py-2.5 border-t border-[#EFEFF4] text-[13px] text-[#6E6E73]"></div>
+        </section>
+        <aside id="inspector" aria-label="個人資料" class="m-light w-[360px] flex-none bg-[#F2F2F7] rounded-[14px] p-4 overflow-y-auto" style="height: calc(100vh - 150px)"></aside>
       </div>
 
-      <!-- 手機、平板：卡片 -->
-      <div id="cards" class="xl:hidden grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
-
-      <div id="empty" class="hidden sr-card p-8 text-center space-y-2">
-        <div class="text-4xl" aria-hidden="true">🗂️</div>
-        <p id="emptyText" class="text-[15px] font-bold"></p>
-      </div>
+      <!-- 手機版：卡片 -->
+      <div id="cards" class="lg:hidden grid gap-2.5 sm:grid-cols-2"></div>
+      <p id="cardsEmpty" class="lg:hidden hidden text-center text-[rgba(235,235,245,.6)] py-12"></p>
     </section>
   </main>
 
-  <!-- 編輯視窗 -->
-  <div id="sheet" class="sr-sheet-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-    <div class="sr-sheet">
-      <div class="sr-sheet-head">
-        <h2 id="sheetTitle" class="text-lg font-extrabold truncate"></h2>
-        <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-close aria-label="關閉">✕ 關閉</button>
-      </div>
-      <form id="sheetForm" class="sr-sheet-body space-y-4" novalidate></form>
-      <div class="sr-sheet-foot" id="sheetFoot">
-        <button type="button" class="sr-btn sr-btn-ghost flex-1" data-close>取消</button>
-        <button type="submit" form="sheetForm" class="sr-btn sr-btn-primary flex-[2]" id="sheetSave">儲存</button>
-      </div>
+  <!-- 手機：個人資料頁 -->
+  <div id="sheet" class="m-sheet hidden" role="dialog" aria-modal="true" aria-label="個人資料">
+    <div class="m-sheet-bar">
+      <button type="button" class="m-link" data-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>通訊錄</button>
+      <button type="button" class="m-link admin-only" id="sheetEdit">編輯</button>
     </div>
+    <div id="sheetBody" class="m-light px-4 pb-10 max-w-xl mx-auto"></div>
   </div>
 
+  <input type="file" id="photoInput" accept="image/*" class="hidden">
+
   <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111b"></script>
+  <script src="js/sr-data.js?v=20261111c"></script>
   <script>
   (function () {
     const SR = window.SR;
     const $ = id => document.getElementById(id);
+    const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
     let persons = [], groups = [], groupMap = {}, options = SR.DEFAULT_OPTIONS;
     let access = { canView: false, isAdmin: false };
-    let unsubs = [];
-    let loaded = false, slow = false, slowTimer = null;
-    const filter = { q: '', gender: '', group: 'all', status: 'all' };
+    let unsubs = [], loaded = false, slow = false, slowTimer = null;
+    const filter = { q: '', gender: '', group: 'all', status: 'all', sort: 'name' };
+    let selectedId = null;    // 電腦版選取的人
+    let editor = null;        // { id|null, draft:{}, photo:{thumb,full}|null, removePhoto:bool, dirty:bool, where:'inspector'|'sheet' }
+
+    const ICON_PHONE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
+    const ICON_MSG = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
+    const ICON_MAP = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+
+    // 齒輪按鈕在電腦版移到工具列右邊（同一個元素，選單只有一份）
+    function placeGear() {
+      const wrap = $('pageMenuGear').parentElement, slot = $('gearDesktopSlot');
+      if (isDesktop()) { if (wrap.parentElement !== slot) slot.appendChild(wrap); }
+      else if (wrap.parentElement === slot) document.querySelector('.m-round[data-new]').after(wrap);
+    }
+    window.addEventListener('resize', () => { placeGear(); });
+    placeGear();
 
     // ---------- 權限 ----------
     SR.onAccess(a => {
@@ -125,29 +202,18 @@
       $('gateChecking').classList.add('hidden');
       $('gateLogin').classList.toggle('hidden', a.canView);
       $('app').classList.toggle('hidden', !a.canView);
-      $('topActions').classList.toggle('hidden', !a.canView);
-      $('addBtn').classList.toggle('hidden', !a.isAdmin);
-      $('viewerNote').classList.toggle('hidden', !a.isViewer);
-      $('tableHint').classList.toggle('hidden', !a.isAdmin);
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !a.isAdmin));
       if (a.canView) start(); else stop();
     });
-
-    function stop() {
-      unsubs.forEach(u => u && u());
-      unsubs = []; persons = []; loaded = false;
-    }
+    function stop() { unsubs.forEach(u => u && u()); unsubs = []; persons = []; loaded = false; }
     function start() {
       if (unsubs.length) { render(); return; }
       const fail = err => { console.error(err); SR.toast('讀取資料失敗：' + (err.code || err.message), 'error'); };
-      unsubs.push(SR.watchGroups(list => {
-        groups = list;
-        groupMap = Object.fromEntries(list.map(g => [g.id, g]));
-        fillFilterSelects(); render();
-      }, fail));
-      unsubs.push(SR.watchOptions(o => { options = o; fillFilterSelects(); render(); }, fail));
-      // 只信任伺服器回來的結果：離線快取的「0 筆」不代表名單是空的。
+      unsubs.push(SR.watchGroups(list => { groups = list; groupMap = Object.fromEntries(list.map(g => [g.id, g])); fillSelects(); render(); }, fail));
+      unsubs.push(SR.watchOptions(o => { options = o; fillSelects(); render(); }, fail));
       clearTimeout(slowTimer);
-      slowTimer = setTimeout(() => { if (!loaded) { slow = true; render(true); } }, 8000);
+      slowTimer = setTimeout(() => { if (!loaded) { slow = true; render(); } }, 8000);
+      // 只信任伺服器回來的結果：離線快取的「0 筆」不代表名單是空的。
       unsubs.push(window.db.collection('persons').onSnapshot({ includeMetadataChanges: true }, snap => {
         if (snap.metadata.fromCache && !snap.size && !loaded) return;
         persons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -157,30 +223,38 @@
     }
 
     // ---------- 篩選 ----------
-    function fillFilterSelects() {
-      const g = $('fGroup'), s = $('fStatus');
-      const gv = g.value || filter.group, sv = s.value || filter.status;
-      g.innerHTML = `<option value="all">全部小組</option>` +
-        groups.map(x => `<option value="${x.id}">${SR.esc(x.name)}${x.active === false ? '（停用）' : ''}</option>`).join('') +
-        `<option value="">未分組</option>`;
-      s.innerHTML = `<option value="all">全部狀態</option>` +
-        options.statuses.map(x => `<option value="${SR.esc(x)}">${SR.esc(x)}</option>`).join('') +
-        `<option value="">未設定狀態</option>`;
-      g.value = [...g.options].some(o => o.value === gv) ? gv : 'all';
-      s.value = [...s.options].some(o => o.value === sv) ? sv : 'all';
-      filter.group = g.value; filter.status = s.value;
+    function fillSelects() {
+      document.querySelectorAll('[data-filter="group"]').forEach(s => {
+        s.innerHTML = `<option value="all">所有小組</option>` + groups.map(g => `<option value="${g.id}">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</option>`).join('') + `<option value="">未分組</option>`;
+        s.value = [...s.options].some(o => o.value === filter.group) ? filter.group : 'all';
+      });
+      document.querySelectorAll('[data-filter="status"]').forEach(s => {
+        s.innerHTML = `<option value="all">所有狀態</option>` + options.statuses.map(x => `<option value="${SR.esc(x)}">${SR.esc(x)}</option>`).join('') + `<option value="">未設定狀態</option>`;
+        s.value = [...s.options].some(o => o.value === filter.status) ? filter.status : 'all';
+      });
     }
-    $('q').addEventListener('input', e => { filter.q = e.target.value.trim(); render(true); });
-    $('fGroup').addEventListener('change', e => { filter.group = e.target.value; render(true); });
-    $('fStatus').addEventListener('change', e => { filter.status = e.target.value; render(true); });
-    $('genderSeg').addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b) return;
-      filter.gender = b.dataset.g;
-      $('genderSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-      render(true);
+    document.addEventListener('change', e => {
+      const f = e.target.dataset && e.target.dataset.filter;
+      if (!f) return;
+      filter[f] = e.target.value;
+      document.querySelectorAll(`[data-filter="${f}"]`).forEach(s => { s.value = e.target.value; });
+      render();
+    });
+    document.addEventListener('input', e => {
+      if (!e.target.matches('[data-q]')) return;
+      filter.q = e.target.value.trim();
+      document.querySelectorAll('[data-q]').forEach(i => { if (i !== e.target) i.value = e.target.value; });
+      render();
+    });
+    document.addEventListener('click', e => {
+      const g = e.target.closest('[data-gender-seg] button, [data-gender-chips] button');
+      if (!g) return;
+      filter.gender = g.dataset.g;
+      document.querySelectorAll('[data-gender-seg] button, [data-gender-chips] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === filter.gender)));
+      render();
     });
 
-    function visiblePersons() {
+    function visible() {
       const q = filter.q.toLowerCase(), qd = SR.phoneDigits(filter.q);
       return persons.filter(p => {
         if (filter.gender && p.gender !== filter.gender) return false;
@@ -189,267 +263,352 @@
         if (!q) return true;
         if (String(p.name || '').toLowerCase().includes(q)) return true;
         if (String(p.address || '').includes(filter.q) || String(p.note || '').includes(filter.q)) return true;
+        const no = String(p.memberNo || '');
+        if (no && (no === filter.q || no.replace('*', '') === filter.q.replace('*', '') && no.startsWith('*') === filter.q.startsWith('*'))) return true;
         return qd.length >= 3 && (SR.phoneDigits(p.mobile).includes(qd) || SR.phoneDigits(p.phone).includes(qd));
-      }).sort((a, b) => {
-        const ga = groupMap[a.groupId]?.order ?? 9999, gb = groupMap[b.groupId]?.order ?? 9999;
-        return ga - gb || String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hant');
-      });
+      }).sort(filter.sort === 'no' ? SR.byMemberNo : SR.byName);
     }
 
     // ---------- 畫面 ----------
-    let pendingRender = false;
-    function render(force) {
+    function render() {
       if (!access.canView) return;
-      const active = document.activeElement;
-      if (!force && active && $('tbody').contains(active)) { pendingRender = true; return; }
-      pendingRender = false;
       if (!loaded) {
-        $('countLine').innerHTML = slow
-          ? '<span class="text-amber-300 font-bold">⚠️ 連不到資料庫。請關掉這個網站的廣告阻擋（例如 Brave 的盾牌），或換一個網路後重新整理。</span>'
-          : '讀取中…';
+        const msg = slow ? '⚠️ 連不到資料庫。請關掉這個網站的廣告阻擋（例如 Brave 的盾牌），或換個網路後重新整理。' : '讀取中…';
+        $('countLine').textContent = msg; $('tableFoot').textContent = msg;
         return;
       }
-      const list = visiblePersons();
+      const list = visible();
       const f = persons.filter(p => p.gender === '女').length, m = persons.filter(p => p.gender === '男').length;
-      $('countLine').textContent = `顯示 ${list.length} 人／共 ${persons.length} 人（姊妹 ${f}、弟兄 ${m}）`;
-      $('empty').classList.toggle('hidden', list.length > 0);
-      $('emptyText').textContent = persons.length ? '找不到符合條件的人，試試別的關鍵字。' :
-        (access.isAdmin ? '名單還是空的。可以按「＋ 新增組員」，或到「名單後台」匯入舊通訊錄。' : '名單還是空的。');
+      const line = `顯示 ${list.length} 人／共 ${persons.length} 人（姊妹 ${f}、弟兄 ${m}）`;
+      $('countLine').textContent = line;
+      $('tableFoot').textContent = line + (filter.sort === 'no' ? '・依編號排序' : '・依姓名筆畫排序');
+      const emptyText = persons.length ? '找不到符合條件的人。' : (access.isAdmin ? '名單還是空的。可以按「＋ 新增」，或從齒輪 → 名單後台匯入。' : '名單還是空的。');
+      $('tableEmpty').classList.toggle('hidden', list.length > 0); $('tableEmpty').textContent = emptyText;
+      $('cardsEmpty').classList.toggle('hidden', list.length > 0); $('cardsEmpty').textContent = emptyText;
       renderTable(list);
       renderCards(list);
-    }
-    $('tbody').addEventListener('focusout', () => setTimeout(() => {
-      if (pendingRender && !$('tbody').contains(document.activeElement)) render();
-    }, 80));
-
-    function groupOptionsHtml(selected) {
-      let html = `<option value="">未分組</option>`;
-      groups.forEach(g => {
-        if (g.active === false && g.id !== selected) return;
-        html += `<option value="${g.id}"${g.id === selected ? ' selected' : ''}>${SR.esc(g.name)}</option>`;
-      });
-      if (selected && !groupMap[selected]) html += `<option value="${SR.esc(selected)}" selected>（已刪除的小組）</option>`;
-      return html;
-    }
-    function listOptionsHtml(list, selected, emptyLabel) {
-      let html = `<option value="">${emptyLabel}</option>`;
-      const all = selected && !list.includes(selected) ? [...list, selected] : list;
-      all.forEach(v => { html += `<option value="${SR.esc(v)}"${v === selected ? ' selected' : ''}>${SR.esc(v)}</option>`; });
-      return html;
+      if (isDesktop() && (!editor || !editor.dirty) && !$('inspector').contains(document.activeElement)) renderInspector();
     }
 
     function renderTable(list) {
-      const dis = access.isAdmin ? '' : ' disabled';
       $('tbody').innerHTML = list.map(p => {
-        const id = SR.esc(p.id);
-        const cell = (field, value, extra = '') => `<input class="sr-cell" data-id="${id}" data-field="${field}" value="${SR.esc(value)}" aria-label="${SR.FIELD_LABELS[field]}"${extra}${dis}>`;
-        return `<tr>
-          <td>${cell('name', p.name, ' style="font-weight:800"')}</td>
-          <td><select class="sr-cell" data-id="${id}" data-field="gender" aria-label="性別"${dis}>
-            <option value=""${!p.gender ? ' selected' : ''}>—</option>
-            <option value="女"${p.gender === '女' ? ' selected' : ''}>女</option>
-            <option value="男"${p.gender === '男' ? ' selected' : ''}>男</option></select></td>
-          <td>${cell('birthday', SR.formatRoc(p.birthday), ' placeholder="45/03/02"')}</td>
-          <td>${cell('mobile', p.mobile, ' type="tel"')}</td>
-          <td>${cell('phone', p.phone, ' type="tel"')}</td>
-          <td><select class="sr-cell" data-id="${id}" data-field="groupId" aria-label="小組"${dis}>${groupOptionsHtml(p.groupId || '')}</select></td>
-          <td><select class="sr-cell" data-id="${id}" data-field="status" aria-label="狀態"${dis}>${listOptionsHtml(options.statuses, p.status || '', '—')}</select></td>
-          <td>${cell('address', p.address)}</td>
-          <td>${cell('note', p.note)}</td>
-          <td><button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-open="${id}" aria-label="開啟 ${SR.esc(p.name)} 的完整資料">⋯</button></td>
+        const g = groupMap[p.groupId];
+        return `<tr data-id="${SR.esc(p.id)}" aria-selected="${p.id === selectedId}" tabindex="0">
+          <td><div style="display:flex;align-items:center;gap:10px">${SR.avatarHtml(p, 32)}<span style="font-weight:700">${SR.esc(p.name)}</span></div></td>
+          <td class="xl:table-cell hidden">${p.gender || '<span class="m-muted">—</span>'}</td>
+          <td>${SR.formatRoc(p.birthday) || '<span class="m-muted">—</span>'}</td>
+          <td>${SR.esc(p.mobile || p.phone) || '<span class="m-muted">—</span>'}</td>
+          <td>${g ? SR.esc(g.name) : '<span class="m-muted">未分組</span>'}</td>
+          <td>${SR.statusPill(p.status)}</td>
         </tr>`;
       }).join('');
+    }
+    $('tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) select(tr.dataset.id); });
+    $('tbody').addEventListener('keydown', e => {
+      const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(tr.dataset.id); }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = e.key === 'ArrowDown' ? tr.nextElementSibling : tr.previousElementSibling; if (n) { n.focus(); select(n.dataset.id); } }
+    });
+
+    function select(id) {
+      if (editor && editor.dirty && editor.id !== id && !confirm('剛剛的修改還沒儲存，要放棄嗎？')) return;
+      selectedId = id; editor = null;
+      $('tbody').querySelectorAll('tr').forEach(tr => tr.setAttribute('aria-selected', String(tr.dataset.id === id)));
+      renderInspector();
     }
 
     function renderCards(list) {
       $('cards').innerHTML = list.map(p => {
         const g = groupMap[p.groupId];
         const tel = SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone);
-        const gChip = p.gender === '女' ? '<span class="sr-chip sr-chip-f">姊妹</span>' : p.gender === '男' ? '<span class="sr-chip sr-chip-m">弟兄</span>' : '';
-        return `<article class="sr-contact">
-          <button type="button" class="flex-1 min-w-0 text-left px-4 py-3.5 space-y-1" data-open="${SR.esc(p.id)}">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xl font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
-              ${p.status ? `<span class="sr-chip sr-chip-teal">${SR.esc(p.status)}</span>` : ''}
-            </div>
-            <div class="sr-contact-sub">${g ? SR.esc(g.name) : '未分組'}</div>
-            <div class="text-lg font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
+        const sub = [g ? g.name : '未分組', p.status].filter(Boolean).join('・');
+        return `<article class="m-card">
+          <button type="button" data-open="${SR.esc(p.id)}">
+            ${SR.avatarHtml(p, 52)}
+            <span style="min-width:0;display:flex;flex-direction:column;gap:1px">
+              <span style="font-size:20px;font-weight:800;line-height:1.25">${SR.esc(p.name)}</span>
+              <span style="font-size:14px;color:#6E6E73">${SR.esc(sub)}</span>
+              <span style="font-size:17px;font-weight:700;${p.mobile || p.phone ? '' : 'color:#AEAEB2'}">${SR.esc(p.mobile || p.phone || '沒有電話')}</span>
+            </span>
           </button>
-          ${tel ? `<a href="tel:${tel}" class="sr-contact-call" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-sm mt-1">撥打</span></a>` : ''}
+          ${tel ? `<a class="m-call" href="tel:${tel}" aria-label="撥電話給 ${SR.esc(p.name)}">${ICON_PHONE}</a>` : ''}
         </article>`;
       }).join('');
     }
 
-    // ---------- 表格直接編輯 ----------
-    function normalize(field, raw) {
-      const v = String(raw ?? '').trim();
-      if (field === 'name') return v ? { value: v } : { error: '姓名不能空白' };
-      if (field === 'birthday') {
-        const iso = SR.parseBirthday(v);
-        return iso === null ? { error: '生日看不懂，可以輸入「45/3/2」或「1956/3/2」' } : { value: iso };
-      }
-      if (field === 'mobile' || field === 'phone') return { value: SR.formatPhone(v) };
-      return { value: v };
-    }
-    function displayValue(field, value) {
-      return field === 'birthday' ? SR.formatRoc(value) : (value ?? '');
+    // ---------- 個人資料（唯讀） ----------
+    function detailHtml(p) {
+      const g = groupMap[p.groupId];
+      const tel = SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone);
+      const sms = SR.phoneDigits(p.mobile);
+      const row = (label, value, extra = '') => value ? `<div class="m-row"><span class="m-lab">${label}</span><span class="m-val"${extra}>${SR.esc(value)}</span></div>` : '';
+      const birth = p.birthday ? `${SR.formatRocLong(p.birthday)}・${SR.age(p.birthday)} 歲` : '';
+      const mar = [p.marital, p.living].filter(Boolean).join('・');
+      const g1 = row('手機', p.mobile, ' style="color:#007E8A"') + row('市話', p.phone, ' style="color:#007E8A"');
+      const g2 = row('生日', birth) + row('地址', p.address) + row('婚姻・居住', mar);
+      const g3 = row('小組', g ? g.name : '未分組') + row('聚會狀態', p.status) + row('編號', p.memberNo);
+      return `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0 4px">
+          <span data-big-avatar="${SR.esc(p.id)}">${SR.avatarHtml(p, 96)}</span>
+          <div style="font-size:28px;font-weight:800;color:#fff" class="m-name">${SR.esc(p.name)}</div>
+          <div style="font-size:15px;color:rgba(235,235,245,.65)" class="m-sub">${SR.esc([SR.genderLabel(p.gender), g ? g.name : '', p.status].filter(Boolean).join('・'))}</div>
+        </div>
+        <div style="display:flex;gap:10px;margin:14px 0">
+          ${tel ? `<a class="m-act" href="tel:${tel}" style="background:#007E8A;color:#fff">${ICON_PHONE}撥打</a>` : `<span class="m-act" style="background:#2C2C2E;color:rgba(235,235,245,.4)">${ICON_PHONE}沒有電話</span>`}
+          ${sms ? `<a class="m-act" href="sms:${sms}" style="background:#2C2C2E;color:#fff">${ICON_MSG}簡訊</a>` : ''}
+          ${p.address ? `<a class="m-act" href="https://maps.apple.com/?q=${encodeURIComponent(p.address)}" target="_blank" rel="noopener" style="background:#2C2C2E;color:#fff">${ICON_MAP}地圖</a>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          ${g1 ? `<div class="m-group">${g1}</div>` : ''}
+          ${g2 ? `<div class="m-group">${g2}</div>` : ''}
+          <div class="m-group">${g3}</div>
+          ${p.note ? `<div class="m-group">${row('備註', p.note)}</div>` : ''}
+          ${p.updatedBy ? `<p style="font-size:13px;color:rgba(235,235,245,.45);text-align:center">最後修改：${SR.esc(p.updatedBy)}</p>` : ''}
+        </div>`;
     }
 
-    async function saveField(el) {
-      const p = persons.find(x => x.id === el.dataset.id);
-      const field = el.dataset.field;
-      if (!p || !access.isAdmin) return;
-      const r = normalize(field, el.value);
-      if (r.error) {
-        SR.toast(r.error, 'error');
-        el.value = displayValue(field, p[field]);
-        el.classList.add('sr-invalid');
-        setTimeout(() => el.classList.remove('sr-invalid'), 2000);
+    // 有相片時，打開個人資料再讀大圖
+    async function loadBigPhoto(p) {
+      if (!p || !p.photoThumb) return;
+      try {
+        const snap = await window.db.collection('personPhotos').doc(p.id).get();
+        const data = snap.exists && snap.data().data;
+        if (!data || !/^data:image\//.test(data)) return;
+        document.querySelectorAll(`[data-big-avatar="${CSS.escape(p.id)}"] img`).forEach(img => { img.src = data; });
+      } catch (e) { /* 大圖讀不到就用縮圖 */ }
+    }
+
+    // ---------- 編輯表單（檢閱器與手機共用） ----------
+    function startEditor(p, where) {
+      editor = { id: p ? p.id : null, where, dirty: false, photo: null, removePhoto: false,
+        draft: p ? { ...p } : { gender: filter.gender || '', groupId: filter.group !== 'all' ? filter.group : '', status: '', memberNo: '' } };
+    }
+    function formHtml() {
+      const d = editor.draft, isNew = !editor.id;
+      const field = (key, label, input, help = '') => `<div class="m-row"><label class="m-lab" for="f_${key}">${label}</label>${input}${help ? `<span id="h_${key}" style="font-size:12px;color:#6E6E73">${help}</span>` : ''}</div>`;
+      const text = (key, val, extra = '') => `<input class="m-in" id="f_${key}" name="${key}" value="${SR.esc(val ?? '')}"${extra}>`;
+      const sel = (key, list, val, empty) => {
+        const all = val && !list.includes(val) ? [...list, val] : list;
+        return `<select class="m-in" id="f_${key}" name="${key}"><option value="">${empty}</option>${all.map(v => `<option${v === val ? ' selected' : ''}>${SR.esc(v)}</option>`).join('')}</select>`;
+      };
+      let gsel = `<select class="m-in" id="f_groupId" name="groupId"><option value="">未分組</option>`;
+      groups.forEach(g => { if (g.active !== false || g.id === d.groupId) gsel += `<option value="${g.id}"${g.id === d.groupId ? ' selected' : ''}>${SR.esc(g.name)}</option>`; });
+      if (d.groupId && !groupMap[d.groupId]) gsel += `<option value="${SR.esc(d.groupId)}" selected>（已刪除的小組）</option>`;
+      gsel += '</select>';
+      const preview = editor.photo ? { ...d, photoThumb: editor.photo.thumb } : (editor.removePhoto ? { ...d, photoThumb: '' } : d);
+      const birthHelp = d.birthday ? `${SR.formatRocLong(d.birthday)}・${SR.age(d.birthday)} 歲` : '民國或西元都可以，例如「45/3/2」';
+      return `<form id="editForm" novalidate style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <button type="button" data-photo aria-label="更換相片" style="position:relative;border:0;background:transparent;padding:0;cursor:pointer">${SR.avatarHtml(preview, 72)}
+            <span style="position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:#007E8A;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #F2F2F7"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8h3l2-3h8l2 3h3v12H3z"/><circle cx="12" cy="13" r="4"/></svg></span></button>
+          <div style="min-width:0">
+            <div class="m-head-name" style="font-size:22px;font-weight:800">${isNew ? '新增組員' : SR.esc(d.name)}</div>
+            <div style="display:flex;gap:10px;margin-top:2px">
+              <button type="button" data-photo class="m-link" style="font-size:14px;padding:0;color:#007E8A">${preview.photoThumb ? '更換相片' : '加入相片'}</button>
+              ${preview.photoThumb ? '<button type="button" data-photo-remove class="m-link" style="font-size:14px;padding:0;color:#D70015">移除</button>' : ''}
+            </div>
+          </div>
+        </div>
+        ${!isNew && (SR.phoneDigits(d.mobile) || SR.phoneDigits(d.phone)) ? `<a class="m-btn m-btn-teal" href="tel:${SR.phoneDigits(d.mobile) || SR.phoneDigits(d.phone)}">${ICON_PHONE.replace(/22/g, '18')} 撥打 ${SR.esc(d.mobile || d.phone)}</a>` : ''}
+        <div class="m-group">
+          ${field('name', '姓名＊', text('name', d.name, ' maxlength="30" autocomplete="off"'))}
+          <div class="m-row"><span class="m-lab">性別</span><div class="m-lseg" data-lseg>
+            <button type="button" data-v="女" aria-pressed="${d.gender === '女'}">女（姊妹）</button><button type="button" data-v="男" aria-pressed="${d.gender === '男'}">男（弟兄）</button></div></div>
+          ${field('birthday', '生日', text('birthday', SR.formatRoc(d.birthday), ' inputmode="numeric" placeholder="45/3/2"'), birthHelp)}
+        </div>
+        <div class="m-group">
+          ${field('mobile', '手機', text('mobile', d.mobile, ' type="tel" inputmode="tel"'))}
+          ${field('phone', '市話', text('phone', d.phone, ' type="tel" inputmode="tel"'))}
+          ${field('address', '地址', text('address', d.address, ' maxlength="120"'))}
+        </div>
+        <div class="m-group">
+          ${field('groupId', '小組', gsel)}
+          ${field('status', '聚會狀態', sel('status', options.statuses, d.status || '', '未設定'))}
+          <div class="m-row" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+            <label style="display:flex;flex-direction:column;gap:2px"><span class="m-lab">婚姻</span>${sel('marital', options.marital, d.marital || '', '—')}</label>
+            <label style="display:flex;flex-direction:column;gap:2px"><span class="m-lab">居住</span>${sel('living', options.living, d.living || '', '—')}</label>
+          </div>
+          ${field('memberNo', '編號', text('memberNo', d.memberNo, ' maxlength="20" placeholder="' + (isNew ? '留白會自動編號' : '') + '"'), '點名表的序號，弟兄前面有 *。不顯示在列表，可搜尋。')}
+        </div>
+        <div class="m-group">${field('note', '備註', `<textarea class="m-in" id="f_note" name="note" rows="3" maxlength="2000">${SR.esc(d.note || '')}</textarea>`)}</div>
+        <div style="display:flex;gap:8px;position:sticky;bottom:0;padding:8px 0" data-foot>
+          <button type="button" class="m-btn m-btn-white" style="flex:1" data-cancel>取消</button>
+          <button type="submit" class="m-btn m-btn-teal" style="flex:2" id="saveBtn">儲存</button>
+        </div>
+        ${!isNew ? `<button type="button" class="m-btn m-btn-red" data-delete>從名單刪除</button>
+          <p style="font-size:12px;color:#6E6E73;text-align:center;margin-top:-8px">只是暫時不來聚會的話，改「聚會狀態」就好，不要刪除。</p>` : ''}
+      </form>`;
+    }
+
+    function renderInspector() {
+      const box = $('inspector');
+      if (editor && editor.where === 'inspector') { box.innerHTML = formHtml(); return; }
+      const p = persons.find(x => x.id === selectedId);
+      if (!p) {
+        box.innerHTML = `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#6E6E73;text-align:center">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <p style="font-size:15px">點左邊的名字<br>查看${access.isAdmin ? '或修改' : ''}個人資料</p></div>`;
         return;
       }
-      if (el.tagName === 'INPUT') el.value = displayValue(field, r.value);
-      if ((p[field] ?? '') === r.value) return;
-      const old = p[field];
-      p[field] = r.value;
-      try {
-        await window.db.collection('persons').doc(p.id).update({ [field]: r.value, ...SR.stamp() });
-        el.classList.add('sr-saved');
-        setTimeout(() => el.classList.remove('sr-saved'), 1500);
-        SR.toast(`已儲存：${p.name}・${SR.FIELD_LABELS[field]}`);
-      } catch (err) {
-        console.error(err);
-        p[field] = old;
-        el.value = displayValue(field, old);
-        SR.toast('儲存失敗，請稍後再試（' + (err.code || err.message) + '）', 'error');
-      }
+      if (access.isAdmin) { startEditor(p, 'inspector'); box.innerHTML = formHtml(); }
+      else { box.innerHTML = `<div style="background:#1C1C1E;border-radius:14px;padding:12px">${detailHtml(p)}</div>`; }
+      loadBigPhoto(p);
     }
-    $('tbody').addEventListener('change', e => { if (e.target.matches('.sr-cell')) saveField(e.target); });
-    $('tbody').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && e.target.matches('input.sr-cell')) { e.preventDefault(); e.target.blur(); }
-      if (e.key === 'Escape' && e.target.matches('input.sr-cell')) {
-        const p = persons.find(x => x.id === e.target.dataset.id);
-        if (p) e.target.value = displayValue(e.target.dataset.field, p[e.target.dataset.field]);
-        e.target.blur();
-      }
-    });
 
-    // ---------- 完整編輯視窗 ----------
-    let editing = null; // null=新增；物件=修改
-    let lastFocus = null;
-    document.addEventListener('click', e => {
-      const b = e.target.closest('[data-open]');
-      if (b) openSheet(persons.find(p => p.id === b.dataset.open) || null, b);
-    });
-    $('addBtn').addEventListener('click', e => openSheet(null, e.currentTarget));
-
-    function openSheet(p, opener) {
-      if (!p && !access.isAdmin) return;
-      editing = p;
-      lastFocus = opener;
-      const ro = !access.isAdmin;
-      const dis = ro ? ' disabled' : '';
-      const v = p || { gender: filter.gender || '', groupId: filter.group !== 'all' ? filter.group : '', status: '' };
-      $('sheetTitle').textContent = p ? p.name : '新增組員';
-      const tel = p && (SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone));
-      const field = (key, label, input, help = '') => `<div><label class="sr-label" for="e_${key}">${label}</label>${input}${help ? `<p class="sr-help mt-1.5">${help}</p>` : ''}</div>`;
-      const text = (key, val, extra = '') => `<input class="sr-field" id="e_${key}" name="${key}" value="${SR.esc(val)}"${extra}${dis}>`;
-      $('sheetForm').innerHTML = `
-        ${tel ? `<a href="tel:${tel}" class="sr-btn sr-btn-primary w-full">📞 撥電話給 ${SR.esc(p.name)}</a>` : ''}
-        ${field('name', '姓名<span class="sr-req">＊</span>', text('name', v.name || '', ' maxlength="30" autocomplete="off"'))}
-        <div><span class="sr-label">性別</span>
-          <div class="grid grid-cols-2 gap-3" data-gender>
-            <button type="button" class="sr-choice" data-value="女" aria-pressed="${v.gender === '女'}"${dis}>女（姊妹）</button>
-            <button type="button" class="sr-choice" data-value="男" aria-pressed="${v.gender === '男'}"${dis}>男（弟兄）</button>
-          </div></div>
-        ${field('birthday', '生日', text('birthday', SR.formatRoc(v.birthday), ' placeholder="例：45/3/2" inputmode="numeric"'), `<span id="birthHelp">${v.birthday ? SR.formatRocLong(v.birthday) + `（${SR.age(v.birthday)} 歲）` : '民國或西元都可以，例如「45/3/2」或「1956/3/2」'}</span>`)}
-        ${field('mobile', '手機', text('mobile', v.mobile || '', ' type="tel" inputmode="tel"'))}
-        ${field('phone', '市話', text('phone', v.phone || '', ' type="tel" inputmode="tel"'))}
-        ${field('groupId', '小組', `<select class="sr-field" id="e_groupId" name="groupId"${dis}>${groupOptionsHtml(v.groupId || '')}</select>`)}
-        ${field('status', '狀態', `<select class="sr-field" id="e_status" name="status"${dis}>${listOptionsHtml(options.statuses, v.status || '', '未設定')}</select>`)}
-        <div class="grid grid-cols-2 gap-3">
-          ${field('marital', '婚姻', `<select class="sr-field" id="e_marital" name="marital"${dis}>${listOptionsHtml(options.marital, v.marital || '', '—')}</select>`)}
-          ${field('living', '居住狀況', `<select class="sr-field" id="e_living" name="living"${dis}>${listOptionsHtml(options.living, v.living || '', '—')}</select>`)}
-        </div>
-        ${field('address', '地址', text('address', v.address || '', ' maxlength="120"'))}
-        ${field('note', '備註', `<textarea class="sr-field" id="e_note" name="note" rows="3" maxlength="2000"${dis}>${SR.esc(v.note || '')}</textarea>`)}
-        ${p && access.isAdmin ? `<div class="pt-4 border-t border-white/10"><button type="button" id="deleteBtn" class="sr-btn sr-btn-danger w-full">🗑️ 從名單刪除</button>
-          <p class="sr-help mt-2">只是暫時不來聚會的話，建議改「狀態」就好，不要刪除。</p></div>` : ''}
-        ${p && p.updatedBy ? `<p class="sr-help">最後修改：${SR.esc(p.updatedBy)}</p>` : ''}
-      `;
-      $('sheetForm').dataset.gender = v.gender || '';
-      $('sheetSave').classList.toggle('hidden', ro);
-      $('sheet').querySelector('.sr-sheet-foot [data-close]').textContent = ro ? '關閉' : '取消';
-      $('sheet').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => (ro ? $('sheet').querySelector('[data-close]') : $('e_name')).focus(), 50);
+    // 表單事件（檢閱器、手機頁共用）
+    function formRoot() { return editor && editor.where === 'sheet' ? $('sheetBody') : $('inspector'); }
+    function readForm() {
+      const form = formRoot().querySelector('#editForm');
+      if (!form) return;
+      const fd = new FormData(form);
+      for (const [k, v] of fd.entries()) editor.draft[k] = v;
     }
-    function closeSheet() {
-      $('sheet').classList.add('hidden');
-      document.body.style.overflow = '';
-      if (lastFocus && lastFocus.isConnected) lastFocus.focus();
-    }
-    $('sheet').addEventListener('click', e => {
-      if (e.target === $('sheet') || e.target.closest('[data-close]')) closeSheet();
-      const g = e.target.closest('[data-gender] .sr-choice');
-      if (g) {
-        const cur = $('sheetForm').dataset.gender === g.dataset.value ? '' : g.dataset.value;
-        $('sheetForm').dataset.gender = cur;
-        $('sheetForm').querySelectorAll('[data-gender] .sr-choice').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === cur)));
-      }
-      if (e.target.id === 'deleteBtn') deletePerson();
-    });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').classList.contains('hidden')) closeSheet(); });
-    $('sheetForm').addEventListener('input', e => {
-      if (e.target.id !== 'e_birthday') return;
-      const iso = SR.parseBirthday(e.target.value);
-      $('birthHelp').textContent = iso ? `${SR.formatRocLong(iso)}（${SR.age(iso)} 歲）` : (e.target.value ? '還看不懂這個日期，例如「45/3/2」' : '民國或西元都可以，例如「45/3/2」或「1956/3/2」');
-    });
-
-    $('sheetForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      if (!access.isAdmin) return;
-      const fd = new FormData($('sheetForm'));
-      const data = {};
-      for (const key of ['name', 'birthday', 'mobile', 'phone', 'address', 'note', 'groupId', 'status', 'marital', 'living']) {
-        const r = normalize(key, fd.get(key));
-        if (r.error) {
-          SR.toast(r.error, 'error');
-          const el = $('e_' + key); el.classList.add('sr-invalid'); el.focus();
-          return;
+    ['inspector', 'sheetBody'].forEach(id => {
+      const root = $(id);
+      root.addEventListener('input', e => {
+        if (!editor || !e.target.closest('#editForm')) return;
+        editor.dirty = true;
+        if (e.target.id === 'f_birthday') {
+          const iso = SR.parseBirthday(e.target.value);
+          const h = root.querySelector('#h_birthday');
+          if (h) h.textContent = iso ? `${SR.formatRocLong(iso)}・${SR.age(iso)} 歲` : (e.target.value ? '還看不懂這個日期，例如「45/3/2」' : '民國或西元都可以，例如「45/3/2」');
         }
+        if (e.target.id === 'f_name') { const n = root.querySelector('.m-head-name'); if (n && editor.id) n.textContent = e.target.value || '（未填姓名）'; }
+      });
+      root.addEventListener('click', e => {
+        if (!editor) return;
+        const seg = e.target.closest('[data-lseg] button');
+        if (seg) {
+          editor.dirty = true;
+          editor.draft.gender = editor.draft.gender === seg.dataset.v ? '' : seg.dataset.v;
+          root.querySelectorAll('[data-lseg] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === editor.draft.gender)));
+        }
+        if (e.target.closest('[data-photo]')) $('photoInput').click();
+        if (e.target.closest('[data-photo-remove]')) { readForm(); editor.photo = null; editor.removePhoto = true; editor.dirty = true; root.innerHTML = editor.where === 'sheet' ? formHtml() : formHtml(); }
+        if (e.target.closest('[data-cancel]')) {
+          if (editor.dirty && !confirm('要放棄剛剛的修改嗎？')) return;
+          const where = editor.where; editor = null;
+          if (where === 'sheet') { const p = persons.find(x => x.id === sheetId); p ? showSheetDetail(p) : closeSheet(); }
+          else { if (!persons.some(x => x.id === selectedId)) selectedId = null; renderInspector(); }
+        }
+        if (e.target.closest('[data-delete]')) deletePerson();
+      });
+      root.addEventListener('submit', e => { e.preventDefault(); save(); });
+    });
+
+    $('photoInput').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file || !editor) return;
+      try {
+        readForm();
+        editor.photo = await SR.makePhoto(file);
+        editor.removePhoto = false; editor.dirty = true;
+        formRoot().innerHTML = formHtml();
+        SR.toast('相片已放上，記得按「儲存」');
+      } catch (err) { SR.toast(err.message, 'error'); }
+    });
+
+    function normalize(key, raw) {
+      const v = String(raw ?? '').trim();
+      if (key === 'name') return v ? { value: v } : { error: '姓名不能空白' };
+      if (key === 'birthday') { const iso = SR.parseBirthday(v); return iso === null ? { error: '生日看不懂，可以輸入「45/3/2」或「1956/3/2」' } : { value: iso }; }
+      if (key === 'mobile' || key === 'phone') return { value: SR.formatPhone(v) };
+      return { value: v };
+    }
+
+    async function save() {
+      if (!access.isAdmin || !editor) return;
+      readForm();
+      const data = {};
+      for (const key of ['name', 'birthday', 'mobile', 'phone', 'address', 'note', 'groupId', 'status', 'marital', 'living', 'memberNo']) {
+        const r = normalize(key, editor.draft[key]);
+        if (r.error) { SR.toast(r.error, 'error'); const el = formRoot().querySelector('#f_' + key); if (el) { el.classList.add('sr-invalid'); el.focus(); } return; }
         data[key] = r.value;
       }
-      data.gender = $('sheetForm').dataset.gender || '';
-      const btn = $('sheetSave');
-      btn.disabled = true;
+      data.gender = editor.draft.gender || '';
+      if (!editor.id && !data.memberNo) data.memberNo = SR.nextMemberNo(persons, data.gender);
+      if (editor.photo) data.photoThumb = editor.photo.thumb;
+      else if (editor.removePhoto) data.photoThumb = firebase.firestore.FieldValue.delete();
+      const btn = formRoot().querySelector('#saveBtn');
+      if (btn) btn.disabled = true;
       try {
-        if (editing) {
-          await window.db.collection('persons').doc(editing.id).update({ ...data, ...SR.stamp() });
-          SR.toast(`已儲存：${data.name}`);
-        } else {
-          await window.db.collection('persons').add({ ...data, source: 'manual', createdAt: SR.serverTime(), ...SR.stamp() });
-          SR.toast(`已新增：${data.name}`);
-        }
-        closeSheet();
+        let id = editor.id;
+        if (id) await window.db.collection('persons').doc(id).update({ ...data, ...SR.stamp() });
+        else { const ref = await window.db.collection('persons').add({ ...data, source: 'manual', createdAt: SR.serverTime(), ...SR.stamp() }); id = ref.id; }
+        if (editor.photo) await window.db.collection('personPhotos').doc(id).set({ data: editor.photo.full, ...SR.stamp() });
+        else if (editor.removePhoto) await window.db.collection('personPhotos').doc(id).delete().catch(() => {});
+        SR.toast(`已儲存：${data.name}`);
+        const where = editor.where;
+        editor = null;
+        if (where === 'sheet') { sheetId = id; const p = persons.find(x => x.id === id) || { id, ...data }; showSheetDetail(p); }
+        else { selectedId = id; render(); renderInspector(); }
       } catch (err) {
         console.error(err);
         SR.toast('儲存失敗（' + (err.code || err.message) + '）', 'error');
-      } finally {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function deletePerson() {
+      const p = persons.find(x => x.id === editor.id);
+      if (!p || !confirm(`確定要把「${p.name}」從名單刪除嗎？\n刪除後無法復原。`)) return;
+      try {
+        await window.db.collection('persons').doc(p.id).delete();
+        await window.db.collection('personPhotos').doc(p.id).delete().catch(() => {});
+        SR.toast(`已刪除：${p.name}`);
+        const where = editor.where; editor = null;
+        if (where === 'sheet') closeSheet(); else { selectedId = null; renderInspector(); }
+      } catch (err) { SR.toast('刪除失敗（' + (err.code || err.message) + '）', 'error'); }
+    }
+
+    // 新增
+    document.addEventListener('click', e => {
+      if (!e.target.closest('[data-new]') || !access.isAdmin) return;
+      if (isDesktop()) {
+        if (editor && editor.dirty && !confirm('剛剛的修改還沒儲存，要放棄嗎？')) return;
+        selectedId = null;
+        $('tbody').querySelectorAll('tr').forEach(tr => tr.setAttribute('aria-selected', 'false'));
+        startEditor(null, 'inspector'); renderInspector();
+        setTimeout(() => $('inspector').querySelector('#f_name')?.focus(), 30);
+      } else {
+        sheetId = null; startEditor(null, 'sheet'); openSheet(); $('sheetBody').innerHTML = formHtml(); $('sheetEdit').classList.add('hidden');
       }
     });
 
-    async function deletePerson() {
-      if (!editing || !access.isAdmin) return;
-      if (!confirm(`確定要把「${editing.name}」從名單刪除嗎？\n刪除後無法復原。`)) return;
-      try {
-        await window.db.collection('persons').doc(editing.id).delete();
-        SR.toast(`已刪除：${editing.name}`);
-        closeSheet();
-      } catch (err) {
-        SR.toast('刪除失敗（' + (err.code || err.message) + '）', 'error');
-      }
+    // ---------- 手機個人資料頁 ----------
+    let sheetId = null, lastFocus = null;
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-open]');
+      if (!b) return;
+      const p = persons.find(x => x.id === b.dataset.open);
+      if (!p) return;
+      lastFocus = b; sheetId = p.id; editor = null;
+      openSheet(); showSheetDetail(p);
+    });
+    function openSheet() { $('sheet').classList.remove('hidden'); document.body.style.overflow = 'hidden'; $('sheet').scrollTop = 0; }
+    function closeSheet() {
+      $('sheet').classList.add('hidden'); document.body.style.overflow = ''; editor = null;
+      if (lastFocus && lastFocus.isConnected) lastFocus.focus();
     }
+    function showSheetDetail(p) {
+      $('sheetEdit').classList.toggle('hidden', !access.isAdmin);
+      $('sheetBody').innerHTML = detailHtml(p);
+      $('sheet').scrollTop = 0;
+      loadBigPhoto(p);
+    }
+    $('sheet').addEventListener('click', e => {
+      if (e.target.closest('[data-close]')) {
+        if (editor && editor.dirty && !confirm('剛剛的修改還沒儲存，要放棄嗎？')) return;
+        closeSheet();
+      }
+    });
+    $('sheetEdit').addEventListener('click', () => {
+      const p = persons.find(x => x.id === sheetId);
+      if (!p) return;
+      startEditor(p, 'sheet'); $('sheetBody').innerHTML = formHtml(); $('sheetEdit').classList.add('hidden'); $('sheet').scrollTop = 0;
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').classList.contains('hidden') && !(editor && editor.dirty)) closeSheet(); });
   })();
   </script>
 </body>

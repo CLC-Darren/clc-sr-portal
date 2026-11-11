@@ -90,7 +90,7 @@
   </main>
 
   <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111b"></script>
+  <script src="js/sr-data.js?v=20261111c"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -257,12 +257,13 @@
       living: ['居住狀況', '居住'],
       group: ['小組', '關懷小組', '所屬小組', '組別'],
       status: ['狀態', '聚會狀態'],
-      note: ['備註', '說明', '附註']
+      note: ['備註', '說明', '附註'],
+      memberNo: ['No.', 'No', '編號', '序號', '會員編號']
     };
     const IMPORT_FIELDS = Object.keys(ALIASES);
-    const fieldLabel = f => f === 'group' ? '小組' : f === 'birthday2' ? '生日(備用)' : SR.FIELD_LABELS[f];
+    const fieldLabel = f => f === 'group' ? '小組' : f === 'birthday2' ? '生日(備用)' : f === 'memberNo' ? '編號' : SR.FIELD_LABELS[f];
     // 不匯入、也不放進備註的欄位（可由其他欄位算出來）
-    const IGNORE_HEADERS = ['No.', 'No', '編號', '序號', '年齡', '時間戳記'];
+    const IGNORE_HEADERS = ['年齡', '時間戳記'];
     const NO_GROUP = /^(n\/?a|-+|無|暫不安排.*|未分組)$/i;
     const clean = s => String(s ?? '').replace(/\s+/g, '').replace(/[：:＊*]/g, '');
     let sheets = []; // {name, rows, headerRow, headers, map, include, gender}
@@ -339,7 +340,7 @@
 
     function analyze() {
       const groupByKey = Object.fromEntries(groups.map(g => [groupKey(g.name), g]));
-      const existing = new Set(persons.map(SR.dupKey));
+      const existingMap = new Map(persons.map(p => [SR.dupKey(p), p]));
       const seen = new Set();
       const records = [], newGroups = new Set(), newStatuses = new Set();
       let skippedEmpty = 0;
@@ -376,6 +377,7 @@
           rec.marital = String(get('marital') ?? '').trim();
           rec.living = String(get('living') ?? '').trim();
           rec.status = String(get('status') ?? '').trim().replace(/^\d+\s*[.．、]\s*/, '');
+          rec.memberNo = String(get('memberNo') ?? '').trim().slice(0, 20);
           if (rec.status && !options.statuses.includes(rec.status)) newStatuses.add(rec.status);
           const gName = String(get('group') ?? '').trim();
           rec.groupId = '';
@@ -396,7 +398,10 @@
           });
           rec.note = notes.join('\n').slice(0, 2000);
           const key = SR.dupKey(rec);
-          rec._dup = existing.has(key) ? '名單裡已經有' : seen.has(key) ? '檔案裡重複' : '';
+          const old = existingMap.get(key);
+          rec._dup = old ? '名單裡已經有' : seen.has(key) ? '檔案裡重複' : '';
+          // 已經匯入過的人：只補上（或更正）編號，其他資料不動
+          if (old && rec.memberNo && old.memberNo !== rec.memberNo) rec._updateNo = old.id;
           seen.add(key);
           rec._warns = warns;
           rec._from = `${s.name} 第 ${s.headerRow + ri + 2} 列`;
@@ -417,6 +422,7 @@
       const skipDup = $('skipDup') ? $('skipDup').checked : true;
       const extraNote = $('extraNote') ? $('extraNote').checked : true;
       const total = records.length - (skipDup ? dups : 0);
+      const noUpdates = records.filter(r => r._updateNo).length;
       p.innerHTML = `
         <h2 class="text-base font-extrabold">2. 檢查預覽</h2>
         <div class="sr-card p-4 space-y-3">
@@ -453,7 +459,7 @@
           ${records.length > 300 ? `<p class="sr-help p-3">只顯示前 300 筆，匯入時全部都會處理。</p>` : ''}
         </div>
         <h2 class="text-base font-extrabold">3. 確認匯入</h2>
-        <button type="button" id="importBtn" class="sr-btn sr-btn-primary w-full" ${total && access.isAdmin ? '' : 'disabled'}>確認匯入 ${total} 人</button>
+        <button type="button" id="importBtn" class="sr-btn sr-btn-primary w-full" ${(total || noUpdates) && access.isAdmin ? '' : 'disabled'}>${[total ? `確認匯入 ${total} 人` : '', noUpdates ? `補上 ${noUpdates} 人的編號` : ''].filter(Boolean).join('，')}</button>
         <p id="importStatus" class="sr-help" role="status" aria-live="polite"></p>`;
     }
     $('previewPanel').addEventListener('change', e => {
@@ -465,7 +471,8 @@
       if (e.target.id !== 'importBtn' || !access.isAdmin || !plan) return;
       const skipDup = $('skipDup').checked;
       const list = plan.records.filter(r => !(skipDup && r._dup));
-      if (!confirm(`確定匯入 ${list.length} 人嗎？`)) return;
+      const noList = plan.records.filter(r => r._updateNo);
+      if (!confirm([list.length ? `匯入 ${list.length} 人` : '', noList.length ? `補上 ${noList.length} 人的編號` : ''].filter(Boolean).join('，') + '，確定嗎？')) return;
       const btn = e.target, status = $('importStatus');
       btn.disabled = true;
       // 連線被擋時 commit 會一直等，30 秒沒回應就當失敗
@@ -490,7 +497,7 @@
         for (let i = 0; i < list.length; i += 400) {
           const batch = window.db.batch();
           list.slice(i, i + 400).forEach(r => {
-            const { _newGroup, _dup, _warns, _from, ...data } = r;
+            const { _newGroup, _dup, _warns, _from, _updateNo, ...data } = r;
             if (_newGroup) data.groupId = created[_newGroup] || '';
             data.name = data.name.slice(0, 60);
             data.address = data.address.slice(0, 200);
@@ -501,7 +508,15 @@
           done = Math.min(list.length, i + 400);
           status.textContent = `已匯入 ${done} / ${list.length} 人…`;
         }
-        status.innerHTML = `✅ 完成！已匯入 ${done} 人。<a href="members.html" class="text-teal-300 font-bold underline">打開通訊錄查看</a>`;
+        let numbered = 0;
+        for (let i = 0; i < noList.length; i += 400) {
+          const batch = window.db.batch();
+          noList.slice(i, i + 400).forEach(r => batch.update(window.db.collection('persons').doc(r._updateNo), { memberNo: r.memberNo, ...SR.stamp() }));
+          status.textContent = `補編號中… ${i} / ${noList.length} 人`;
+          await commitOrTimeout(batch);
+          numbered = Math.min(noList.length, i + 400);
+        }
+        status.innerHTML = `✅ 完成！已匯入 ${done} 人${numbered ? `，補上 ${numbered} 人的編號` : ''}。<a href="members.html" class="text-teal-300 font-bold underline">打開通訊錄查看</a>`;
         SR.toast(`匯入完成：${done} 人`);
         sheets = []; plan = null;
         $('sheetPanel').classList.add('hidden');

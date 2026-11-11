@@ -15,7 +15,7 @@
   <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','"Noto Sans TC"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/sr-ui.css?v=20261111c">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111d">
 </head>
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
@@ -39,6 +39,20 @@
         <div class="sr-card p-4 sm:p-5" data-field="name">
           <label class="sr-label" for="fName">姓名<span class="sr-req">＊</span></label>
           <input class="sr-field" id="fName" name="name" autocomplete="name" maxlength="30" placeholder="請輸入姓名">
+        </div>
+
+        <div class="sr-card p-4 sm:p-5">
+          <span class="sr-label">照片</span>
+          <div class="flex items-center gap-4">
+            <div id="photoPreview" class="w-24 h-24 rounded-[26px] bg-[#0f121a] border-[1.5px] border-dashed border-[#3b4558] flex items-center justify-center text-[#6b7488] shrink-0 overflow-hidden" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <div class="flex flex-col gap-2 flex-1">
+              <label class="sr-btn sr-btn-ghost w-full cursor-pointer">📷 拍照或選照片<input id="fPhoto" type="file" accept="image/*" class="sr-only"></label>
+              <button type="button" id="photoRemove" class="sr-btn sr-btn-danger sr-btn-sm hidden">移除照片</button>
+            </div>
+          </div>
+          <p class="sr-help mt-2">可以不放。有照片的話，同工比較容易認識您。</p>
         </div>
 
         <div class="sr-card p-4 sm:p-5" data-field="gender">
@@ -118,11 +132,18 @@
   </main>
 
   <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111b"></script>
+  <script src="js/sr-data.js?v=20261111c"></script>
   <script>
   (function () {
     const SR = window.SR;
     const state = { gender: '', marital: '', living: '', group: null }; // group: null=未選、''=暫不安排
+    let photo = null; // { thumb, full }，預覽版不會上傳
+    function showPhoto() {
+      const box = $('photoPreview');
+      box.innerHTML = photo ? `<img src="${photo.thumb}" alt="已選的照片" style="width:100%;height:100%;object-fit:cover">` : '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+      box.style.borderStyle = photo ? 'solid' : 'dashed';
+      $('photoRemove').classList.toggle('hidden', !photo);
+    }
     // 「加樂同工」等同工組不給新朋友選
     const forNewcomer = g => g.active !== false && !/同工/.test(g.name);
     let groups = SR.DEFAULT_GROUPS.map(name => ({ id: '', name })).filter(forNewcomer);
@@ -130,6 +151,12 @@
 
     const $ = id => document.getElementById(id);
     const fMonth = $('fMonth'), fDay = $('fDay'), fYear = $('fYear');
+    $('fPhoto').addEventListener('change', async e => {
+      const file = e.target.files[0]; e.target.value = '';
+      if (!file) return;
+      try { photo = await SR.makePhoto(file); showPhoto(); } catch (err) { SR.toast(err.message, 'error'); }
+    });
+    $('photoRemove').addEventListener('click', () => { photo = null; showPhoto(); });
     for (let m = 1; m <= 12; m++) fMonth.add(new Option(m + ' 月', m));
     function fillDays() {
       const keep = fDay.value;
@@ -259,7 +286,7 @@
       const rows = [
         ['姓名', data.name], ['性別', data.gender], ['生日', SR.formatRocLong(data.birthday)],
         ['手機', data.mobile], ['市話', data.phone], ['地址', data.address],
-        ['婚姻', data.marital], ['居住狀況', data.living], ['關懷小組', data.group || '暫不安排小組']
+        ['婚姻', data.marital], ['居住狀況', data.living], ['關懷小組', data.group || '暫不安排小組'], ['照片', photo ? '已附上' : '']
       ].filter(r => r[1]);
       $('summary').innerHTML = rows.map(([k, v]) => `<div class="flex gap-3"><dt class="w-24 shrink-0 text-slate-400 font-bold">${k}</dt><dd class="font-bold break-all">${SR.esc(v)}</dd></div>`).join('');
       $('formView').classList.add('hidden');
@@ -271,6 +298,7 @@
     $('againBtn').addEventListener('click', () => {
       $('joinForm').reset();
       Object.assign(state, { gender: '', marital: '', living: '', group: null });
+      photo = null; showPhoto();
       syncPressed(); fillDays(); updateBirthHint();
       $('doneView').classList.add('hidden');
       $('formView').classList.remove('hidden');

@@ -25,7 +25,7 @@
   SR.PERSON_FIELDS = ['name', 'gender', 'birthday', 'phone', 'mobile', 'address', 'marital', 'living', 'groupId', 'status', 'note'];
   SR.FIELD_LABELS = {
     name: '姓名', gender: '性別', birthday: '生日', phone: '市話', mobile: '手機', address: '地址',
-    marital: '婚姻', living: '居住狀況', groupId: '小組', status: '狀態', note: '備註'
+    marital: '婚姻', living: '居住狀況', groupId: '小組', status: '狀態', note: '備註', memberNo: '編號'
   };
 
   SR.esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -161,6 +161,85 @@
 
   SR.serverTime = () => firebase.firestore.FieldValue.serverTimestamp();
   SR.stamp = () => ({ updatedAt: SR.serverTime(), updatedBy: window.currentAdminEmail || '' });
+
+
+  // ---------- 排序：姓名依筆畫 ----------
+  // zh-Hant 的預設排序就是筆畫（同筆畫再比部首），與台灣通訊錄習慣一致。
+  SR.collator = new Intl.Collator('zh-Hant-TW-u-co-stroke');
+  SR.byName = (a, b) => SR.collator.compare(String(a.name || ''), String(b.name || ''));
+
+  // ---------- 會員編號 ----------
+  // 沿用點名表的 No.：姊妹是數字（12），弟兄前面有 *（*12）。只顯示在個人資料裡，可搜尋、可排序。
+  SR.memberNoNum = v => { const m = String(v ?? '').match(/\d+/); return m ? +m[0] : Infinity; };
+  SR.byMemberNo = (a, b) => {
+    const ga = String(a.memberNo || '').startsWith('*') ? 1 : 0, gb = String(b.memberNo || '').startsWith('*') ? 1 : 0;
+    return ga - gb || SR.memberNoNum(a.memberNo) - SR.memberNoNum(b.memberNo) || SR.byName(a, b);
+  };
+  /** 新增組員時給下一個編號：姊妹接著最大數字，弟兄接著最大的 *數字。 */
+  SR.nextMemberNo = function (persons, gender) {
+    const star = gender === '男';
+    let max = 0;
+    persons.forEach(p => {
+      const v = String(p.memberNo || '').trim();
+      if (!v || v.startsWith('*') !== star) return;
+      const n = SR.memberNoNum(v);
+      if (n !== Infinity && n > max) max = n;
+    });
+    return (star ? '*' : '') + (max + 1);
+  };
+
+  // ---------- 頭像：圓角方形，有相片顯示相片，沒有就顯示姓 ----------
+  const AVATAR_COLORS = ['#D6336C', '#9C36B5', '#D9480F', '#1971C2', '#2B8A3E', '#5F3DC4', '#0B7285', '#C2255C'];
+  SR.avatarColor = function (name) {
+    let h = 0;
+    for (const ch of String(name || '')) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  };
+  SR.avatarHtml = function (p, size = 44) {
+    const radius = Math.round(size * 0.26);
+    const base = `width:${size}px;height:${size}px;border-radius:${radius}px;flex:none;`;
+    if (p.photoThumb && /^data:image\/(jpeg|png|webp);base64,/.test(p.photoThumb)) {
+      return `<img class="sr-avatar" src="${SR.esc(p.photoThumb)}" alt="" style="${base}object-fit:cover">`;
+    }
+    const ch = Array.from(String(p.name || '？').trim())[0] || '？';
+    return `<span class="sr-avatar" aria-hidden="true" style="${base}background:${SR.avatarColor(p.name)};font-size:${Math.round(size * 0.44)}px">${SR.esc(ch)}</span>`;
+  };
+
+  // ---------- 聚會狀態的顏色 ----------
+  const STATUS_STYLE = {
+    '聚會小組': ['#DFF7E5', '#1B6B34'], '只來聚會': ['#E3EEFF', '#0B4FA8'], '加樂同工': ['#D7F3F5', '#00646E'],
+    '新朋友': ['#FFF3C4', '#7A5200'], '居家休養': ['#FFEBD6', '#9A4A00'], '很久沒來': ['#EEEEF2', '#48484A'],
+    '離開教會': ['#EEEEF2', '#5C5C60'], '安息主懷': ['#EEE6FA', '#5B3C99'], '其他': ['#EEEEF2', '#48484A']
+  };
+  SR.statusPill = function (status) {
+    if (!status) return '';
+    const [bg, fg] = STATUS_STYLE[status] || ['#EEEEF2', '#48484A'];
+    return `<span class="sr-pill" style="background:${bg};color:${fg}">${SR.esc(status)}</span>`;
+  };
+
+  // ---------- 相片：在瀏覽器裡裁切壓縮，不必另外開檔案儲存空間 ----------
+  // thumb：128px 正方形，存在組員資料裡（列表直接顯示，每張約 5KB）
+  // full：最長邊 720px，存在 personPhotos/{id}（打開個人資料才讀取）
+  SR.makePhoto = async function (file) {
+    if (!file || !/^image\//.test(file.type)) throw new Error('請選擇照片檔案');
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('照片讀不出來，請換一張')); i.src = url; });
+      const draw = (w, h, sx, sy, sw, sh, q) => {
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+        g.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+        return c.toDataURL('image/jpeg', q);
+      };
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const thumb = draw(128, 128, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0.78);
+      const scale = Math.min(1, 720 / Math.max(img.naturalWidth, img.naturalHeight));
+      const fw = Math.round(img.naturalWidth * scale), fh = Math.round(img.naturalHeight * scale);
+      let full = draw(fw, fh, 0, 0, img.naturalWidth, img.naturalHeight, 0.82);
+      if (full.length > 850000) full = draw(fw, fh, 0, 0, img.naturalWidth, img.naturalHeight, 0.6);
+      return { thumb, full };
+    } finally { URL.revokeObjectURL(url); }
+  };
 
   // ---------- 提示訊息 ----------
   SR.toast = function (message, kind = 'ok') {
