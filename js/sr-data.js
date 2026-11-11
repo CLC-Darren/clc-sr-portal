@@ -20,6 +20,8 @@
     marital: ['已婚', '單身'],
     living: ['家人同住', '獨居', '其他']
   };
+  // 新朋友名單的狀態（與點名表「狀態選單」的新人狀態相同）
+  SR.INTAKE_STATUSES = ['跟進關懷', '偶爾聚會', '委身聚會', '加入小組', '暫不加入'];
   SR.OPTION_LABELS = { statuses: '狀態', marital: '婚姻', living: '居住狀況' };
 
   SR.PERSON_FIELDS = ['name', 'gender', 'birthday', 'phone', 'mobile', 'address', 'marital', 'living', 'groupId', 'status', 'note'];
@@ -239,7 +241,9 @@
   const STATUS_STYLE = {
     '聚會小組': ['#DFF7E5', '#1B6B34'], '只來聚會': ['#E3EEFF', '#0B4FA8'], '加樂同工': ['#D7F3F5', '#00646E'],
     '新朋友': ['#FFF3C4', '#7A5200'], '居家休養': ['#FFEBD6', '#9A4A00'], '很久沒來': ['#EEEEF2', '#48484A'],
-    '離開教會': ['#EEEEF2', '#5C5C60'], '安息主懷': ['#EEE6FA', '#5B3C99'], '其他': ['#EEEEF2', '#48484A']
+    '離開教會': ['#EEEEF2', '#5C5C60'], '安息主懷': ['#EEE6FA', '#5B3C99'], '其他': ['#EEEEF2', '#48484A'],
+    '未處理': ['#FFE8D6', '#A3460B'], '跟進關懷': ['#FFF3C4', '#7A5200'], '偶爾聚會': ['#E3EEFF', '#0B4FA8'],
+    '委身聚會': ['#D7F3F5', '#00646E'], '加入小組': ['#DFF7E5', '#1B6B34'], '暫不加入': ['#EEEEF2', '#48484A']
   };
   SR.statusPill = function (status) {
     if (!status) return '';

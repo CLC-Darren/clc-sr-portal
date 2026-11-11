@@ -14,66 +14,70 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','"Noto Sans TC"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/sr-ui.css?v=20261111d">
   <style>
-    /* ===== 新朋友留名單（與通訊錄相同的 Apple 風格：深色底＋白色分組卡片；給長輩填，字放大） ===== */
+    /* ===== 新朋友留名單：溫暖的米色調（只有最上方 header 維持深色），給長輩填，字放大 ===== */
+    :root { --cream: #FBF4EA; --line: #EFE3D3; --ink: #3B342C; --muted: #8A7D6E; --warm: #B9783A; --teal: #007E8A; --teal-d: #006C77; --sun: #F2B33D; }
     html, body { font-size: 18px; }
-    .j-sec { font-size: 16px; font-weight: 800; color: rgba(235,235,245,.65); margin: 26px 6px 8px; }
-    .j-group { background: #fff; color: #1D1D1F; border-radius: 18px; overflow: hidden; }
-    .j-row { padding: 16px 18px; border-top: 1px solid #E5E5EA; }
+    body.j-body { background: var(--cream); color: var(--ink); }
+    body.j-body #clc-header { background: #090A0F !important; }
+    .j-banner { display: block; width: 100%; height: auto; border-radius: 20px; box-shadow: 0 6px 20px rgba(122,86,40,.12); }
+    .j-title { background: #fff; border-radius: 20px; padding: 20px 20px 18px; box-shadow: 0 2px 10px rgba(122,86,40,.08); border-top: 6px solid var(--teal); }
+    .j-sec { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800; color: var(--warm); margin: 28px 6px 10px; }
+    .j-sec::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--sun); }
+    .j-group { background: #fff; color: var(--ink); border-radius: 20px; overflow: hidden; box-shadow: 0 2px 10px rgba(122,86,40,.08); }
+    .j-row { padding: 16px 18px; border-top: 1px solid var(--line); }
     .j-row:first-child { border-top: 0; }
-    .j-lab { display: block; font-size: 17px; font-weight: 800; color: #1D1D1F; margin-bottom: 10px; }
-    .j-req { color: #D70015; margin-left: 2px; }
-    .j-help { font-size: 15px; color: #6E6E73; margin-top: 8px; line-height: 1.5; }
-    .j-in { width: 100%; box-sizing: border-box; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid #D1D1D6; background: #F7F7F9; font: inherit; font-size: 20px; color: #1D1D1F; }
-    .j-in::placeholder { color: #AEAEB2; }
-    .j-in:focus { outline: 3px solid rgba(0,126,138,.35); border-color: #007E8A; background: #fff; }
+    .j-lab { display: block; font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 10px; }
+    .j-req { color: #D9480F; margin-left: 2px; }
+    .j-help { font-size: 15px; color: var(--muted); margin-top: 8px; line-height: 1.55; }
+    .j-in { width: 100%; box-sizing: border-box; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid #E6D9C6; background: #FFFCF7; font: inherit; font-size: 20px; color: var(--ink); }
+    .j-in::placeholder { color: #BDB1A2; }
+    .j-in:focus { outline: 3px solid rgba(0,126,138,.25); border-color: var(--teal); background: #fff; }
     textarea.j-in { min-height: 110px; line-height: 1.5; }
-    select.j-in { appearance: none; padding-right: 36px; background: #F7F7F9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; }
-    .j-invalid .j-in, .j-in.j-bad { border-color: #D70015; background: #FFF5F5; }
-    .j-err { font-size: 16px; font-weight: 800; color: #D70015; margin-top: 8px; }
-    /* 大按鈕單選 */
+    select.j-in { appearance: none; padding-right: 40px; cursor: pointer; background: #FFFCF7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9783a' stroke-width='2.6'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 18px; }
+    select.j-in.j-empty { color: #BDB1A2; }
+    select.j-in option { color: var(--ink); }
+    .j-invalid .j-in { border-color: #D9480F; background: #FFF6F1; }
+    .j-err { font-size: 16px; font-weight: 800; color: #D9480F; margin-top: 8px; }
     .j-choices { display: grid; gap: 10px; }
-    .j-choice { min-height: 58px; padding: 8px 10px; border-radius: 14px; border: 1.5px solid #D1D1D6; background: #F7F7F9; color: #1D1D1F; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
-    .j-choice[aria-pressed="true"] { background: #007E8A; border-color: #007E8A; color: #fff; }
+    .j-choice { min-height: 58px; padding: 8px 10px; border-radius: 14px; border: 1.5px solid #E6D9C6; background: #FFFCF7; color: var(--ink); font: inherit; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+    .j-choice[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
     .j-choice[aria-pressed="true"]::before { content: '✓'; font-weight: 900; }
-    .j-choice:focus-visible, .j-check:focus-visible { outline: 3px solid rgba(0,126,138,.45); outline-offset: 2px; }
-    /* 複選（像 iPhone 設定的勾選列） */
-    .j-check { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 4px; border: 0; border-top: 1px solid #EFEFF4; background: transparent; font: inherit; font-size: 19px; font-weight: 600; color: #1D1D1F; text-align: left; cursor: pointer; }
+    .j-choice:focus-visible, .j-check:focus-visible, .j-cam:focus-visible { outline: 3px solid rgba(0,126,138,.45); outline-offset: 2px; }
+    .j-check { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 4px; border: 0; border-top: 1px solid var(--line); background: transparent; font: inherit; font-size: 19px; font-weight: 600; color: var(--ink); text-align: left; cursor: pointer; }
     .j-check:first-of-type { border-top: 0; }
-    .j-box { flex: none; width: 28px; height: 28px; border-radius: 8px; border: 2px solid #AEAEB2; display: flex; align-items: center; justify-content: center; color: transparent; font-weight: 900; font-size: 18px; }
-    .j-check[aria-pressed="true"] .j-box { background: #007E8A; border-color: #007E8A; color: #fff; }
-    .j-submit { width: 100%; min-height: 64px; border: 0; border-radius: 16px; background: #007E8A; color: #fff; font: inherit; font-size: 21px; font-weight: 800; cursor: pointer; }
-    .j-submit:active { background: #006C77; }
-    .j-ghost { width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: #1C1C1E; color: #fff; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; }
-    .j-photo { width: 104px; height: 104px; border-radius: 27px; flex: none; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #F2F2F7; border: 2px dashed #C7C7CC; color: #AEAEB2; }
-    .j-photo.has { border-style: solid; border-color: #E5E5EA; }
-    .j-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .j-small-btn { min-height: 50px; padding: 0 16px; border-radius: 14px; border: 0; font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .j-dt { width: 6.5em; flex: none; color: #6E6E73; font-weight: 700; }
+    .j-box { flex: none; width: 28px; height: 28px; border-radius: 8px; border: 2px solid #CDBFAC; display: flex; align-items: center; justify-content: center; color: transparent; font-weight: 900; font-size: 18px; background: #fff; }
+    .j-check[aria-pressed="true"] .j-box { background: var(--teal); border-color: var(--teal); color: #fff; }
+    /* 一起拍張照 */
+    .j-photo-card { background: #fff; border-radius: 20px; padding: 22px 18px; text-align: center; box-shadow: 0 2px 10px rgba(122,86,40,.08); }
+    .j-cam { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 62px; padding: 0 26px; border-radius: 999px; background: var(--sun); color: #3B2A10; font: inherit; font-size: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #D3962A; }
+    .j-cam:active { transform: translateY(2px); box-shadow: 0 2px 0 #D3962A; }
+    .j-shot { width: 180px; margin: 0 auto 14px; background: #fff; padding: 10px 10px 30px; border-radius: 6px; box-shadow: 0 6px 18px rgba(80,55,20,.18); transform: rotate(-2deg); }
+    .j-shot img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 2px; display: block; }
+    .j-submit { width: 100%; min-height: 66px; border: 0; border-radius: 18px; background: var(--teal); color: #fff; font: inherit; font-size: 22px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #005A62; }
+    .j-submit:active { transform: translateY(2px); box-shadow: 0 2px 0 #005A62; }
+    .j-btn { width: 100%; min-height: 58px; border: 0; border-radius: 16px; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+    .j-note { border-radius: 16px; background: #FFF4D9; color: #7A5200; padding: 12px 16px; font-size: 16px; font-weight: 700; }
+    .j-card-img { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: 0 8px 26px rgba(122,86,40,.18); }
   </style>
 </head>
-<body class="min-h-screen bg-[#090A0F] text-slate-100">
+<body class="j-body min-h-screen">
   <header id="clc-header"></header>
 
-  <main class="max-w-xl mx-auto px-4 pt-6 pb-16">
+  <main class="max-w-xl mx-auto px-4 pt-5 pb-16">
     <!-- 填寫畫面 -->
     <section id="formView">
-      <div class="flex flex-col items-center text-center gap-3 mb-4">
-        <div class="w-[76px] h-[76px] rounded-[20px] bg-[#007E8A] flex items-center justify-center" aria-hidden="true">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5 4 5c0 4 3 7 8 7z"/><path d="M12 14c0-3.5 2.5-6 7-6 0 3.5-2.5 6-7 6z"/></svg>
-        </div>
-        <h1 class="text-[32px] font-extrabold leading-tight">新朋友留名單</h1>
-        <p class="text-[18px] text-[rgba(235,235,245,.75)] leading-relaxed">歡迎來到江翠加樂！<br>請留下您的資料，讓我們可以關心您。</p>
-      </div>
-
-      <div class="rounded-2xl border border-amber-400/40 bg-amber-400/10 text-amber-200 px-4 py-3 text-[16px] font-bold" role="note">
-        🛠️ 預覽版：目前按「送出」不會儲存資料。
+      <img class="j-banner" src="images/join-banner.jpg" alt="加樂團契・長輩是教會的寶！" width="691" height="171">
+      <div class="j-title mt-4 relative">
+        <div class="absolute right-3 top-3"><button id="pageMenuGear" data-menu="newfriends" type="button" onclick="togglePageMenu()" title="同工後台" aria-label="同工後台選單" style="width:34px;height:34px;border-radius:10px;border:0;background:#F6EEE2;color:#9A7B57;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+        <h1 class="text-[28px] font-extrabold leading-tight pr-10">江翠加樂　新朋友留名單</h1>
+        <p class="text-[18px] mt-2 leading-relaxed" style="color:var(--muted)">歡迎您來到加樂團契！請留下您的資料，讓我們可以認識您、關心您。</p>
       </div>
 
       <form id="joinForm" novalidate>
-        <p class="j-sec">基本資料　<span style="font-weight:600">（<span style="color:#FF6961">＊</span>必填）</span></p>
+        <p class="j-sec">基本資料<span style="font-weight:600;color:var(--muted)">（<span style="color:#D9480F">＊</span>必填）</span></p>
         <div class="j-group">
           <div class="j-row" data-field="name">
             <label class="j-lab" for="fName">姓名<span class="j-req">＊</span></label>
@@ -90,25 +94,14 @@
             <span class="j-lab" id="lBirth">生日<span class="j-req">＊</span></span>
             <div class="grid grid-cols-[1.3fr_1fr_1fr] gap-2" role="group" aria-labelledby="lBirth">
               <label><span class="sr-only">出生年（民國或西元）</span><input class="j-in text-center" id="fYear" inputmode="numeric" maxlength="4" placeholder="年" aria-describedby="birthHint"></label>
-              <label><span class="sr-only">月</span><select class="j-in" id="fMonth"><option value="">月</option></select></label>
-              <label><span class="sr-only">日</span><select class="j-in" id="fDay"><option value="">日</option></select></label>
+              <label><span class="sr-only">月</span><select class="j-in j-empty" id="fMonth"><option value="">月</option></select></label>
+              <label><span class="sr-only">日</span><select class="j-in j-empty" id="fDay"><option value="">日</option></select></label>
             </div>
             <p id="birthHint" class="j-help">年份填民國或西元都可以，例如「45」或「1956」。</p>
           </div>
           <div class="j-row">
-            <span class="j-lab" id="lMarital">婚姻</span>
-            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lMarital" data-choice="marital" data-optional></div>
-          </div>
-          <div class="j-row">
-            <span class="j-lab">照片</span>
-            <div class="flex items-center gap-4">
-              <div id="photoPreview" class="j-photo" aria-hidden="true"></div>
-              <div class="flex flex-col gap-2 flex-1 min-w-0">
-                <label class="j-small-btn bg-[#F2F2F7] text-[#1D1D1F] cursor-pointer">📷 拍照或選照片<input id="fPhoto" type="file" accept="image/*" class="sr-only"></label>
-                <button type="button" id="photoRemove" class="j-small-btn bg-transparent text-[#D70015] hidden">移除照片</button>
-              </div>
-            </div>
-            <p class="j-help">可以不放。有照片的話，同工比較容易認識您。</p>
+            <label class="j-lab" for="fMarital">婚姻</label>
+            <select class="j-in j-empty" id="fMarital"></select>
           </div>
         </div>
 
@@ -127,17 +120,16 @@
             <input class="j-in" id="fAddress" autocomplete="street-address" maxlength="120" placeholder="請輸入地址">
           </div>
           <div class="j-row">
-            <span class="j-lab" id="lLiving">居住狀況</span>
-            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lLiving" data-choice="living" data-optional></div>
+            <label class="j-lab" for="fLiving">居住狀況</label>
+            <select class="j-in j-empty" id="fLiving"></select>
           </div>
         </div>
 
         <p class="j-sec">關懷小組</p>
         <div class="j-group">
           <div class="j-row" data-field="group">
-            <span class="j-lab" id="lGroup">想加入的關懷小組<span class="j-req">＊</span></span>
-            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lGroup" data-choice="group" id="groupChoices"></div>
-            <button type="button" class="j-choice w-full mt-2.5" data-value="" data-choice-of="group" id="groupNone">暫不安排小組</button>
+            <label class="j-lab" for="fGroup">想加入的關懷小組<span class="j-req">＊</span></label>
+            <select class="j-in j-empty" id="fGroup"></select>
             <p id="groupHint" class="j-help"></p>
           </div>
         </div>
@@ -150,8 +142,10 @@
           </div>
           <div class="j-row">
             <label class="j-lab" for="fRefRel">與介紹人的關係</label>
-            <input class="j-in" id="fRefRel" maxlength="20" placeholder="例如：朋友、鄰居、女兒" list="relList">
-            <datalist id="relList"><option value="朋友"><option value="鄰居"><option value="同事"><option value="女兒"><option value="兒子"><option value="媳婦"><option value="母女"><option value="父女"></datalist>
+            <select class="j-in j-empty" id="fRefRel">
+              <option value="">請選擇</option>
+              <option>朋友</option><option>鄰居</option><option>同事</option><option>家人</option><option>女兒</option><option>兒子</option><option>媳婦</option><option>其他</option>
+            </select>
           </div>
           <div class="j-row">
             <label class="j-lab" for="fRefPhone">介紹人電話</label>
@@ -186,105 +180,97 @@
           </div>
         </div>
 
+        <p class="j-sec">最後一步</p>
+        <div class="j-photo-card">
+          <div id="shotPreview" class="j-shot hidden"><img id="shotImg" alt="剛剛拍的照片"></div>
+          <p id="camTitle" class="text-[22px] font-extrabold mb-1">📸 我們一起來拍張照吧！</p>
+          <p id="camSub" class="j-help mt-0 mb-4">拍好就可以了，送出時會一起上傳。</p>
+          <label class="j-cam">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h3.5l2-3h7l2 3H21v12H3z"/><circle cx="12" cy="13.5" r="4"/></svg>
+            <span id="camLabel">打開相機</span>
+            <input id="fPhoto" type="file" accept="image/*" capture="user" class="sr-only">
+          </label>
+          <div class="mt-3"><button type="button" id="photoRemove" class="hidden text-[16px] font-bold" style="color:#D9480F;background:none;border:0;cursor:pointer">不要這張</button></div>
+        </div>
+
         <div class="mt-7">
           <button type="submit" class="j-submit">送出資料</button>
         </div>
       </form>
     </section>
 
-    <!-- 完成畫面 -->
-    <section id="doneView" class="hidden pt-4" tabindex="-1">
-      <div class="flex flex-col items-center text-center gap-3 mb-5">
-        <div class="w-[76px] h-[76px] rounded-[20px] bg-[#30A46C] flex items-center justify-center" aria-hidden="true">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-        </div>
-        <h1 class="text-[32px] font-extrabold">謝謝您！</h1>
-        <p class="text-[18px] text-[rgba(235,235,245,.75)]">我們已經收到您的資料，<br>同工會再與您聯繫。</p>
-        <p class="text-[16px] font-bold text-amber-200">（預覽版：這筆資料沒有儲存）</p>
+    <!-- 完成畫面：拍立得＋祝福經文 -->
+    <section id="doneView" class="hidden pt-2" tabindex="-1">
+      <h1 class="text-[28px] font-extrabold text-center mb-1">謝謝您，歡迎您！</h1>
+      <p class="text-center text-[18px] mb-4" style="color:var(--muted)">送您一張紀念照和一句祝福 🌿</p>
+      <img id="cardImg" class="j-card-img" alt="">
+      <div class="grid gap-3 mt-5">
+        <button type="button" id="shareBtn" class="j-btn" style="background:#06C755;color:#fff">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6.1C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg>
+          分享到 LINE 或其他 App</button>
+        <button type="button" id="saveBtn" class="j-btn" style="background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(122,86,40,.1)">⬇️ 存到手機</button>
+        <button type="button" id="verseBtn" class="j-btn" style="background:transparent;color:var(--warm)">🔄 換一句祝福</button>
       </div>
-      <div class="j-group"><dl id="summary" class="px-[18px] py-2"></dl></div>
-      <div class="mt-6"><button type="button" id="againBtn" class="j-ghost">再登記一位</button></div>
+      <div class="mt-4"><button type="button" id="againBtn" class="j-btn" style="background:var(--teal);color:#fff">再登記一位</button></div>
     </section>
   </main>
 
-  <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111e"></script>
+  <script src="header.js?v=20261112-intakes"></script>
+  <script src="js/sr-data.js?v=20261112"></script>
   <script>
   (function () {
     const SR = window.SR;
     const $ = id => document.getElementById(id);
-    const state = { gender: '', marital: '', living: '', group: null, faith: [], intent: [] }; // group: null=未選、''=暫不安排
-    let photo = null; // { thumb, full }，預覽版不會上傳
-    // 「加樂同工」等同工組不給新朋友選
+    const state = { gender: '', faith: [], intent: [] };
+    let photo = null; // { thumb, full }
     const forNewcomer = g => g.active !== false && !/同工/.test(g.name);
     let groups = SR.DEFAULT_GROUPS.map(name => ({ id: '', name })).filter(forNewcomer);
     let options = { marital: SR.DEFAULT_OPTIONS.marital, living: SR.DEFAULT_OPTIONS.living };
-    const PERSON_ICON = '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
 
-    // ---------- 照片 ----------
-    function showPhoto() {
-      const box = $('photoPreview');
-      box.innerHTML = photo ? `<img src="${photo.thumb}" alt="已選的照片">` : PERSON_ICON;
-      box.classList.toggle('has', !!photo);
-      $('photoRemove').classList.toggle('hidden', !photo);
+    // 和合本經文，挑選溫暖、祝福、適合長輩的句子
+    const VERSES = [
+      ['耶和華是我的牧者，我必不致缺乏。', '詩篇 23:1'],
+      ['願耶和華賜福給你，保護你。', '民數記 6:24'],
+      ['耶和華必賜力量給他的百姓；耶和華必賜平安的福給他的百姓。', '詩篇 29:11'],
+      ['你們要將一切的憂慮卸給神，因為他顧念你們。', '彼得前書 5:7'],
+      ['直到你們年老，我仍這樣；直到你們髮白，我仍懷搋。', '以賽亞書 46:4'],
+      ['他們年老的時候仍要結果子，要滿了汁漿而常發青。', '詩篇 92:14'],
+      ['白髮是榮耀的冠冕，在公義的道上必能得著。', '箴言 16:31'],
+      ['喜樂的心乃是良藥。', '箴言 17:22'],
+      ['我靠著那加給我力量的，凡事都能做。', '腓立比書 4:13'],
+      ['要常常喜樂，不住地禱告，凡事謝恩。', '帖撒羅尼迦前書 5:16-18'],
+      ['耶和華是我的亮光，是我的拯救，我還怕誰呢？', '詩篇 27:1'],
+      ['你要專心仰賴耶和華，不可倚靠自己的聰明。', '箴言 3:5'],
+      ['神愛世人，甚至將他的獨生子賜給他們，叫一切信他的，不至滅亡，反得永生。', '約翰福音 3:16']
+    ];
+    let verseIdx = 0, lastName = '';
+
+    // ---------- 下拉選單 ----------
+    function fillSelect(el, placeholder, list, keep) {
+      const cur = keep ?? el.value;
+      el.innerHTML = `<option value="">${placeholder}</option>` + list.map(v => `<option value="${SR.esc(v)}">${SR.esc(v)}</option>`).join('');
+      el.value = list.includes(cur) ? cur : '';
+      el.classList.toggle('j-empty', !el.value);
     }
-    showPhoto();
-    $('fPhoto').addEventListener('change', async e => {
-      const file = e.target.files[0]; e.target.value = '';
-      if (!file) return;
-      try { photo = await SR.makePhoto(file); showPhoto(); } catch (err) { SR.toast(err.message, 'error'); }
+    function renderSelects() {
+      fillSelect($('fMarital'), '請選擇（可不填）', options.marital);
+      fillSelect($('fLiving'), '請選擇（可不填）', options.living);
+      // 選了性別才列出對應小組（培榮、文泉是弟兄小組）
+      const shown = groups.filter(g => !state.gender || !SR.groupGender(g) || SR.groupGender(g) === state.gender).map(g => g.name);
+      const gs = $('fGroup'), cur = gs.value;
+      gs.innerHTML = `<option value="">請選擇小組</option>` + shown.map(n => `<option value="${SR.esc(n)}">${SR.esc(n)}</option>`).join('') + `<option value="__none">暫不安排小組</option>`;
+      gs.value = shown.includes(cur) || cur === '__none' ? cur : '';
+      gs.classList.toggle('j-empty', !gs.value);
+      $('groupHint').textContent = state.gender ? '' : '先選性別，這裡會列出適合您的小組。';
+    }
+    document.addEventListener('change', e => {
+      if (e.target.matches('select.j-in')) e.target.classList.toggle('j-empty', !e.target.value);
+      if (e.target.id === 'fGroup') clearError('group');
     });
-    $('photoRemove').addEventListener('click', () => { photo = null; showPhoto(); });
 
-    // ---------- 生日 ----------
-    const fMonth = $('fMonth'), fDay = $('fDay'), fYear = $('fYear');
-    for (let m = 1; m <= 12; m++) fMonth.add(new Option(m + ' 月', m));
-    function toWesternYear(v) {
-      const n = parseInt(String(v).replace(/[^\d]/g, ''), 10);
-      if (!n) return 0;
-      return n < 200 ? n + 1911 : n;
-    }
-    function fillDays() {
-      const keep = fDay.value;
-      const y = toWesternYear(fYear.value) || 2000, m = +fMonth.value || 1;
-      const max = new Date(y, m, 0).getDate();
-      fDay.length = 1;
-      for (let d = 1; d <= max; d++) fDay.add(new Option(d + ' 日', d));
-      if (keep && +keep <= max) fDay.value = keep;
-    }
-    fillDays();
-    function updateBirthHint() {
-      const y = toWesternYear(fYear.value);
-      const hint = $('birthHint');
-      if (!fYear.value) { hint.textContent = '年份填民國或西元都可以，例如「45」或「1956」。'; return; }
-      if (y < 1900 || y > new Date().getFullYear()) { hint.textContent = '年份好像不太對，請再確認一下。'; return; }
-      hint.textContent = `民國 ${y - 1911} 年 ＝ 西元 ${y} 年（約 ${new Date().getFullYear() - y} 歲）`;
-    }
-    fYear.addEventListener('input', () => { fYear.value = fYear.value.replace(/[^\d]/g, ''); updateBirthHint(); fillDays(); clearError('birthday'); });
-    fMonth.addEventListener('change', () => { fillDays(); clearError('birthday'); });
-    fDay.addEventListener('change', () => clearError('birthday'));
-
-    ['fMobile', 'fPhone', 'fRefPhone'].forEach(id => $(id).addEventListener('blur', e => { e.target.value = SR.formatPhone(e.target.value); }));
-    $('fMobile').addEventListener('input', () => clearError('mobile'));
-    $('fName').addEventListener('input', () => clearError('name'));
-
-    // ---------- 大按鈕單選 ----------
-    function renderChoices() {
-      const box = name => document.querySelector(`[data-choice="${name}"]`);
-      box('marital').innerHTML = options.marital.map(v => `<button type="button" class="j-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
-      box('living').innerHTML = options.living.map(v => `<button type="button" class="j-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
-      // 先選性別時，只列對應的小組（培榮、文泉是弟兄小組）
-      const shown = groups.filter(g => !state.gender || !SR.groupGender(g) || SR.groupGender(g) === state.gender);
-      $('groupChoices').innerHTML = shown.map(g => `<button type="button" class="j-choice" data-value="${SR.esc(g.name)}">${SR.esc(g.name)}</button>`).join('');
-      $('groupHint').textContent = state.gender ? '' : '先選性別，這裡只會列出適合的小組。';
-      syncPressed();
-    }
+    // ---------- 性別（大按鈕）與複選 ----------
     function syncPressed() {
-      document.querySelectorAll('[data-choice]').forEach(boxEl => {
-        const key = boxEl.dataset.choice;
-        boxEl.querySelectorAll('.j-choice').forEach(b => b.setAttribute('aria-pressed', String(state[key] === b.dataset.value)));
-      });
-      $('groupNone').setAttribute('aria-pressed', String(state.group === ''));
+      document.querySelectorAll('[data-choice="gender"] .j-choice').forEach(b => b.setAttribute('aria-pressed', String(state.gender === b.dataset.value)));
       document.querySelectorAll('[data-multi]').forEach(boxEl => {
         const list = state[boxEl.dataset.multi];
         boxEl.querySelectorAll('.j-check').forEach(b => b.setAttribute('aria-pressed', String(list.includes(b.dataset.value))));
@@ -296,68 +282,87 @@
         const list = state[check.closest('[data-multi]').dataset.multi];
         const i = list.indexOf(check.dataset.value);
         if (i >= 0) list.splice(i, 1); else list.push(check.dataset.value);
-        syncPressed();
-        return;
+        syncPressed(); return;
       }
-      const btn = e.target.closest('.j-choice');
-      if (!btn) return;
-      const boxEl = btn.closest('[data-choice]');
-      const key = boxEl ? boxEl.dataset.choice : btn.dataset.choiceOf;
-      if (!key) return;
-      const value = btn.dataset.value;
-      const optional = boxEl && boxEl.hasAttribute('data-optional');
-      state[key] = optional && state[key] === value ? '' : value;
-      if (key === 'gender') {
-        const g = groups.find(x => x.name === state.group);
-        if (g && SR.groupGender(g) && SR.groupGender(g) !== state.gender) state.group = null;
-        renderChoices();
-      }
-      syncPressed();
-      clearError(key);
+      const g = e.target.closest('[data-choice="gender"] .j-choice');
+      if (g) { state.gender = g.dataset.value; syncPressed(); renderSelects(); clearError('gender'); }
     });
-    renderChoices();
-
-    // 小組與選項以後台設定為準；讀不到時使用表單原本的選項。
+    renderSelects(); syncPressed();
     try {
-      SR.watchGroups(list => {
-        const active = list.filter(forNewcomer);
-        if (active.length) { groups = active; renderChoices(); }
-      }, () => {});
-      SR.watchOptions(o => { options = { marital: o.marital, living: o.living }; renderChoices(); }, () => {});
-    } catch (e) { /* Firebase 尚未就緒：使用預設選項 */ }
+      SR.watchGroups(list => { const a = list.filter(forNewcomer); if (a.length) { groups = a; renderSelects(); } }, () => {});
+      SR.watchOptions(o => { options = { marital: o.marital, living: o.living }; renderSelects(); }, () => {});
+    } catch (e) { /* 使用預設選項 */ }
+
+    // ---------- 生日 ----------
+    const fMonth = $('fMonth'), fDay = $('fDay'), fYear = $('fYear');
+    for (let m = 1; m <= 12; m++) fMonth.add(new Option(m + ' 月', m));
+    const toWesternYear = v => { const n = parseInt(String(v).replace(/[^\d]/g, ''), 10); return !n ? 0 : n < 200 ? n + 1911 : n; };
+    function fillDays() {
+      const keep = fDay.value, y = toWesternYear(fYear.value) || 2000, m = +fMonth.value || 1, max = new Date(y, m, 0).getDate();
+      fDay.length = 1;
+      for (let d = 1; d <= max; d++) fDay.add(new Option(d + ' 日', d));
+      if (keep && +keep <= max) fDay.value = keep;
+      fDay.classList.toggle('j-empty', !fDay.value);
+    }
+    fillDays();
+    function updateBirthHint() {
+      const y = toWesternYear(fYear.value), hint = $('birthHint');
+      if (!fYear.value) hint.textContent = '年份填民國或西元都可以，例如「45」或「1956」。';
+      else if (y < 1900 || y > new Date().getFullYear()) hint.textContent = '年份好像不太對，請再確認一下。';
+      else hint.textContent = `民國 ${y - 1911} 年 ＝ 西元 ${y} 年（約 ${new Date().getFullYear() - y} 歲）`;
+    }
+    fYear.addEventListener('input', () => { fYear.value = fYear.value.replace(/[^\d]/g, ''); updateBirthHint(); fillDays(); clearError('birthday'); });
+    fMonth.addEventListener('change', () => { fillDays(); clearError('birthday'); });
+    fDay.addEventListener('change', () => clearError('birthday'));
+    ['fMobile', 'fPhone', 'fRefPhone'].forEach(id => $(id).addEventListener('blur', e => { e.target.value = SR.formatPhone(e.target.value); }));
+    $('fMobile').addEventListener('input', () => clearError('mobile'));
+    $('fName').addEventListener('input', () => clearError('name'));
+
+    // ---------- 一起拍張照 ----------
+    function showPhoto() {
+      $('shotPreview').classList.toggle('hidden', !photo);
+      if (photo) $('shotImg').src = photo.full;
+      $('camTitle').textContent = photo ? '拍好了，真好看！' : '📸 我們一起來拍張照吧！';
+      $('camSub').textContent = photo ? '按下面的「送出資料」就會一起上傳。想重拍可以再按一次。' : '拍好就可以了，送出時會一起上傳。';
+      $('camLabel').textContent = photo ? '重拍一張' : '打開相機';
+      $('photoRemove').classList.toggle('hidden', !photo);
+    }
+    $('fPhoto').addEventListener('change', async e => {
+      const file = e.target.files[0]; e.target.value = '';
+      if (!file) return;
+      try { photo = await SR.makePhoto(file); showPhoto(); } catch (err) { SR.toast(err.message, 'error'); }
+    });
+    $('photoRemove').addEventListener('click', () => { photo = null; showPhoto(); });
 
     // ---------- 檢查與送出 ----------
     function setError(field, message) {
       const row = document.querySelector(`[data-field="${field}"]`);
       if (!row) return;
       clearError(field);
-      const p = document.createElement('p');
-      p.className = 'j-err'; p.dataset.err = '1';
-      p.textContent = '⚠️ ' + message;
-      row.appendChild(p);
-      row.classList.add('j-invalid');
+      const p = document.createElement('p'); p.className = 'j-err'; p.dataset.err = '1'; p.textContent = '⚠️ ' + message;
+      row.appendChild(p); row.classList.add('j-invalid');
     }
     function clearError(field) {
       const row = document.querySelector(`[data-field="${field}"]`);
       if (!row) return;
-      row.querySelectorAll('[data-err]').forEach(n => n.remove());
-      row.classList.remove('j-invalid');
+      row.querySelectorAll('[data-err]').forEach(n => n.remove()); row.classList.remove('j-invalid');
     }
 
-    $('joinForm').addEventListener('submit', e => {
+    $('joinForm').addEventListener('submit', async e => {
       e.preventDefault();
+      const gv = $('fGroup').value;
       const data = {
         name: $('fName').value.trim(), gender: state.gender,
         mobile: SR.formatPhone($('fMobile').value), phone: SR.formatPhone($('fPhone').value),
-        address: $('fAddress').value.trim(), marital: state.marital, living: state.living, group: state.group,
-        refName: $('fRefName').value.trim(), refRelation: $('fRefRel').value.trim(), refPhone: SR.formatPhone($('fRefPhone').value),
+        address: $('fAddress').value.trim(), marital: $('fMarital').value, living: $('fLiving').value,
+        group: gv === '__none' ? '' : (gv || null),
+        refName: $('fRefName').value.trim(), refRelation: $('fRefRel').value, refPhone: SR.formatPhone($('fRefPhone').value),
         faith: [...state.faith, $('fFaithOther').value.trim()].filter(Boolean),
         intent: [...state.intent, $('fIntentOther').value.trim()].filter(Boolean),
         note: $('fNote').value.trim()
       };
       const y = toWesternYear(fYear.value);
       data.birthday = fYear.value && fMonth.value && fDay.value ? SR.parseBirthday(`${y}-${fMonth.value}-${fDay.value}`) : '';
-
       const errors = [];
       if (!data.name) errors.push(['name', '請填寫姓名']);
       if (!data.gender) errors.push(['gender', '請選擇性別']);
@@ -366,7 +371,6 @@
       if (!digits) errors.push(['mobile', '請填寫手機號碼']);
       else if (!/^09\d{8}$/.test(digits)) errors.push(['mobile', '手機號碼應為 09 開頭的 10 碼數字']);
       if (data.group === null) errors.push(['group', '請選擇關懷小組，或選「暫不安排小組」']);
-
       errors.forEach(([f, m]) => setError(f, m));
       if (errors.length) {
         const first = document.querySelector(`[data-field="${errors[0][0]}"]`);
@@ -376,29 +380,146 @@
         SR.toast(`還有 ${errors.length} 個地方需要填寫`, 'error');
         return;
       }
-
-      // TODO（第二階段）：寫入 intakes（含照片），並以 Cloudflare Turnstile 防止機器人。
-      const rows = [
-        ['姓名', data.name], ['性別', data.gender], ['生日', SR.formatRocLong(data.birthday)],
-        ['手機', data.mobile], ['市話', data.phone], ['地址', data.address],
-        ['婚姻', data.marital], ['居住狀況', data.living], ['關懷小組', data.group || '暫不安排小組'],
-        ['照片', photo ? '已附上' : ''], ['介紹人', [data.refName, data.refRelation && `（${data.refRelation}）`, data.refPhone].filter(Boolean).join(' ')],
-        ['信仰', data.faith.join('、')], ['希望', data.intent.join('、')], ['代禱事項', data.note]
-      ].filter(r => r[1]);
-      $('summary').innerHTML = rows.map(([k, v]) => `<div class="flex gap-3 py-2.5 border-t border-[#EFEFF4] first:border-t-0 text-[18px]"><dt class="j-dt">${k}</dt><dd class="font-bold break-all" style="white-space:pre-line">${SR.esc(v)}</dd></div>`).join('');
+      // 寫入資料庫：新朋友名單（intakes）＋照片大圖（intakePhotos），同一次送出
+      const btn = $('joinForm').querySelector('.j-submit');
+      btn.disabled = true; btn.textContent = '送出中…';
+      try {
+        const g = groups.find(x => x.name === data.group);
+        const rec = {
+          name: data.name, gender: data.gender, birthday: data.birthday, mobile: data.mobile, phone: data.phone,
+          address: data.address.slice(0, 200), marital: data.marital, living: data.living,
+          groupName: data.group || '', groupId: (g && g.id) || '',
+          refName: data.refName, refRelation: data.refRelation, refPhone: data.refPhone,
+          faith: data.faith.slice(0, 10), intent: data.intent.slice(0, 10), note: data.note.slice(0, 2000),
+          status: '', source: 'form', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (photo) rec.photoThumb = photo.thumb;
+        const ref = window.db.collection('intakes').doc();
+        const batch = window.db.batch();
+        batch.set(ref, rec);
+        if (photo) batch.set(window.db.collection('intakePhotos').doc(ref.id), { data: photo.full });
+        await Promise.race([batch.commit(), new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), 30000))]);
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false; btn.textContent = '送出資料';
+        SR.toast(err.code === 'timeout' ? '網路好像不太穩，請再按一次送出' : '送出失敗，請再試一次或請同工協助（' + (err.code || err.message) + '）', 'error');
+        return;
+      }
+      btn.disabled = false; btn.textContent = '送出資料';
+      document.getElementById('srToast')?.classList.remove('show');
+      lastName = data.name;
+      verseIdx = Math.floor(Math.random() * VERSES.length);
+      await drawCard();
       $('formView').classList.add('hidden');
       $('doneView').classList.remove('hidden');
       window.scrollTo(0, 0);
       $('doneView').focus();
     });
 
+    // ---------- 拍立得紀念卡 ----------
+    const CW = 1080;
+    const SANS = '"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+    const SERIF = '"Noto Serif TC", "Songti TC", "PMingLiU", serif';
+    let cardCanvas = null;
+    const loadImg = src => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; });
+    function wrapLines(ctx, text, maxW) {
+      const lines = []; let line = '';
+      for (const ch of text) {
+        if (ctx.measureText(line + ch).width > maxW && line) {
+          // 標點不要放在行首
+          if (/[，。、；：？！」』）]/.test(ch)) { line += ch; lines.push(line); line = ''; continue; }
+          lines.push(line); line = ch;
+        } else line += ch;
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+    async function drawCard() {
+      try { await document.fonts.load(`700 40px ${SERIF}`); await document.fonts.ready; } catch (e) { /* 照常畫 */ }
+      // 先量經文要幾行，卡片高度跟著調整
+      const [verse, ref] = VERSES[verseIdx];
+      const m = document.createElement('canvas').getContext('2d');
+      m.font = `700 46px ${SERIF}`;
+      const lines = wrapLines(m, '「' + verse + '」', 880);
+      const PW = 700, PH = 830, px = (CW - PW) / 2, py = 160;
+      const CH = py + PH + 110 + lines.length * 68 + 150;
+      const c = document.createElement('canvas'); c.width = CW; c.height = CH;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
+      // 角落的溫暖色塊
+      ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 40, -40, 300, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-60, CH + 20, 320, 0, Math.PI * 2); ctx.fill();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#B9783A'; ctx.font = `800 40px ${SANS}`;
+      ctx.fillText('歡迎來到江翠加樂', CW / 2, 110);
+      // 拍立得
+      ctx.save();
+      ctx.translate(CW / 2, py + PH / 2); ctx.rotate(-2.2 * Math.PI / 180); ctx.translate(-CW / 2, -(py + PH / 2));
+      ctx.shadowColor = 'rgba(80,55,20,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
+      ctx.fillStyle = '#fff'; ctx.fillRect(px, py, PW, PH);
+      ctx.shadowColor = 'transparent';
+      const ix = px + 36, iy = py + 36, IS = PW - 72;
+      if (photo) {
+        const img = await loadImg(photo.full);
+        const s = Math.min(img.naturalWidth, img.naturalHeight);
+        ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, ix, iy, IS, IS);
+      } else {
+        ctx.fillStyle = '#F3E6D2'; ctx.fillRect(ix, iy, IS, IS);
+        ctx.strokeStyle = '#3F8F5A'; ctx.lineWidth = 16; ctx.lineCap = 'round';
+        const cx = ix + IS / 2, cy = iy + IS / 2 + 40;
+        ctx.beginPath(); ctx.moveTo(cx, cy + 110); ctx.lineTo(cx, cy - 20); ctx.stroke();
+        ctx.fillStyle = '#5DAA6F';
+        ctx.beginPath(); ctx.ellipse(cx - 70, cy - 60, 80, 42, -0.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(cx + 70, cy - 90, 80, 42, 0.5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = '#3B342C'; ctx.font = `800 54px ${SANS}`;
+      ctx.fillText(lastName, CW / 2, iy + IS + 78);
+      const d = new Date();
+      ctx.fillStyle = '#8A7D6E'; ctx.font = `500 30px ${SANS}`;
+      ctx.fillText(`${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`, CW / 2, iy + IS + 124);
+      ctx.restore();
+      // 祝福經文
+      ctx.font = `700 46px ${SERIF}`; ctx.fillStyle = '#4A3B2C';
+      let vy = py + PH + 110;
+      lines.forEach(l => { ctx.fillText(l, CW / 2, vy); vy += 68; });
+      ctx.font = `600 32px ${SANS}`; ctx.fillStyle = '#B9783A';
+      ctx.fillText('— ' + ref, CW / 2, vy + 6);
+      ctx.font = `600 28px ${SANS}`; ctx.fillStyle = '#A99B89';
+      ctx.fillText('CLC 加樂團契・長輩是教會的寶', CW / 2, CH - 50);
+      cardCanvas = c;
+      $('cardImg').src = c.toDataURL('image/jpeg', 0.92);
+      $('cardImg').alt = `${lastName} 的歡迎紀念卡：${verse}（${ref}）`;
+    }
+    $('verseBtn').addEventListener('click', async () => { verseIdx = (verseIdx + 1 + Math.floor(Math.random() * (VERSES.length - 1))) % VERSES.length; await drawCard(); });
+
+    const cardBlob = () => new Promise(ok => cardCanvas.toBlob(ok, 'image/jpeg', 0.92));
+    const fileName = () => `加樂歡迎卡_${lastName || '新朋友'}.jpg`;
+    async function saveCard() {
+      const blob = await cardBlob();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName();
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+    }
+    $('saveBtn').addEventListener('click', saveCard);
+    $('shareBtn').addEventListener('click', async () => {
+      const [verse, ref] = VERSES[verseIdx];
+      const text = `歡迎來到江翠加樂！\n「${verse}」— ${ref}`;
+      try {
+        const file = new File([await cardBlob()], fileName(), { type: 'image/jpeg' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
+      } catch (err) { if (err && err.name === 'AbortError') return; }
+      // 電腦或不支援分享圖片：先存圖，再開 LINE 分享文字
+      await saveCard();
+      window.open('https://line.me/R/share?text=' + encodeURIComponent(text), '_blank', 'noopener');
+      SR.toast('圖片已存好，可以在 LINE 裡附上這張圖');
+    });
+
     $('againBtn').addEventListener('click', () => {
       $('joinForm').reset();
-      Object.assign(state, { gender: '', marital: '', living: '', group: null, faith: [], intent: [] });
-      photo = null; showPhoto();
-      renderChoices(); fillDays(); updateBirthHint();
-      $('doneView').classList.add('hidden');
-      $('formView').classList.remove('hidden');
+      Object.assign(state, { gender: '', faith: [], intent: [] });
+      photo = null; showPhoto(); syncPressed(); renderSelects(); fillDays(); updateBirthHint();
+      document.querySelectorAll('select.j-in').forEach(s => s.classList.toggle('j-empty', !s.value));
+      $('doneView').classList.add('hidden'); $('formView').classList.remove('hidden');
       window.scrollTo(0, 0);
     });
   })();

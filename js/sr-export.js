@@ -25,14 +25,14 @@
   const used = COLS.reduce((s, c) => s + c.w, 0);
   COLS[COLS.length - 1].w = W - M * 2 - used;
 
-  function cells(p, i, groupMap) {
+  function cells(p, i, groupMap, statusOf) {
     const g = groupMap[p.groupId];
     return {
       i: String(i + 1), name: p.name || '', gender: p.gender || '',
       birth: SR.formatRoc(p.birthday), age: p.birthday ? String(SR.age(p.birthday)) : '',
       mobile: p.mobile || '', phone: p.phone || '',
       group: g ? g.name : (p.category === '全職同工' ? '全職同工' : '未分組'),
-      status: SR.statusOf(p) || '', address: p.address || ''
+      status: (statusOf || SR.statusOf)(p) || '', address: p.address || ''
     };
   }
 
@@ -67,11 +67,11 @@
     return ty + THEAD;
   }
 
-  function drawRows(ctx, rows, startIdx, y, groupMap) {
+  function drawRows(ctx, rows, startIdx, y, groupMap, statusOf) {
     rows.forEach((p, k) => {
       const i = startIdx + k;
       if (i % 2 === 1) { ctx.fillStyle = '#F5F5F7'; ctx.fillRect(M, y, W - M * 2, ROW); }
-      const c = cells(p, i, groupMap);
+      const c = cells(p, i, groupMap, statusOf);
       let x = M;
       COLS.forEach(col => {
         ctx.font = `${col.bold ? 700 : 400} 22px ${FONT}`;
@@ -105,7 +105,7 @@
     for (let n = 0; n < total; n++) {
       const [c, ctx] = newCanvas(H);
       const y = drawHeader(ctx, opts, 0, `第 ${n + 1} / ${total} 頁`);
-      drawRows(ctx, list.slice(n * per, (n + 1) * per), n * per, y, opts.groupMap);
+      drawRows(ctx, list.slice(n * per, (n + 1) * per), n * per, y, opts.groupMap, opts.statusOf);
       out.push(c);
     }
     return out;
@@ -119,7 +119,7 @@
       const rows = list.slice(n * maxRows, (n + 1) * maxRows);
       const [c, ctx] = newCanvas(HEAD + Math.max(rows.length, 1) * ROW + FOOT);
       const y = drawHeader(ctx, opts, 0, parts > 1 ? `第 ${n + 1} / ${parts} 張` : '');
-      drawRows(ctx, rows, n * maxRows, y, opts.groupMap);
+      drawRows(ctx, rows, n * maxRows, y, opts.groupMap, opts.statusOf);
       out.push(c);
     }
     return out;
