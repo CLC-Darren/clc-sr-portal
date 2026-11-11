@@ -17,6 +17,12 @@ window.firebaseConfig = {
   measurementId: "G-NVTHJLBT53"
 };
 
+// 是否被嵌入在 iframe 內（跨網域存取 window.top 會丟例外，視為已嵌入）。
+window.CLC_EMBEDDED = (function () {
+  try { return window.self !== window.top; } catch (e) { return true; }
+})();
+if (window.CLC_EMBEDDED) document.documentElement.classList.add('clc-embedded');
+
 window.ADMIN_WHITELIST = [
   "darren710404@gmail.com",
   "darren.lin@twclc.org"
@@ -55,8 +61,6 @@ if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode:
 function getCurrentPageType() {
   const path = window.location.pathname.toLowerCase().replace(/\/+$/, '').replace(/\.html$/, '');
   if (path.includes('admin-users')) return 'admin-users';
-  if (path.endsWith('/hymn-lyrics')) return 'hymn-lyrics';
-  if (path.endsWith('/admin-hymns')) return 'admin-hymns';
   if (path.includes('members')) return 'members';
   if (path.includes('intakes')) return 'intakes';
   if (path.includes('groups')) return 'groups';
@@ -68,6 +72,13 @@ function getCurrentPageType() {
 function renderHeaderComponent() {
   const headerContainer = document.getElementById('clc-header') || document.querySelector('header');
   if (!headerContainer) return;
+
+  // 被嵌入 iframe（例如 SR 內嵌 YA 歌詞系統）時一律隱藏 header，
+  // 不依賴網址參數，因此在內嵌頁面內跳轉到後台等其他頁面也不會再出現第二個 header。
+  if (window.CLC_EMBEDDED) {
+    headerContainer.style.setProperty('display', 'none', 'important');
+    headerContainer.setAttribute('aria-hidden', 'true');
+  }
 
   // 與 YA 共用相同的 Header 尺寸、邊距與斷點。
   if (!document.getElementById('clc-header-fixed-style')) {
@@ -83,8 +94,7 @@ function renderHeaderComponent() {
       #clc-header .header-btn { width: 34px !important; min-width: 34px !important; height: 34px !important; border-radius: 9px !important; font-size: 15px !important; padding: 0 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; }
       #clc-header #installAppBtn { height: 34px !important; box-sizing: border-box !important; font-size: 12px !important; padding: 0 10px !important; border-radius: 9px !important; }
       #clc-header #adminActiveDot { width: 7px !important; height: 7px !important; top: 6px !important; right: 6px !important; }
-      #clc-header #adminDropdown,
-      #hymnPageDropdown {
+      #clc-header #adminDropdown {
         width: 210px !important;
         margin-top: 7.5px !important;
         padding-top: 7.5px !important;
@@ -93,8 +103,7 @@ function renderHeaderComponent() {
         z-index: 100 !important;
       }
       #clc-header #adminDropdown > a,
-      #clc-header #adminDropdown > button,
-      #hymnPageDropdown > a {
+      #clc-header #adminDropdown > button {
         padding: 9.375px 15px !important;
         font-size: 13.125px !important;
         line-height: 18.75px !important;
@@ -114,8 +123,7 @@ function renderHeaderComponent() {
         #clc-header .header-btn { width: 36px !important; min-width: 36px !important; height: 36px !important; border-radius: 10px !important; font-size: 16px !important; }
         #clc-header #installAppBtn { height: 36px !important; font-size: 13px !important; padding: 0 12px !important; border-radius: 10px !important; }
         #clc-header #adminDropdown > a,
-        #clc-header #adminDropdown > button,
-        #hymnPageDropdown > a { font-size: 15px !important; }
+        #clc-header #adminDropdown > button { font-size: 15px !important; }
       }
       @media (min-width: 1024px) {
         #clc-header > div { padding-left: 24px !important; padding-right: 24px !important; }
@@ -176,59 +184,6 @@ function renderHeaderComponent() {
   // 不再從 localStorage 推定權限：須經 Firebase Auth 驗證。
 }
 
-// 歌詞雙頁面共用的齒輪選單（與 YA 相同），只在歌詞頁注入。
-function renderHymnPageMenu() {
-  const gear = document.getElementById('hymnAdminGear');
-  if (!gear || document.getElementById('hymnPageDropdown')) return;
-  const page = getCurrentPageType();
-  if (page !== 'hymn-lyrics' && page !== 'admin-hymns') return;
-  gear.parentElement.classList.add('relative');
-  gear.setAttribute('aria-haspopup', 'true');
-  gear.setAttribute('aria-expanded', 'false');
-  gear.setAttribute('aria-controls', 'hymnPageDropdown');
-  const dropdown = document.createElement('nav');
-  dropdown.id = 'hymnPageDropdown';
-  dropdown.setAttribute('aria-label', '歌詞頁面導覽');
-  dropdown.className = 'hidden absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#161924] rounded-xl shadow-2xl border border-slate-200 dark:border-brand-border py-2 z-50 text-left';
-  const activeClasses = ' bg-slate-100 dark:bg-white/5';
-  const linkClasses = 'block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition';
-  dropdown.innerHTML = `
-    <a href="hymn-lyrics.html" class="${linkClasses}${page === 'hymn-lyrics' ? activeClasses : ''}"${page === 'hymn-lyrics' ? ' aria-current="page"' : ''}>🎵 搜尋歌詞</a>
-    <a href="admin-hymns.html" class="${linkClasses}${page === 'admin-hymns' ? activeClasses : ''}"${page === 'admin-hymns' ? ' aria-current="page"' : ''}>📒 歌詞管理</a>
-  `;
-  gear.insertAdjacentElement('afterend', dropdown);
-}
-
-function setHymnPageMenuOpen(open) {
-  const menu = document.getElementById('hymnPageDropdown');
-  const gear = document.getElementById('hymnAdminGear');
-  if (!menu || !gear) return;
-  menu.classList.toggle('hidden', !open);
-  gear.setAttribute('aria-expanded', String(!!open));
-  if (open) document.getElementById('adminDropdown')?.classList.add('hidden');
-}
-
-window.toggleHymnPageMenu = async function() {
-  renderHymnPageMenu();
-  const menu = document.getElementById('hymnPageDropdown');
-  if (!menu) return;
-  if (!window.canViewAdmin) {
-    if (typeof triggerAdminLogin !== 'function') return;
-    await triggerAdminLogin();
-    if (!window.canViewAdmin) return;
-  }
-  setHymnPageMenuOpen(menu.classList.contains('hidden'));
-};
-
-document.addEventListener('click', function(event) {
-  const gear = document.getElementById('hymnAdminGear');
-  const menu = document.getElementById('hymnPageDropdown');
-  if (gear && menu && !gear.contains(event.target) && !menu.contains(event.target)) setHymnPageMenuOpen(false);
-});
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') setHymnPageMenuOpen(false);
-});
-
 function applyAdminState(active, email, notify = true, viewer = false) {
   // active = 已授權可進入後台；viewer = 唯讀檢視者（可看後台、不可編輯）
   const viewerOnly = !!(active && viewer);
@@ -240,7 +195,6 @@ function applyAdminState(active, email, notify = true, viewer = false) {
   const superuser = window.isAdmin && window.ADMIN_WHITELIST.includes(String(email || '').toLowerCase());
   window.currentAdminRole = active ? (viewerOnly ? 'viewer' : (superuser ? 'superuser' : 'admin')) : '';
   window.isSuperuser = superuser;
-  if (!active) setHymnPageMenuOpen(false);
   const icon = document.getElementById('adminBtnIcon');
   const dot = document.getElementById('adminActiveDot');
   const emailDisp = document.getElementById('adminEmailDisplay');
@@ -380,7 +334,6 @@ document.addEventListener('click', function(e) {
 
 document.addEventListener('DOMContentLoaded', () => {
   renderHeaderComponent();
-  renderHymnPageMenu();
   // 登入狀態若比 Header 渲染更早回來，渲染後重新套用一次（不再發出事件）。
   const last = window.__clcLastAdminState;
   if (last && last.active) applyAdminState(true, last.email, false, last.viewer);
