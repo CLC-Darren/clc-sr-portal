@@ -125,3 +125,15 @@ html.sr-compact, html.sr-compact body { font-size: 15px; }
 .sr-compact .sr-sheet-head { padding: 10px 14px; }
 .sr-compact .sr-sheet-body { padding: 14px; }
 .sr-compact .sr-sheet-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+
+/* 聯絡人卡片：深色背景上的淺色卡片，深字白底，長輩比較好讀 */
+.sr-contact { display: flex; align-items: stretch; overflow: hidden; background: #fff; color: #0f172a; border-radius: 16px; box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 6px 18px rgba(0,0,0,.35); }
+.sr-contact > button { color: inherit; background: transparent; border: 0; font-family: inherit; cursor: pointer; }
+.sr-contact > button:active { background: #f1f5f9; }
+.sr-contact-sub { font-size: 15px; color: #475569; font-weight: 600; }
+.sr-contact-call { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 5rem; flex-shrink: 0; background: #007E8A; color: #fff; font-weight: 800; text-decoration: none; }
+.sr-contact-call:active { background: #006C77; }
+.sr-contact .sr-chip { font-size: 12.5px; min-height: 24px; }
+.sr-contact .sr-chip-f { background: #fce7f3; color: #be185d; }
+.sr-contact .sr-chip-m { background: #e0f2fe; color: #0369a1; }
+.sr-contact .sr-chip-teal { background: #ccfbf1; color: #0f766e; }

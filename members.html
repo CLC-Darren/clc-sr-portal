@@ -12,10 +12,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{teal:'#007E8A',border:'rgba(255,255,255,0.1)'}}}}};</script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','"Noto Sans TC"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/sr-ui.css?v=20261111b">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111c">
 </head>
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
@@ -266,16 +266,16 @@
         const g = groupMap[p.groupId];
         const tel = SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone);
         const gChip = p.gender === '女' ? '<span class="sr-chip sr-chip-f">姊妹</span>' : p.gender === '男' ? '<span class="sr-chip sr-chip-m">弟兄</span>' : '';
-        return `<article class="sr-card flex items-stretch overflow-hidden">
-          <button type="button" class="flex-1 min-w-0 text-left p-4 space-y-1.5" data-open="${SR.esc(p.id)}">
+        return `<article class="sr-contact">
+          <button type="button" class="flex-1 min-w-0 text-left px-4 py-3.5 space-y-1" data-open="${SR.esc(p.id)}">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-lg font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
+              <span class="text-xl font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
               ${p.status ? `<span class="sr-chip sr-chip-teal">${SR.esc(p.status)}</span>` : ''}
             </div>
-            <div class="text-sm text-slate-300">${g ? SR.esc(g.name) : '未分組'}</div>
-            <div class="text-[15px] font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
+            <div class="sr-contact-sub">${g ? SR.esc(g.name) : '未分組'}</div>
+            <div class="text-lg font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
           </button>
-          ${tel ? `<a href="tel:${tel}" class="flex flex-col items-center justify-center w-20 shrink-0 bg-[#007E8A]/20 text-teal-200 font-extrabold border-l border-white/10" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-xs mt-1">撥打</span></a>` : ''}
+          ${tel ? `<a href="tel:${tel}" class="sr-contact-call" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-sm mt-1">撥打</span></a>` : ''}
         </article>`;
       }).join('');
     }
