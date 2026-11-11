@@ -16,7 +16,7 @@
 
   SR.DEFAULT_OPTIONS = {
     // 與點名表「狀態選單」相同（去掉前面的編號）
-    statuses: ['聚會小組', '只來聚會', '加樂同工', '很久沒來', '居家休養', '離開教會', '安息主懷', '其他'],
+    statuses: ['聚會小組', '只來聚會', '很久沒來', '居家休養', '離開教會', '安息主懷', '其他'],
     marital: ['已婚', '單身'],
     living: ['家人同住', '獨居', '其他']
   };
@@ -154,10 +154,15 @@
       const merged = {};
       for (const k of Object.keys(SR.DEFAULT_OPTIONS)) {
         merged[k] = Array.isArray(data[k]) ? data[k] : SR.DEFAULT_OPTIONS[k].slice();
+        if (k === 'statuses') merged[k] = merged[k].filter(x => !SR.NOT_STATUS.includes(x));
       }
       onData(merged, snap.exists);
     }, onError);
   };
+
+  // 「加樂同工」是身分不是聚會狀態：舊資料寫成狀態的，一律當作「未歸類」。
+  SR.NOT_STATUS = ['加樂同工'];
+  SR.statusOf = p => (p && p.status && !SR.NOT_STATUS.includes(p.status)) ? p.status : '';
 
   SR.serverTime = () => firebase.firestore.FieldValue.serverTimestamp();
   SR.stamp = () => ({ updatedAt: SR.serverTime(), updatedBy: window.currentAdminEmail || '' });
