@@ -217,13 +217,7 @@ function renderHeaderComponent() {
 window.CLC_PAGE_MENUS = {
   members: [
     { page: 'members', href: 'members.html', label: '📖 組員通訊錄' },
-    { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單' },
     { page: 'members-admin', href: 'members-admin.html', label: '📋 名單後台' }
-  ],
-  newfriends: [
-    { page: 'join', href: 'join.html', label: '📝 新朋友留名單（表單）' },
-    { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單（後台）' },
-    { page: 'members', href: 'members.html', label: '📖 組員通訊錄' }
   ]
 };
 function renderPageMenu() {

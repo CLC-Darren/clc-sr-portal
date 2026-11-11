@@ -1,0 +1,9 @@
+{
+  "name": "CLC SR",
+  "firebase": {
+    "apiKey": "AIzaSyDq4QVCPxV9RHC0ciWSJgrZ9QnOsKK4B9w",
+    "authDomain": "clc-sr-portal.firebaseapp.com",
+    "projectId": "clc-sr-portal",
+    "appId": "1:670007709518:web:63373def384af0dd55981f"
+  }
+}
