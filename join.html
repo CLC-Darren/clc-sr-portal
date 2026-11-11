@@ -118,12 +118,14 @@
   </main>
 
   <script src="header.js?v=20261111-members"></script>
-  <script src="js/sr-data.js?v=20261111"></script>
+  <script src="js/sr-data.js?v=20261111b"></script>
   <script>
   (function () {
     const SR = window.SR;
     const state = { gender: '', marital: '', living: '', group: null }; // group: null=未選、''=暫不安排
-    let groups = SR.DEFAULT_GROUPS.map(name => ({ id: '', name }));
+    // 「加樂同工」等同工組不給新朋友選
+    const forNewcomer = g => g.active !== false && !/同工/.test(g.name);
+    let groups = SR.DEFAULT_GROUPS.map(name => ({ id: '', name })).filter(forNewcomer);
     let options = { marital: SR.DEFAULT_OPTIONS.marital, living: SR.DEFAULT_OPTIONS.living };
 
     const $ = id => document.getElementById(id);
@@ -192,7 +194,7 @@
     // 小組與選項以後台設定為準；讀不到時使用表單原本的選項。
     try {
       SR.watchGroups(list => {
-        const active = list.filter(g => g.active !== false);
+        const active = list.filter(forNewcomer);
         if (active.length) { groups = active; renderChoices(); }
       }, () => {});
       SR.watchOptions(o => { options = { marital: o.marital, living: o.living }; renderChoices(); }, () => {});

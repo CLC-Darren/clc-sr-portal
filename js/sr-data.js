@@ -10,14 +10,15 @@
 (function () {
   const SR = window.SR = {};
 
-  // 新朋友 Google 表單上的小組（初始化小組時使用，之後以後台為準）。
+  // 新朋友表單與點名表「狀態選單」上的小組（初始化小組時使用，之後以後台為準）。
   SR.DEFAULT_GROUPS = ['惠玲小組', '美鈴小組', '美燕小組', '家玲小組', '淑美小組', '月嬌小組', '文菽小組', '翊婕小組',
-    '文寶小組', '春梅小組', '菡翎小組', '曉艾小組', '夢凌小組', '瑞君小組', '培榮小組', '文泉小組', '健誠小組'];
+    '文寶小組', '春梅小組', '菡翎小組', '曉艾小組', '夢凌小組', '瑞君小組', '培榮小組', '文泉小組', '健誠小組', '加樂同工'];
 
   SR.DEFAULT_OPTIONS = {
-    statuses: ['新朋友', '穩定聚會', '不定期聚會', '暫停聚會', '已離開'],
+    // 與點名表「狀態選單」相同（去掉前面的編號）
+    statuses: ['聚會小組', '只來聚會', '加樂同工', '很久沒來', '居家休養', '離開教會', '安息主懷', '其他'],
     marital: ['已婚', '單身'],
-    living: ['獨居', '家人同住']
+    living: ['家人同住', '獨居', '其他']
   };
   SR.OPTION_LABELS = { statuses: '狀態', marital: '婚姻', living: '居住狀況' };
 
@@ -101,6 +102,7 @@
     if (/^9\d{8}$/.test(digits)) digits = '0' + digits; // Excel 吃掉開頭 0
     if (/^09\d{8}$/.test(digits)) return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
     if (/^02\d{8}$/.test(digits)) return `02-${digits.slice(2, 6)}-${digits.slice(6)}`;
+    if (/^[2-8]\d{7}$/.test(digits)) return `02-${digits.slice(0, 4)}-${digits.slice(4)}`; // 沒寫區碼的台北市話
     if (/^0[3-8]\d{7,8}$/.test(digits)) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
     return raw;
   };
@@ -114,8 +116,28 @@
   };
   SR.genderLabel = g => g === '女' ? '姊妹' : g === '男' ? '弟兄' : '';
 
-  /** 以姓名＋手機辨識重複；沒有手機時只比姓名。 */
-  SR.dupKey = p => String(p.name || '').replace(/\s+/g, '') + '|' + SR.phoneDigits(p.mobile).slice(-6);
+  /**
+   * 一格裡寫了好幾支電話（以空白、/、換行分隔）時拆開。
+   * 回傳 { mobiles: [], landlines: [], text: 除了號碼以外的文字（例如「高雄家」「空號」）}
+   */
+  SR.splitPhones = function (value) {
+    const raw = String(value ?? '').trim();
+    const out = { mobiles: [], landlines: [], text: '' };
+    if (!raw) return out;
+    const tokens = raw.match(/[\d\-()（）+]{7,}/g) || [];
+    tokens.forEach(t => {
+      const f = SR.formatPhone(t);
+      const d = SR.phoneDigits(f);
+      if (d.length < 7) return;
+      (/^09\d{8}$/.test(d) ? out.mobiles : out.landlines).push(f);
+    });
+    out.text = raw.replace(/[\d\-()（）+\/\s,，、]+/g, ' ').trim();
+    return out;
+  };
+
+  /** 辨識重複：姓名＋電話末 6 碼＋生日都相同（同名不同人不會被誤判）。 */
+  SR.dupKey = p => [String(p.name || '').replace(/\s+/g, ''),
+    (SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone)).slice(-6), p.birthday || ''].join('|');
 
   // ---------- Firestore ----------
   SR.watchGroups = function (onData, onError) {

@@ -55,7 +55,7 @@
         </form>
         <div id="seedGroups" class="hidden sr-card p-5 space-y-3 admin-only">
           <p class="font-bold">還沒有任何小組。</p>
-          <button type="button" id="seedGroupsBtn" class="sr-btn sr-btn-primary w-full">建立新朋友表單上的 17 個小組</button>
+          <button type="button" id="seedGroupsBtn" class="sr-btn sr-btn-primary w-full">建立點名表上的 18 個小組（含加樂同工）</button>
         </div>
         <div id="groupList" class="space-y-2"></div>
       </section>
@@ -88,7 +88,7 @@
   </main>
 
   <script src="header.js?v=20261111-members"></script>
-  <script src="js/sr-data.js?v=20261111"></script>
+  <script src="js/sr-data.js?v=20261111b"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -156,7 +156,7 @@
     $('seedGroupsBtn').addEventListener('click', async () => {
       const batch = window.db.batch();
       SR.DEFAULT_GROUPS.forEach((name, i) => batch.set(window.db.collection('groups').doc(), { name, order: i, active: true, ...SR.stamp() }));
-      try { await batch.commit(); SR.toast('已建立 17 個小組'); } catch (err) { fail('建立失敗', err); }
+      try { await batch.commit(); SR.toast(`已建立 ${SR.DEFAULT_GROUPS.length} 個小組`); } catch (err) { fail('建立失敗', err); }
     });
 
     $('groupList').addEventListener('change', async e => {
@@ -246,7 +246,8 @@
     const ALIASES = {
       name: ['姓名', '名字', '名稱'],
       gender: ['性別'],
-      birthday: ['生日', '出生日期', '出生年月日', '生日(民國)', '生日（民國）'],
+      birthday: ['生日(西元)', '生日（西元）', '生日', '出生日期', '出生年月日'],
+      birthday2: ['生日(民國)', '生日（民國）'],
       mobile: ['手機', '行動電話', '手機號碼'],
       phone: ['電話', '聯繫電話', '聯絡電話', '市話', '住家電話', '家用電話'],
       address: ['地址', '住址', '通訊地址', '住家地址'],
@@ -257,7 +258,10 @@
       note: ['備註', '說明', '附註']
     };
     const IMPORT_FIELDS = Object.keys(ALIASES);
-    const fieldLabel = f => f === 'group' ? '小組' : SR.FIELD_LABELS[f];
+    const fieldLabel = f => f === 'group' ? '小組' : f === 'birthday2' ? '生日(備用)' : SR.FIELD_LABELS[f];
+    // 不匯入、也不放進備註的欄位（可由其他欄位算出來）
+    const IGNORE_HEADERS = ['No.', 'No', '編號', '序號', '年齡', '時間戳記'];
+    const NO_GROUP = /^(n\/?a|-+|無|暫不安排.*|未分組)$/i;
     const clean = s => String(s ?? '').replace(/\s+/g, '').replace(/[：:＊*]/g, '');
     let sheets = []; // {name, rows, headerRow, headers, map, include, gender}
 
@@ -267,7 +271,7 @@
       if (!window.XLSX) { SR.toast('讀檔工具還在載入，請稍後再選一次檔案', 'error'); e.target.value = ''; return; }
       $('fileName').textContent = '已選擇：' + file.name;
       try {
-        const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+        const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
         sheets = wb.SheetNames.map(name => {
           const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' });
           const headerRow = rows.slice(0, 8).findIndex(r => r.some(c => ALIASES.name.includes(clean(c))));
@@ -277,7 +281,8 @@
             const idx = headers.findIndex(h => ALIASES[f].includes(clean(h)));
             map[f] = idx;
           });
-          const looksLikeForm = /表單|回應|form|新朋友/i.test(name);
+          // 表單回應、壽星查詢等衍生表預設不勾，避免重複匯入
+          const looksLikeForm = /表單|回應|form|新朋友|新人|壽星|查詢|選單|附件/i.test(name);
           const gender = /姊妹|姐妹|女/.test(name) ? '女' : /弟兄|兄弟|男/.test(name) ? '男' : '';
           return { name, rows, headerRow, headers, map, gender, include: headerRow >= 0 && !looksLikeForm };
         });
@@ -337,6 +342,7 @@
       const records = [], newGroups = new Set(), newStatuses = new Set();
       let skippedEmpty = 0;
       const extraNoteOn = $('extraNote') ? $('extraNote').checked : true;
+      const autoGroup = $('autoGroup') ? $('autoGroup').checked : false;
 
       sheets.filter(s => s.include).forEach(s => {
         const used = new Set(Object.values(s.map).filter(i => i >= 0));
@@ -344,35 +350,47 @@
           const get = f => s.map[f] >= 0 ? row[s.map[f]] : '';
           const name = String(get('name') ?? '').trim();
           if (!name) { if (row.some(c => String(c).trim())) skippedEmpty++; return; }
-          const warns = [];
+          const warns = [], notes = [];
           const rec = { name, source: 'import' };
           rec.gender = s.gender || SR.normGender(get('gender'));
           if (!rec.gender) warns.push('沒有性別');
-          const bRaw = get('birthday');
+          // 優先用西元生日；空白時改用民國生日欄
+          const b1 = get('birthday'), b2 = get('birthday2');
+          const useSecond = String(b1 ?? '').trim() === '' && String(b2 ?? '').trim() !== '';
+          const bRaw = useSecond ? b2 : b1;
           const b = SR.parseBirthday(bRaw);
           rec.birthday = b || '';
-          const notes = [];
           if (b === null) { warns.push('生日看不懂'); notes.push('生日原文：' + String(bRaw).trim()); }
-          rec.mobile = SR.formatPhone(get('mobile'));
-          rec.phone = SR.formatPhone(get('phone'));
-          if (!rec.mobile && /^09/.test(SR.phoneDigits(rec.phone))) { rec.mobile = rec.phone; rec.phone = ''; }
+          // 一格可能寫好幾支電話：第一支手機放「手機」、第一支市話放「市話」，其餘放備註
+          const pm = SR.splitPhones(get('mobile')), pp = SR.splitPhones(get('phone'));
+          const mobiles = [...pm.mobiles, ...pp.mobiles], lands = [...pp.landlines, ...pm.landlines];
+          rec.mobile = mobiles.shift() || '';
+          rec.phone = lands.shift() || '';
+          const extraPhones = [...mobiles, ...lands];
+          if (extraPhones.length) notes.push('其他電話：' + extraPhones.join('、'));
+          const phoneText = [pm.text, pp.text].filter(Boolean).join(' ');
+          if (phoneText) { notes.push('電話欄原文：' + [get('phone'), get('mobile')].filter(v => String(v).trim()).join(' ／ ').replace(/\s+/g, ' ')); warns.push('電話有附註'); }
           rec.address = String(get('address') ?? '').trim();
           rec.marital = String(get('marital') ?? '').trim();
           rec.living = String(get('living') ?? '').trim();
-          rec.status = String(get('status') ?? '').trim();
+          rec.status = String(get('status') ?? '').trim().replace(/^\d+\s*[.．、]\s*/, '');
           if (rec.status && !options.statuses.includes(rec.status)) newStatuses.add(rec.status);
           const gName = String(get('group') ?? '').trim();
           rec.groupId = '';
-          if (gName && !/暫不安排|未分組|無/.test(gName)) {
+          if (gName && !NO_GROUP.test(gName)) {
             const g = groupByKey[groupKey(gName)];
             if (g) rec.groupId = g.id;
-            else { rec._newGroup = /小組$/.test(gName) ? gName : gName + '小組'; newGroups.add(rec._newGroup); }
+            else {
+              newGroups.add(gName);
+              if (autoGroup) rec._newGroup = gName;
+              else { notes.push('原小組：' + gName); warns.push('小組不在清單'); }
+            }
           }
           const note = String(get('note') ?? '').trim();
           if (note) notes.unshift(note);
           if (extraNoteOn) s.headers.forEach((h, i) => {
             const v = row[i];
-            if (h && !used.has(i) && v !== '' && v !== null && v !== undefined) notes.push(`${h}：${v instanceof Date ? v.toLocaleDateString('zh-TW') : String(v).trim()}`);
+            if (h && !used.has(i) && !IGNORE_HEADERS.includes(clean(h)) && v !== '' && v !== null && v !== undefined) notes.push(`${h}：${v instanceof Date ? v.toLocaleDateString('zh-TW') : String(v).trim()}`);
           });
           rec.note = notes.join('\n').slice(0, 2000);
           const key = SR.dupKey(rec);
@@ -383,7 +401,7 @@
           records.push(rec);
         });
       });
-      plan = { records, newGroups: [...newGroups], newStatuses: [...newStatuses], skippedEmpty };
+      plan = { records, newGroups: [...newGroups], newStatuses: [...newStatuses], skippedEmpty, autoGroup };
       renderPreview();
     }
 
@@ -408,7 +426,8 @@
             ${warned ? `<span class="sr-chip sr-chip-warn">需要注意 ${warned}</span>` : ''}
             ${plan.skippedEmpty ? `<span class="sr-chip">沒有姓名略過 ${plan.skippedEmpty} 列</span>` : ''}
           </div>
-          ${newGroups.length ? `<p class="text-[.95rem]">⚠️ 名單裡有 ${newGroups.length} 個小組還沒建立，匯入時會自動新增：<b>${newGroups.map(SR.esc).join('、')}</b></p>` : ''}
+          ${newGroups.length ? `<p class="text-[.95rem]">⚠️ 這些小組不在「小組」清單裡：<b>${newGroups.map(SR.esc).join('、')}</b></p>
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="autoGroup" class="w-6 h-6 accent-[#007E8A]" ${plan.autoGroup ? 'checked' : ''}> 匯入時自動新增這些小組（不勾：這些人先不分組，原本的小組寫進備註）</label>` : ''}
           ${newStatuses.length ? `<p class="text-[.95rem]">⚠️ 這些狀態不在選項裡，會自動加入選項：<b>${newStatuses.map(SR.esc).join('、')}</b></p>` : ''}
           <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="skipDup" class="w-6 h-6 accent-[#007E8A]" ${skipDup ? 'checked' : ''}> 略過疑似重複的人（姓名＋手機相同）</label>
           <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="extraNote" class="w-6 h-6 accent-[#007E8A]" ${extraNote ? 'checked' : ''}> 其他沒有對應的欄位，存進「備註」</label>
@@ -436,7 +455,7 @@
         <p id="importStatus" class="sr-help" role="status" aria-live="polite"></p>`;
     }
     $('previewPanel').addEventListener('change', e => {
-      if (e.target.id === 'extraNote') analyze();
+      if (e.target.id === 'extraNote' || e.target.id === 'autoGroup') analyze();
       else if (e.target.id === 'skipDup') renderPreview();
     });
 
@@ -450,7 +469,7 @@
       try {
         // 先建立缺少的小組與狀態選項
         const created = {};
-        if (plan.newGroups.length) {
+        if (plan.autoGroup && plan.newGroups.length) {
           const batch = window.db.batch();
           plan.newGroups.forEach((name, i) => {
             const ref = window.db.collection('groups').doc();
