@@ -71,8 +71,71 @@ function videoCommitStream(base64Body, beginning, ending, expectedLength) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// 上傳權限（與 YA 相同做法）：只有已驗證 Email 的 Admin / Superuser 可上傳。
+// 以使用者的 Firebase ID Token 讀取 Firestore admin_users/{email}；Token 無效時 Firestore 會拒絕。
+// ---------------------------------------------------------------------------
+const FS_DEFAULT_PROJECT = 'clc-sr-portal';
+const FS_DEFAULT_KEY = 'AIzaSyDq4QVCPxV9RHC0ciWSJgrZ9QnOsKK4B9w';
+const BOOTSTRAP_ADMINS = ['darren710404@gmail.com', 'darren.lin@twclc.org'];
+
+const b64urlText = s => {
+  const b = atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '='));
+  return new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0)));
+};
+
+async function readAdminDoc(email, token, env, request) {
+  const project = env?.FIREBASE_PROJECT_ID || FS_DEFAULT_PROJECT;
+  const key = env?.FIREBASE_API_KEY || FS_DEFAULT_KEY;
+  const url = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/admin_users/${encodeURIComponent(email)}?key=${encodeURIComponent(key)}`;
+  const headers = { accept: 'application/json', authorization: 'Bearer ' + token };
+  try { headers.referer = new URL(request.url).origin + '/'; } catch (_) {}
+  const r = await fetch(url, { headers, signal: AbortSignal.timeout(6000) });
+  if (!r.ok) return { status: r.status, data: null };
+  const j = await r.json();
+  const f = j.fields || {};
+  return { status: 200, data: {
+    role: f.role?.stringValue,
+    active: f.active?.booleanValue,
+    email: f.email?.stringValue
+  } };
+}
+
+// 回傳 null 表示通過；否則回傳錯誤回應。
+async function homeVideoAdminError(request, env) {
+  const ownOrigin = new URL(request.url).origin;
+  if (request.headers.get('origin') !== ownOrigin) return response({ error: '請從正式網站進行操作。' }, 403);
+  const m = /^Bearer\s+([\w-]+\.[\w-]+\.[\w-]+)$/.exec(request.headers.get('authorization') || '');
+  if (!m) return response({ error: '請先以管理員帳號登入。' }, 401);
+  const token = m[1];
+  let p;
+  try { p = JSON.parse(b64urlText(token.split('.')[1])); } catch (_) { return response({ error: '無法確認登入權限。' }, 403); }
+  const email = String(p.email || '').toLowerCase().trim();
+  const project = env?.FIREBASE_PROJECT_ID || FS_DEFAULT_PROJECT;
+  if (!email || p.email_verified !== true || p.aud !== project ||
+      p.iss !== 'https://securetoken.google.com/' + project || !(p.exp * 1000 > Date.now())) {
+    return response({ error: '登入已過期或無效，請重新登入。' }, 403);
+  }
+  let r;
+  try { r = await readAdminDoc(email, token, env, request); } catch (_) { return response({ error: '無法確認管理員權限。' }, 503); }
+  if (r.status === 200) {
+    const d = r.data || {};
+    const ok = BOOTSTRAP_ADMINS.includes(email) ||
+      (d.role === 'admin' && d.active === true && (!d.email || d.email === email));
+    return ok ? null : response({ error: '只有 Admin / Superuser 可以管理影片。' }, 403);
+  }
+  if (r.status === 404) {
+    return BOOTSTRAP_ADMINS.includes(email) ? null : response({ error: '只有 Admin / Superuser 可以管理影片。' }, 403);
+  }
+  if (r.status === 401 || r.status === 403) return response({ error: '無法確認登入權限。' }, 403);
+  return response({ error: '無法確認管理員權限。' }, 503);
+}
+
 async function uploadHomeVideo(request, env) {
   if (request.method !== 'POST') return response({ error: '只接受 POST 上傳。' }, 405);
+
+  const denied = await homeVideoAdminError(request, env);
+  if (denied) return denied;
 
   const token = env.GITHUB_VIDEO_TOKEN || env.GITHUB_TOKEN;
   const owner = env.GITHUB_OWNER || 'CLC-Darren';

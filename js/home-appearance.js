@@ -334,10 +334,14 @@
     }
 
     async function uploadVideoToGitHub(file) {
+      const user = window.auth && window.auth.currentUser;
+      if (!user) throw new Error('請先以管理員帳號登入。');
+      const token = await user.getIdToken();
       const payload = await fileToBase64(file);
       const res = await fetch('api/home-video-upload', {
         method: 'POST',
         headers: {
+          'authorization': 'Bearer ' + token,
           'content-type': 'text/plain; charset=US-ASCII',
           'x-home-video-size': String(file.size)
         },
