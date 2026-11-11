@@ -163,6 +163,25 @@
   SR.stamp = () => ({ updatedAt: SR.serverTime(), updatedBy: window.currentAdminEmail || '' });
 
 
+  // ---------- 身分與小組對象 ----------
+  // 篩選的「身分」：姊妹、弟兄看性別；全職同工、其他是另外標記的身分（不放在小組裡）。
+  SR.WHO = ['姊妹', '弟兄', '全職同工', '其他'];
+  SR.CATEGORIES = ['全職同工', '其他'];
+  SR.personWho = function (p) {
+    if (SR.CATEGORIES.includes(p.category)) return p.category;
+    return p.gender === '女' ? '姊妹' : p.gender === '男' ? '弟兄' : '其他';
+  };
+  /** 小組的對象：'女' 姊妹小組、'男' 弟兄小組、'' 不限。沒設定時：培榮、文泉是弟兄小組，其他是姊妹小組。 */
+  SR.groupGender = function (g) {
+    if (!g) return '';
+    if (g.gender === '女' || g.gender === '男' || g.gender === '') return g.gender;
+    return /培榮|文泉/.test(g.name) ? '男' : '女';
+  };
+  /** 某個性別可以選的小組（加上目前已選的那一組，避免舊資料看不到）。 */
+  SR.groupsFor = function (groups, gender, keepId) {
+    return groups.filter(g => g.id === keepId || (g.active !== false && (!gender || !SR.groupGender(g) || SR.groupGender(g) === gender)));
+  };
+
   // ---------- 排序：姓名依筆畫 ----------
   // zh-Hant 的預設排序就是筆畫（同筆畫再比部首），與台灣通訊錄習慣一致。
   SR.collator = new Intl.Collator('zh-Hant-TW-u-co-stroke');

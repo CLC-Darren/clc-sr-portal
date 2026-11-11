@@ -132,7 +132,7 @@
   </main>
 
   <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111c"></script>
+  <script src="js/sr-data.js?v=20261111d"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -194,7 +194,9 @@
       const box = name => document.querySelector(`[data-choice="${name}"]`);
       box('marital').innerHTML = options.marital.map(v => `<button type="button" class="sr-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
       box('living').innerHTML = options.living.map(v => `<button type="button" class="sr-choice" data-value="${SR.esc(v)}">${SR.esc(v)}</button>`).join('');
-      $('groupChoices').innerHTML = groups.map(g => `<button type="button" class="sr-choice" data-value="${SR.esc(g.name)}">${SR.esc(g.name.replace(/小組$/, ''))}<span class="text-[.85rem] font-bold opacity-75">小組</span></button>`).join('');
+      // 先選性別時，只列對應的小組（培榮、文泉是弟兄小組）
+      const shown = groups.filter(g => !state.gender || !SR.groupGender(g) || SR.groupGender(g) === state.gender);
+      $('groupChoices').innerHTML = shown.map(g => `<button type="button" class="sr-choice" data-value="${SR.esc(g.name)}">${SR.esc(g.name.replace(/小組$/, ''))}<span class="text-[.85rem] font-bold opacity-75">小組</span></button>`).join('');
       syncPressed();
     }
     function syncPressed() {
@@ -213,6 +215,11 @@
       const value = btn.dataset.value;
       const optional = boxEl && boxEl.hasAttribute('data-optional');
       state[key] = optional && state[key] === value ? '' : value;
+      if (key === 'gender') {
+        const g = groups.find(x => x.name === state.group);
+        if (g && SR.groupGender(g) && SR.groupGender(g) !== state.gender) state.group = null;
+        renderChoices();
+      }
       syncPressed();
       clearError(key);
     });

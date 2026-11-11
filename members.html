@@ -29,6 +29,9 @@
     .m-seg button { height: 34px; padding: 0 16px; border-radius: 8px; border: 0; background: transparent; color: rgba(235,235,245,.8); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
     .m-seg button[aria-pressed="true"] { background: #636366; color: #fff; }
     .m-round { width: 38px; height: 38px; border-radius: 50%; border: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+    /* 縮小視窗時文字不要直排：按鈕、選單、標籤一律不換行，工具列整排換行 */
+    .m-dark-field, .m-btn, .m-chip, .m-seg button, .m-search input, .m-in, .sr-pill, .m-link { white-space: nowrap; }
+    .m-dark-field { min-width: 0; max-width: 100%; text-overflow: ellipsis; overflow: hidden; }
     .sr-avatar { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; line-height: 1; }
     .sr-pill { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
 
@@ -101,7 +104,7 @@
       <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
         <div class="flex items-center justify-between lg:justify-start gap-3">
           <div>
-            <h1 class="text-[28px] lg:text-[22px] font-extrabold leading-tight">組員通訊錄</h1>
+            <h1 class="text-[28px] lg:text-[22px] font-extrabold leading-tight whitespace-nowrap">組員通訊錄</h1>
             <p id="countLine" class="text-sm text-[rgba(235,235,245,.6)] lg:hidden" role="status" aria-live="polite"></p>
           </div>
           <div class="flex gap-2 lg:hidden">
@@ -111,10 +114,8 @@
         </div>
 
         <!-- 電腦版篩選 -->
-        <div class="hidden lg:flex items-center gap-2 flex-1 min-w-0">
-          <div class="m-seg" role="group" aria-label="性別篩選" data-gender-seg>
-            <button type="button" data-g="" aria-pressed="true">全部</button><button type="button" data-g="女" aria-pressed="false">姊妹</button><button type="button" data-g="男" aria-pressed="false">弟兄</button>
-          </div>
+        <div class="hidden lg:flex flex-wrap items-center gap-2 flex-1 min-w-0">
+          <label><span class="sr-only">身分</span><select class="m-dark-field" data-filter="who"><option value="">全部</option><option>姊妹</option><option>弟兄</option><option>全職同工</option><option>其他</option></select></label>
           <label><span class="sr-only">小組</span><select class="m-dark-field" data-filter="group"></select></label>
           <label><span class="sr-only">狀態</span><select class="m-dark-field" data-filter="status"></select></label>
           <label><span class="sr-only">排序</span><select class="m-dark-field" data-filter="sort"><option value="name">依姓名筆畫</option><option value="no">依編號</option></select></label>
@@ -127,10 +128,8 @@
         <!-- 手機版篩選 -->
         <div class="lg:hidden flex flex-col gap-3">
           <label class="m-search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr-only">搜尋</span><input type="search" data-q placeholder="搜尋姓名或電話"></label>
-          <div class="m-scroll-x" role="group" aria-label="性別篩選" data-gender-chips>
-            <button type="button" class="m-chip" data-g="" aria-pressed="true">全部</button><button type="button" class="m-chip" data-g="女" aria-pressed="false">姊妹</button><button type="button" class="m-chip" data-g="男" aria-pressed="false">弟兄</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-3 gap-2">
+            <label><span class="sr-only">身分</span><select class="m-dark-field w-full" data-filter="who"><option value="">全部</option><option>姊妹</option><option>弟兄</option><option>全職同工</option><option>其他</option></select></label>
             <label><span class="sr-only">小組</span><select class="m-dark-field w-full" data-filter="group"></select></label>
             <label><span class="sr-only">狀態</span><select class="m-dark-field w-full" data-filter="status"></select></label>
           </div>
@@ -170,7 +169,7 @@
   <input type="file" id="photoInput" accept="image/*" class="hidden">
 
   <script src="header.js?v=20261111-gear"></script>
-  <script src="js/sr-data.js?v=20261111c"></script>
+  <script src="js/sr-data.js?v=20261111d"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -179,7 +178,7 @@
     let persons = [], groups = [], groupMap = {}, options = SR.DEFAULT_OPTIONS;
     let access = { canView: false, isAdmin: false };
     let unsubs = [], loaded = false, slow = false, slowTimer = null;
-    const filter = { q: '', gender: '', group: 'all', status: 'all', sort: 'name' };
+    const filter = { q: '', who: '', group: 'all', status: 'all', sort: 'name' };
     let selectedId = null;    // 電腦版選取的人
     let editor = null;        // { id|null, draft:{}, photo:{thumb,full}|null, removePhoto:bool, dirty:bool, where:'inspector'|'sheet' }
 
@@ -225,8 +224,12 @@
     // ---------- 篩選 ----------
     function fillSelects() {
       document.querySelectorAll('[data-filter="group"]').forEach(s => {
-        s.innerHTML = `<option value="all">所有小組</option>` + groups.map(g => `<option value="${g.id}">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</option>`).join('') + `<option value="">未分組</option>`;
-        s.value = [...s.options].some(o => o.value === filter.group) ? filter.group : 'all';
+        // 選了姊妹／弟兄時，小組只列對應的小組
+        const gender = filter.who === '姊妹' ? '女' : filter.who === '弟兄' ? '男' : '';
+        const list = gender ? groups.filter(g => !SR.groupGender(g) || SR.groupGender(g) === gender) : groups;
+        s.innerHTML = `<option value="all">所有小組</option>` + list.map(g => `<option value="${g.id}">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</option>`).join('') + `<option value="">未分組</option>`;
+        if (![...s.options].some(o => o.value === filter.group)) filter.group = 'all';
+        s.value = filter.group;
       });
       document.querySelectorAll('[data-filter="status"]').forEach(s => {
         s.innerHTML = `<option value="all">所有狀態</option>` + options.statuses.map(x => `<option value="${SR.esc(x)}">${SR.esc(x)}</option>`).join('') + `<option value="">未設定狀態</option>`;
@@ -238,6 +241,7 @@
       if (!f) return;
       filter[f] = e.target.value;
       document.querySelectorAll(`[data-filter="${f}"]`).forEach(s => { s.value = e.target.value; });
+      if (f === 'who') fillSelects();
       render();
     });
     document.addEventListener('input', e => {
@@ -246,18 +250,11 @@
       document.querySelectorAll('[data-q]').forEach(i => { if (i !== e.target) i.value = e.target.value; });
       render();
     });
-    document.addEventListener('click', e => {
-      const g = e.target.closest('[data-gender-seg] button, [data-gender-chips] button');
-      if (!g) return;
-      filter.gender = g.dataset.g;
-      document.querySelectorAll('[data-gender-seg] button, [data-gender-chips] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === filter.gender)));
-      render();
-    });
 
     function visible() {
       const q = filter.q.toLowerCase(), qd = SR.phoneDigits(filter.q);
       return persons.filter(p => {
-        if (filter.gender && p.gender !== filter.gender) return false;
+        if (filter.who && SR.personWho(p) !== filter.who) return false;
         if (filter.group !== 'all' && (filter.group === '' ? groupMap[p.groupId] : p.groupId !== filter.group)) return false;
         if (filter.status !== 'all' && (p.status || '') !== filter.status) return false;
         if (!q) return true;
@@ -278,7 +275,7 @@
         return;
       }
       const list = visible();
-      const f = persons.filter(p => p.gender === '女').length, m = persons.filter(p => p.gender === '男').length;
+      const f = persons.filter(p => SR.personWho(p) === '姊妹').length, m = persons.filter(p => SR.personWho(p) === '弟兄').length;
       const line = `顯示 ${list.length} 人／共 ${persons.length} 人（姊妹 ${f}、弟兄 ${m}）`;
       $('countLine').textContent = line;
       $('tableFoot').textContent = line + (filter.sort === 'no' ? '・依編號排序' : '・依姓名筆畫排序');
@@ -351,7 +348,7 @@
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0 4px">
           <span data-big-avatar="${SR.esc(p.id)}">${SR.avatarHtml(p, 96)}</span>
           <div style="font-size:28px;font-weight:800;color:#fff" class="m-name">${SR.esc(p.name)}</div>
-          <div style="font-size:15px;color:rgba(235,235,245,.65)" class="m-sub">${SR.esc([SR.genderLabel(p.gender), g ? g.name : '', p.status].filter(Boolean).join('・'))}</div>
+          <div style="font-size:15px;color:rgba(235,235,245,.65)" class="m-sub">${SR.esc([SR.personWho(p), g ? g.name : '', p.status].filter(Boolean).join('・'))}</div>
         </div>
         <div style="display:flex;gap:10px;margin:14px 0">
           ${tel ? `<a class="m-act" href="tel:${tel}" style="background:#007E8A;color:#fff">${ICON_PHONE}撥打</a>` : `<span class="m-act" style="background:#2C2C2E;color:rgba(235,235,245,.4)">${ICON_PHONE}沒有電話</span>`}
@@ -381,7 +378,13 @@
     // ---------- 編輯表單（檢閱器與手機共用） ----------
     function startEditor(p, where) {
       editor = { id: p ? p.id : null, where, dirty: false, photo: null, removePhoto: false,
-        draft: p ? { ...p } : { gender: filter.gender || '', groupId: filter.group !== 'all' ? filter.group : '', status: '', memberNo: '' } };
+        draft: p ? { ...p } : { gender: filter.who === '姊妹' ? '女' : filter.who === '弟兄' ? '男' : '', category: SR.CATEGORIES.includes(filter.who) ? filter.who : '', groupId: filter.group !== 'all' ? filter.group : '', status: '', memberNo: '' } };
+    }
+    function groupOptions(gender, selected) {
+      let html = `<option value="">未分組</option>`;
+      SR.groupsFor(groups, gender, selected).forEach(g => { html += `<option value="${g.id}"${g.id === selected ? ' selected' : ''}>${SR.esc(g.name)}</option>`; });
+      if (selected && !groupMap[selected]) html += `<option value="${SR.esc(selected)}" selected>（已刪除的小組）</option>`;
+      return html;
     }
     function formHtml() {
       const d = editor.draft, isNew = !editor.id;
@@ -391,10 +394,7 @@
         const all = val && !list.includes(val) ? [...list, val] : list;
         return `<select class="m-in" id="f_${key}" name="${key}"><option value="">${empty}</option>${all.map(v => `<option${v === val ? ' selected' : ''}>${SR.esc(v)}</option>`).join('')}</select>`;
       };
-      let gsel = `<select class="m-in" id="f_groupId" name="groupId"><option value="">未分組</option>`;
-      groups.forEach(g => { if (g.active !== false || g.id === d.groupId) gsel += `<option value="${g.id}"${g.id === d.groupId ? ' selected' : ''}>${SR.esc(g.name)}</option>`; });
-      if (d.groupId && !groupMap[d.groupId]) gsel += `<option value="${SR.esc(d.groupId)}" selected>（已刪除的小組）</option>`;
-      gsel += '</select>';
+      const gsel = `<select class="m-in" id="f_groupId" name="groupId">${groupOptions(d.gender, d.groupId)}</select>`;
       const preview = editor.photo ? { ...d, photoThumb: editor.photo.thumb } : (editor.removePhoto ? { ...d, photoThumb: '' } : d);
       const birthHelp = d.birthday ? `${SR.formatRocLong(d.birthday)}・${SR.age(d.birthday)} 歲` : '民國或西元都可以，例如「45/3/2」';
       return `<form id="editForm" novalidate style="display:flex;flex-direction:column;gap:14px">
@@ -414,6 +414,7 @@
           ${field('name', '姓名＊', text('name', d.name, ' maxlength="30" autocomplete="off"'))}
           <div class="m-row"><span class="m-lab">性別</span><div class="m-lseg" data-lseg>
             <button type="button" data-v="女" aria-pressed="${d.gender === '女'}">女（姊妹）</button><button type="button" data-v="男" aria-pressed="${d.gender === '男'}">男（弟兄）</button></div></div>
+          ${field('category', '身分', `<select class="m-in" id="f_category" name="category"><option value="">一般組員（依性別：姊妹／弟兄）</option>${SR.CATEGORIES.map(c => `<option${d.category === c ? ' selected' : ''}>${c}</option>`).join('')}</select>`)}
           ${field('birthday', '生日', text('birthday', SR.formatRoc(d.birthday), ' inputmode="numeric" placeholder="45/3/2"'), birthHelp)}
         </div>
         <div class="m-group">
@@ -482,6 +483,8 @@
           editor.dirty = true;
           editor.draft.gender = editor.draft.gender === seg.dataset.v ? '' : seg.dataset.v;
           root.querySelectorAll('[data-lseg] button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === editor.draft.gender)));
+          const gs = root.querySelector('#f_groupId');
+          if (gs) { const keep = gs.value; gs.innerHTML = groupOptions(editor.draft.gender, ''); gs.value = [...gs.options].some(o => o.value === keep) ? keep : ''; }
         }
         if (e.target.closest('[data-photo]')) $('photoInput').click();
         if (e.target.closest('[data-photo-remove]')) { readForm(); editor.photo = null; editor.removePhoto = true; editor.dirty = true; root.innerHTML = editor.where === 'sheet' ? formHtml() : formHtml(); }
@@ -521,7 +524,7 @@
       if (!access.isAdmin || !editor) return;
       readForm();
       const data = {};
-      for (const key of ['name', 'birthday', 'mobile', 'phone', 'address', 'note', 'groupId', 'status', 'marital', 'living', 'memberNo']) {
+      for (const key of ['name', 'birthday', 'mobile', 'phone', 'address', 'note', 'groupId', 'status', 'marital', 'living', 'memberNo', 'category']) {
         const r = normalize(key, editor.draft[key]);
         if (r.error) { SR.toast(r.error, 'error'); const el = formRoot().querySelector('#f_' + key); if (el) { el.classList.add('sr-invalid'); el.focus(); } return; }
         data[key] = r.value;
