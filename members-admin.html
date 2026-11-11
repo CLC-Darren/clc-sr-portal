@@ -28,8 +28,10 @@
   <header id="clc-header"></header>
 
   <main class="max-w-3xl mx-auto px-4 py-7">
-    <a href="members.html" class="text-sm font-bold text-teal-300">← 回通訊錄</a>
-    <h1 class="text-xl font-extrabold mt-1 mb-4">📋 名單後台</h1>
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h1 class="text-xl font-extrabold">📋 名單後台</h1>
+      <div class="relative shrink-0"><button id="pageMenuGear" data-menu="members" type="button" onclick="togglePageMenu()" title="名單選單" aria-label="名單選單" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button></div>
+    </div>
 
     <section id="gateChecking" class="sr-card p-6 text-center" role="status">正在確認登入身分…</section>
     <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
@@ -87,7 +89,7 @@
     </section>
   </main>
 
-  <script src="header.js?v=20261111-members"></script>
+  <script src="header.js?v=20261111-gear"></script>
   <script src="js/sr-data.js?v=20261111b"></script>
   <script>
   (function () {
@@ -466,6 +468,9 @@
       if (!confirm(`確定匯入 ${list.length} 人嗎？`)) return;
       const btn = e.target, status = $('importStatus');
       btn.disabled = true;
+      // 連線被擋時 commit 會一直等，30 秒沒回應就當失敗
+      const commitOrTimeout = b => Promise.race([b.commit(),
+        new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout', message: '連線逾時' }), 30000))]);
       try {
         // 先建立缺少的小組與狀態選項
         const created = {};
@@ -476,7 +481,7 @@
             created[name] = ref.id;
             batch.set(ref, { name, order: groups.length + i, active: true, ...SR.stamp() });
           });
-          await batch.commit();
+          await commitOrTimeout(batch);
         }
         if (plan.newStatuses.length) {
           await window.db.collection('options').doc('lists').set({ ...options, statuses: [...options.statuses, ...plan.newStatuses], ...SR.stamp() });
@@ -487,9 +492,12 @@
           list.slice(i, i + 400).forEach(r => {
             const { _newGroup, _dup, _warns, _from, ...data } = r;
             if (_newGroup) data.groupId = created[_newGroup] || '';
+            data.name = data.name.slice(0, 60);
+            data.address = data.address.slice(0, 200);
             batch.set(window.db.collection('persons').doc(), { ...data, createdAt: SR.serverTime(), ...SR.stamp() });
           });
-          await batch.commit();
+          status.textContent = `寫入中… ${i} / ${list.length} 人`;
+          await commitOrTimeout(batch);
           done = Math.min(list.length, i + 400);
           status.textContent = `已匯入 ${done} / ${list.length} 人…`;
         }
@@ -501,7 +509,10 @@
         btn.remove();
       } catch (err) {
         btn.disabled = false;
-        status.textContent = '匯入中斷，部分資料可能已寫入。請先到通訊錄確認，再決定是否重新匯入（重複的人會被自動略過）。';
+        status.innerHTML = `<span class="text-rose-300 font-bold">❌ 匯入中斷（${SR.esc(err.code || err.message)}）。</span>` +
+          (err.code === 'timeout' ? '一直連不到資料庫，可能被瀏覽器的廣告阻擋擋住（例如 Brave 的盾牌），請關掉後重新整理再試。'
+            : err.code === 'permission-denied' ? '資料庫拒絕寫入，請確認 Firestore 規則已發布、而且你是用管理員帳號登入。'
+            : '部分資料可能已寫入，請先到通訊錄確認，再決定是否重新匯入（重複的人會被自動略過）。');
         fail('匯入失敗', err);
       }
     });

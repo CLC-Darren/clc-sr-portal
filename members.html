@@ -21,14 +21,11 @@
   <header id="clc-header"></header>
 
   <main class="max-w-[1500px] mx-auto px-4 lg:px-6 pt-5 pb-16">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <div>
-        <a href="index.html" class="text-sm font-bold text-teal-300">← 返回首頁</a>
-        <h1 class="text-xl font-extrabold mt-1">📖 組員通訊錄</h1>
-      </div>
-      <div id="topActions" class="hidden flex flex-wrap gap-2">
-        <a href="members-admin.html" class="sr-btn sr-btn-ghost sr-btn-sm">📋 名單後台</a>
-        <button id="addBtn" type="button" class="sr-btn sr-btn-primary sr-btn-sm hidden">＋ 新增組員</button>
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h1 class="text-xl font-extrabold">📖 組員通訊錄</h1>
+      <div class="flex items-center gap-2">
+        <div id="topActions" class="hidden"><button id="addBtn" type="button" class="sr-btn sr-btn-primary sr-btn-sm hidden">＋ 新增組員</button></div>
+        <div class="relative shrink-0"><button id="pageMenuGear" data-menu="members" type="button" onclick="togglePageMenu()" title="通訊錄選單" aria-label="通訊錄選單" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button></div>
       </div>
     </div>
 
@@ -110,7 +107,7 @@
     </div>
   </div>
 
-  <script src="header.js?v=20261111-members"></script>
+  <script src="header.js?v=20261111-gear"></script>
   <script src="js/sr-data.js?v=20261111b"></script>
   <script>
   (function () {
@@ -119,7 +116,7 @@
     let persons = [], groups = [], groupMap = {}, options = SR.DEFAULT_OPTIONS;
     let access = { canView: false, isAdmin: false };
     let unsubs = [];
-    let loaded = false;
+    let loaded = false, slow = false, slowTimer = null;
     const filter = { q: '', gender: '', group: 'all', status: 'all' };
 
     // ---------- 權限 ----------
@@ -148,9 +145,13 @@
         fillFilterSelects(); render();
       }, fail));
       unsubs.push(SR.watchOptions(o => { options = o; fillFilterSelects(); render(); }, fail));
-      unsubs.push(window.db.collection('persons').onSnapshot(snap => {
+      // 只信任伺服器回來的結果：離線快取的「0 筆」不代表名單是空的。
+      clearTimeout(slowTimer);
+      slowTimer = setTimeout(() => { if (!loaded) { slow = true; render(true); } }, 8000);
+      unsubs.push(window.db.collection('persons').onSnapshot({ includeMetadataChanges: true }, snap => {
+        if (snap.metadata.fromCache && !snap.size && !loaded) return;
         persons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        loaded = true;
+        loaded = true; slow = false;
         render();
       }, fail));
     }
@@ -202,7 +203,12 @@
       const active = document.activeElement;
       if (!force && active && $('tbody').contains(active)) { pendingRender = true; return; }
       pendingRender = false;
-      if (!loaded) { $('countLine').textContent = '讀取中…'; return; }
+      if (!loaded) {
+        $('countLine').innerHTML = slow
+          ? '<span class="text-amber-300 font-bold">⚠️ 連不到資料庫。請關掉這個網站的廣告阻擋（例如 Brave 的盾牌），或換一個網路後重新整理。</span>'
+          : '讀取中…';
+        return;
+      }
       const list = visiblePersons();
       const f = persons.filter(p => p.gender === '女').length, m = persons.filter(p => p.gender === '男').length;
       $('countLine').textContent = `顯示 ${list.length} 人／共 ${persons.length} 人（姊妹 ${f}、弟兄 ${m}）`;

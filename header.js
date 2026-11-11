@@ -48,6 +48,9 @@ try {
   if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
   window.auth = firebase.auth();
   window.db = firebase.firestore();
+  // 有些瀏覽器的廣告阻擋（例如 Brave Shields）或公司網路會擋 Firestore 的即時連線，
+  // 自動偵測後改用相容的連線方式，避免名單一直讀不到、寫入卡住。
+  try { window.db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) { console.warn('Firestore 連線設定', e); }
   window.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.warn('SR Auth 持續登入設定:', err));
 } catch (e) {
   console.error('SR Firebase 初始化失敗:', e);
@@ -183,9 +186,6 @@ function renderHeaderComponent() {
               管理員已登入
             </div>
 
-            <a href="members-admin.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
-              📋 名單後台
-            </a>
             <a href="admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👤 權限管理
             </a>
@@ -209,6 +209,58 @@ function renderHeaderComponent() {
   // 不再從 localStorage 推定權限：須經 Firebase Auth 驗證。
 }
 
+// ---------- 頁面齒輪選單（與 YA 歌詞頁相同做法）----------
+// 頁面放一個 <button id="pageMenuGear" data-menu="members">⚙️</button>，選單由這裡產生。
+// 未登入時按齒輪會先跳 Google 登入，登入成功才展開。
+window.CLC_PAGE_MENUS = {
+  members: [
+    { page: 'members', href: 'members.html', label: '📖 組員通訊錄' },
+    { page: 'members-admin', href: 'members-admin.html', label: '📋 名單後台' }
+  ]
+};
+function renderPageMenu() {
+  const gear = document.getElementById('pageMenuGear');
+  if (!gear || document.getElementById('pageMenuDropdown')) return;
+  const items = window.CLC_PAGE_MENUS[gear.dataset.menu] || [];
+  const page = getCurrentPageType();
+  gear.parentElement.classList.add('relative');
+  gear.setAttribute('aria-haspopup', 'true');
+  gear.setAttribute('aria-expanded', 'false');
+  gear.setAttribute('aria-controls', 'pageMenuDropdown');
+  const nav = document.createElement('nav');
+  nav.id = 'pageMenuDropdown';
+  nav.setAttribute('aria-label', '頁面選單');
+  nav.className = 'hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#161924] rounded-xl shadow-2xl border border-slate-200 dark:border-brand-border py-2 z-50 text-left';
+  const link = 'block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition';
+  nav.innerHTML = items.map(i => `<a href="${i.href}" class="${link}${i.page === page ? ' bg-slate-100 dark:bg-white/5' : ''}"${i.page === page ? ' aria-current="page"' : ''}>${i.label}</a>`).join('');
+  gear.insertAdjacentElement('afterend', nav);
+}
+function setPageMenuOpen(open) {
+  const menu = document.getElementById('pageMenuDropdown');
+  const gear = document.getElementById('pageMenuGear');
+  if (!menu || !gear) return;
+  menu.classList.toggle('hidden', !open);
+  gear.setAttribute('aria-expanded', String(!!open));
+  if (open) document.getElementById('adminDropdown')?.classList.add('hidden');
+}
+window.togglePageMenu = async function () {
+  renderPageMenu();
+  const menu = document.getElementById('pageMenuDropdown');
+  if (!menu) return;
+  if (!window.canViewAdmin) {
+    if (typeof triggerAdminLogin !== 'function') return;
+    await triggerAdminLogin();
+    if (!window.canViewAdmin) return;
+  }
+  setPageMenuOpen(menu.classList.contains('hidden'));
+};
+document.addEventListener('click', e => {
+  const gear = document.getElementById('pageMenuGear');
+  const menu = document.getElementById('pageMenuDropdown');
+  if (gear && menu && !gear.contains(e.target) && !menu.contains(e.target)) setPageMenuOpen(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setPageMenuOpen(false); });
+
 function applyAdminState(active, email, notify = true, viewer = false) {
   // active = 已授權可進入後台；viewer = 唯讀檢視者（可看後台、不可編輯）
   const viewerOnly = !!(active && viewer);
@@ -220,6 +272,7 @@ function applyAdminState(active, email, notify = true, viewer = false) {
   const superuser = window.isAdmin && window.ADMIN_WHITELIST.includes(String(email || '').toLowerCase());
   window.currentAdminRole = active ? (viewerOnly ? 'viewer' : (superuser ? 'superuser' : 'admin')) : '';
   window.isSuperuser = superuser;
+  if (!active) setPageMenuOpen(false);
   if (!superuser) {
     const switcher = document.getElementById('siteSwitcher');
     if (switcher) switcher.classList.add('hidden');
