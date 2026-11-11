@@ -28,6 +28,14 @@ window.ADMIN_WHITELIST = [
   "darren.lin@twclc.org"
 ];
 
+// 站台切換（僅 Superuser）：Logo 單擊回首頁，雙擊開啟其他站台選單。
+// 新增站台時只要在 CLC_SITES 加一筆；YA 的 header.js 使用同一份清單，只把 CLC_SITE_KEY 改成 'ya'。
+window.CLC_SITE_KEY = 'sr';
+window.CLC_SITES = [
+  { key: 'ya', label: 'CLC YA', url: 'https://clc-ya-portal.pages.dev/' },
+  { key: 'sr', label: 'CLC SR', url: 'https://clc-sr-portal.pages.dev/' }
+];
+
 // 將使用者輸入的文字放進 innerHTML 前必須先跳脫，避免被植入惡意程式碼。
 window.clcEscapeHtml = function(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -87,7 +95,11 @@ function renderHeaderComponent() {
     style.textContent = `
       #clc-header { box-sizing: border-box !important; border-bottom-width: 1px !important; }
       #clc-header > div { width: 100% !important; max-width: none !important; height: 46px !important; min-height: 46px !important; padding: 0 14px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: space-between !important; }
-      #clc-header > div > a { display: flex !important; align-items: center !important; text-decoration: none !important; }
+      #clc-header > div > a,
+      #clc-header #clcLogoWrap > a { display: flex !important; align-items: center !important; text-decoration: none !important; }
+      #clc-header #clcLogoLink { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+      #clc-header #siteSwitcher { width: 180px; margin-top: 7.5px; padding: 6px 0; border-radius: 11.25px; z-index: 100; }
+      #clc-header #siteSwitcher a { display: block; padding: 9px 15px; font-size: 13.5px; font-weight: 700; }
       #clc-header .logo-badge { font-size: 13.5px !important; height: 34px !important; line-height: 34px !important; box-sizing: border-box !important; padding: 0 12px !important; border-radius: 9px !important; font-weight: 800 !important; background: #007E8A; color: white; display: inline-flex; align-items: center; text-decoration: none; letter-spacing: .05em; }
       #clc-header > div > div { gap: 6px !important; display: flex !important; align-items: center !important; }
       #clc-header > div > div > * + * { margin-left: 0 !important; }
@@ -142,9 +154,17 @@ function renderHeaderComponent() {
     <div class="w-full mx-auto flex items-center justify-between">
 
       <!-- Logo 區塊 -->
-      <a href="index.html" class="flex items-center" aria-label="CLC SR 首頁">
-        <div class="logo-badge shadow-sm">CLC SR</div>
-      </a>
+      <div id="clcLogoWrap" class="relative">
+        <a id="clcLogoLink" href="index.html" onclick="handleLogoClick(event)" class="flex items-center" aria-label="CLC SR 首頁">
+          <div class="logo-badge shadow-sm">CLC SR</div>
+        </a>
+        <div id="siteSwitcher" class="hidden absolute left-0 bg-white dark:bg-[#161924] shadow-2xl border border-slate-200 dark:border-brand-border text-left">
+          <div class="px-4 py-1.5 text-[11px] font-bold text-slate-400">切換站台</div>
+          ${window.CLC_SITES.filter(s => s.key !== window.CLC_SITE_KEY).map(s => `
+            <a href="${s.url}" class="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">${window.clcEscapeHtml(s.label)}</a>
+          `).join('')}
+        </div>
+      </div>
 
       <!-- 右側動作群 -->
       <div class="flex items-center">
@@ -195,6 +215,10 @@ function applyAdminState(active, email, notify = true, viewer = false) {
   const superuser = window.isAdmin && window.ADMIN_WHITELIST.includes(String(email || '').toLowerCase());
   window.currentAdminRole = active ? (viewerOnly ? 'viewer' : (superuser ? 'superuser' : 'admin')) : '';
   window.isSuperuser = superuser;
+  if (!superuser) {
+    const switcher = document.getElementById('siteSwitcher');
+    if (switcher) switcher.classList.add('hidden');
+  }
   const icon = document.getElementById('adminBtnIcon');
   const dot = document.getElementById('adminActiveDot');
   const emailDisp = document.getElementById('adminEmailDisplay');
@@ -271,6 +295,28 @@ if (window.auth) window.auth.onAuthStateChanged(user => {
   applyAdminState(false, '');
 });
 
+// Logo：一般使用者單擊立即回首頁；Superuser 第一下先等 280ms，
+// 若期間再點一下即視為雙擊並開啟站台選單（不依賴 dblclick 事件，手機雙點也可用）。
+let clcLogoClickTimer = null;
+function handleLogoClick(e) {
+  const switcher = document.getElementById('siteSwitcher');
+  if (!window.isSuperuser || !switcher) return; // 照舊回首頁
+  e.preventDefault();
+  const href = e.currentTarget.getAttribute('href');
+  if (clcLogoClickTimer) {
+    clearTimeout(clcLogoClickTimer);
+    clcLogoClickTimer = null;
+    switcher.classList.toggle('hidden');
+    const admin = document.getElementById('adminDropdown');
+    if (admin) admin.classList.add('hidden');
+    return;
+  }
+  clcLogoClickTimer = setTimeout(() => {
+    clcLogoClickTimer = null;
+    window.location.href = href;
+  }, 280);
+}
+
 function toggleAdminDropdown() {
   if (window.isAdmin || window.isViewer) {
     const dropdown = document.getElementById('adminDropdown');
@@ -329,6 +375,11 @@ document.addEventListener('click', function(e) {
   const dropdown = document.getElementById('adminDropdown');
   if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
     dropdown.classList.add('hidden');
+  }
+  const logoWrap = document.getElementById('clcLogoWrap');
+  const switcher = document.getElementById('siteSwitcher');
+  if (logoWrap && switcher && !logoWrap.contains(e.target)) {
+    switcher.classList.add('hidden');
   }
 });
 
