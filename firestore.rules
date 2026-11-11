@@ -104,13 +104,49 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
-    // intakes：新朋友表單送出的資料。表單目前只有外觀，串接時再開放「未登入只能新增」。
-    match /districts/{docId} {
-      allow read: if isAdmin() || isViewer();
-      allow write: if isAdmin();
+    // ---------- 新朋友留名單 ----------
+    // 表單不用登入就能送出，但只能「新增」，不能讀、不能改；欄位與長度都有限制。
+    function shortStr(d, k, n) { return !(k in d) || (d[k] is string && d[k].size() <= n); }
+    function validIntake(d) {
+      return d.keys().hasOnly(['name', 'gender', 'birthday', 'mobile', 'phone', 'address', 'marital', 'living',
+          'groupId', 'groupName', 'refName', 'refRelation', 'refPhone', 'faith', 'intent', 'note', 'photoThumb',
+          'status', 'personId', 'joinedAt', 'source', 'createdAt', 'updatedAt', 'updatedBy'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && (!('gender' in d) || d.gender in ['女', '男', ''])
+        && (!('birthday' in d) || d.birthday == '' || d.birthday.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+        && shortStr(d, 'mobile', 30) && shortStr(d, 'phone', 30) && shortStr(d, 'address', 200)
+        && shortStr(d, 'marital', 20) && shortStr(d, 'living', 20) && shortStr(d, 'groupId', 40) && shortStr(d, 'groupName', 40)
+        && shortStr(d, 'refName', 60) && shortStr(d, 'refRelation', 30) && shortStr(d, 'refPhone', 30)
+        && shortStr(d, 'note', 2000) && shortStr(d, 'status', 20) && shortStr(d, 'personId', 40)
+        && (!('faith' in d) || (d.faith is list && d.faith.size() <= 10))
+        && (!('intent' in d) || (d.intent is list && d.intent.size() <= 10))
+        && (!('photoThumb' in d) || (d.photoThumb is string && d.photoThumb.size() <= 60000));
     }
     match /intakes/{docId} {
+      allow create: if validIntake(request.resource.data) && (isAdmin() || (
+        request.resource.data.source == 'form'
+        && request.resource.data.createdAt == request.time
+        && !('personId' in request.resource.data) && !('joinedAt' in request.resource.data)
+        && (!('status' in request.resource.data) || request.resource.data.status == '')));
+      allow read: if isAdmin() || isViewer();
+      allow update: if isAdmin() && validIntake(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    // 新朋友的照片（大圖）：只能跟著同一次送出的留名單一起新增
+    match /intakePhotos/{docId} {
+      allow create: if request.resource.data.keys().hasOnly(['data', 'updatedAt', 'updatedBy'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 900000
+        && request.resource.data.data.matches('^data:image/(jpeg|png|webp);base64,.*')
+        && (isAdmin() || (existsAfter(/databases/$(database)/documents/intakes/$(docId))
+                          && !exists(/databases/$(database)/documents/intakes/$(docId))));
+      allow read: if isAdmin() || isViewer();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
+    match /districts/{docId} {
       allow read: if isAdmin() || isViewer();
       allow write: if isAdmin();
     }
