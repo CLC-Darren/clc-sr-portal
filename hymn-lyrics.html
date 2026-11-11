@@ -6,8 +6,8 @@
   <title>CLC SR | 詩歌歌詞下載</title>
   <meta name="theme-color" content="#007E8A">
   <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=sr-icon-20261109-v2">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -41,6 +41,12 @@
       loading="eager"
       referrerpolicy="strict-origin-when-cross-origin"
       allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+    <script>
+      // 掛在 DX04 的 /sr/ 底下時，改用同網域的 /ya/ 歌詞頁；單獨開 SR 原網址時維持原本的 YA 網址。
+      if (location.pathname.indexOf('/sr/') === 0) {
+        document.getElementById('clcHymnFrame').src = '/ya/hymn-lyrics?neutral=1';
+      }
+    </script>
   </div>
   <script src="header.js?v=20261111-gear"></script>
 </body>

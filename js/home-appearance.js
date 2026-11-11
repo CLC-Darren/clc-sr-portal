@@ -335,7 +335,7 @@
 
     async function uploadVideoToGitHub(file) {
       const payload = await fileToBase64(file);
-      const res = await fetch('/api/home-video-upload', {
+      const res = await fetch('api/home-video-upload', {
         method: 'POST',
         headers: {
           'content-type': 'text/plain; charset=US-ASCII',
