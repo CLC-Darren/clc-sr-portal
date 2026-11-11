@@ -1,3 +1,13 @@
+# 2026-11-11 更新：組員通訊錄、名單後台、新朋友登記（預覽）
+
+- `members.html` 組員通訊錄：電腦版（1280px 以上）表格直接點欄位修改、自動儲存；手機與平板為卡片，點開全螢幕編輯，可一鍵撥號。Admin 可編輯，Viewer 唯讀。
+- `members-admin.html` 名單後台：小組（新增、改名、排序、停用）、選項（狀態／婚姻／居住狀況）、匯入舊通訊錄（.xlsx／.csv，先預覽、標出重複與格式問題再寫入）。
+- `join.html` 新朋友登記：長輩友善大按鈕、生日可填民國年。**目前只有外觀，送出不會儲存。**
+- 資料：`persons`（組員）、`groups`（小組）、`options/lists`（選項）。共用程式 `js/sr-data.js`、樣式 `css/sr-ui.css`。
+- **務必**到 Firebase Console → Firestore → Rules 發布新的 `firestore.rules`，否則名單無法讀寫。
+
+---
+
 # 2026-11-10 更新：權限登入改為與 YA 相同
 
 - 權限模型：Superuser（`header.js` 的 `ADMIN_WHITELIST`）／Admin／Viewer，名單存於 Firestore `admin_users/{email}`。

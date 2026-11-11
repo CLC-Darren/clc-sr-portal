@@ -1,24 +1,450 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="dark">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>CLC SR | 組員通訊錄</title>
-<link rel="manifest" href="/manifest.json"><link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
-<script src="https://cdn.tailwindcss.com"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<style>html{font-family:'Plus Jakarta Sans','Noto Sans TC',sans-serif}body{margin:0}</style>
-<script>(function(){const saved='dark';const m=matchMedia('(prefers-color-scheme:dark)');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&m.matches))})();</script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>CLC SR | 組員通訊錄</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{teal:'#007E8A',border:'rgba(255,255,255,0.1)'}}}}};</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111">
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-white">
-<header id="clc-header"></header>
-<main class="max-w-3xl mx-auto px-5 py-12 sm:py-20">
-  <a class="text-[#007E8A] dark:text-teal-300 text-sm font-bold" href="index.html">← 返回首頁</a>
-  <section class="mt-5 rounded-3xl bg-white dark:bg-[#161924] border border-slate-200 dark:border-white/10 p-8 sm:p-12 text-center space-y-4">
-    <div class="text-5xl" aria-hidden="true">📖</div>
-    <h1 class="text-2xl sm:text-3xl font-extrabold">組員通訊錄</h1>
-    <p class="text-base text-slate-500 dark:text-slate-400">此功能已保留在原本的 SR 功能選單，後續開發完成後在這裡啟用。</p>
-    <p class="text-sm text-slate-500 dark:text-slate-400">目前尚未開放資料操作。</p>
-  </section>
-</main>
-<script src="header.js?v=20261110-ya-auth"></script>
-</body></html>
+<body class="min-h-screen bg-[#090A0F] text-slate-100">
+  <header id="clc-header"></header>
+
+  <main class="max-w-[1500px] mx-auto px-4 lg:px-6 pt-5 pb-16">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <a href="index.html" class="text-[.95rem] font-bold text-teal-300">← 返回首頁</a>
+        <h1 class="text-[1.7rem] font-extrabold mt-1">📖 組員通訊錄</h1>
+      </div>
+      <div id="topActions" class="hidden flex flex-wrap gap-2">
+        <a href="members-admin.html" class="sr-btn sr-btn-ghost sr-btn-sm">📋 名單後台</a>
+        <button id="addBtn" type="button" class="sr-btn sr-btn-primary sr-btn-sm hidden">＋ 新增組員</button>
+      </div>
+    </div>
+
+    <!-- 權限檢查 -->
+    <section id="gateChecking" class="sr-card p-6 text-center text-[1.05rem]" role="status">正在確認登入身分…</section>
+    <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
+      <div class="text-5xl" aria-hidden="true">🔐</div>
+      <p class="text-[1.1rem] font-bold">通訊錄含有個人資料，請先登入。</p>
+      <p class="sr-help">需使用已授權的 Google 帳號。如果還沒有權限，請聯絡管理員。</p>
+      <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
+    </section>
+
+    <section id="app" class="hidden">
+      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 mb-4 font-bold text-[.95rem]">👁️ 目前是唯讀權限，可以查看，不能修改。</div>
+
+      <!-- 搜尋與篩選 -->
+      <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-3">
+        <label class="relative flex-1 min-w-0">
+          <span class="sr-only">搜尋</span>
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true">🔍</span>
+          <input id="q" type="search" class="sr-field" style="padding-left:2.7rem" placeholder="搜尋姓名、電話或地址">
+        </label>
+        <div class="sr-seg self-start" role="group" aria-label="性別篩選" id="genderSeg">
+          <button type="button" data-g="" aria-pressed="true">全部</button>
+          <button type="button" data-g="女" aria-pressed="false">姊妹</button>
+          <button type="button" data-g="男" aria-pressed="false">弟兄</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 lg:flex lg:w-auto">
+          <label><span class="sr-only">小組</span><select id="fGroup" class="sr-field lg:w-48"></select></label>
+          <label><span class="sr-only">狀態</span><select id="fStatus" class="sr-field lg:w-40"></select></label>
+        </div>
+      </div>
+      <p id="countLine" class="sr-help mb-3" role="status" aria-live="polite"></p>
+
+      <!-- 電腦版（1280px 以上）：可直接點欄位編輯的表格 -->
+      <div class="hidden xl:block sr-card">
+        <table class="sr-table">
+          <thead>
+            <tr>
+              <th style="min-width:120px">姓名</th>
+              <th style="width:76px">性別</th>
+              <th style="width:118px">生日(民國)</th>
+              <th style="min-width:150px">手機</th>
+              <th style="min-width:150px">市話</th>
+              <th style="min-width:130px">小組</th>
+              <th style="min-width:120px">狀態</th>
+              <th style="min-width:180px">地址</th>
+              <th style="min-width:130px">備註</th>
+              <th style="width:56px"><span class="sr-only">更多</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <p id="tableHint" class="sr-help px-4 py-3 border-t border-white/10">💡 點一下欄位就能直接修改，離開欄位或按 Enter 會自動儲存。</p>
+      </div>
+
+      <!-- 手機、平板：卡片 -->
+      <div id="cards" class="xl:hidden grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+      <div id="empty" class="hidden sr-card p-8 text-center space-y-2">
+        <div class="text-4xl" aria-hidden="true">🗂️</div>
+        <p id="emptyText" class="text-[1.05rem] font-bold"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 編輯視窗 -->
+  <div id="sheet" class="sr-sheet-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sr-sheet">
+      <div class="sr-sheet-head">
+        <h2 id="sheetTitle" class="text-[1.3rem] font-extrabold truncate"></h2>
+        <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-close aria-label="關閉">✕ 關閉</button>
+      </div>
+      <form id="sheetForm" class="sr-sheet-body space-y-4" novalidate></form>
+      <div class="sr-sheet-foot" id="sheetFoot">
+        <button type="button" class="sr-btn sr-btn-ghost flex-1" data-close>取消</button>
+        <button type="submit" form="sheetForm" class="sr-btn sr-btn-primary flex-[2]" id="sheetSave">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="header.js?v=20261111-members"></script>
+  <script src="js/sr-data.js?v=20261111"></script>
+  <script>
+  (function () {
+    const SR = window.SR;
+    const $ = id => document.getElementById(id);
+    let persons = [], groups = [], groupMap = {}, options = SR.DEFAULT_OPTIONS;
+    let access = { canView: false, isAdmin: false };
+    let unsubs = [];
+    let loaded = false;
+    const filter = { q: '', gender: '', group: 'all', status: 'all' };
+
+    // ---------- 權限 ----------
+    SR.onAccess(a => {
+      access = a;
+      $('gateChecking').classList.add('hidden');
+      $('gateLogin').classList.toggle('hidden', a.canView);
+      $('app').classList.toggle('hidden', !a.canView);
+      $('topActions').classList.toggle('hidden', !a.canView);
+      $('addBtn').classList.toggle('hidden', !a.isAdmin);
+      $('viewerNote').classList.toggle('hidden', !a.isViewer);
+      $('tableHint').classList.toggle('hidden', !a.isAdmin);
+      if (a.canView) start(); else stop();
+    });
+
+    function stop() {
+      unsubs.forEach(u => u && u());
+      unsubs = []; persons = []; loaded = false;
+    }
+    function start() {
+      if (unsubs.length) { render(); return; }
+      const fail = err => { console.error(err); SR.toast('讀取資料失敗：' + (err.code || err.message), 'error'); };
+      unsubs.push(SR.watchGroups(list => {
+        groups = list;
+        groupMap = Object.fromEntries(list.map(g => [g.id, g]));
+        fillFilterSelects(); render();
+      }, fail));
+      unsubs.push(SR.watchOptions(o => { options = o; fillFilterSelects(); render(); }, fail));
+      unsubs.push(window.db.collection('persons').onSnapshot(snap => {
+        persons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        loaded = true;
+        render();
+      }, fail));
+    }
+
+    // ---------- 篩選 ----------
+    function fillFilterSelects() {
+      const g = $('fGroup'), s = $('fStatus');
+      const gv = g.value || filter.group, sv = s.value || filter.status;
+      g.innerHTML = `<option value="all">全部小組</option>` +
+        groups.map(x => `<option value="${x.id}">${SR.esc(x.name)}${x.active === false ? '（停用）' : ''}</option>`).join('') +
+        `<option value="">未分組</option>`;
+      s.innerHTML = `<option value="all">全部狀態</option>` +
+        options.statuses.map(x => `<option value="${SR.esc(x)}">${SR.esc(x)}</option>`).join('') +
+        `<option value="">未設定狀態</option>`;
+      g.value = [...g.options].some(o => o.value === gv) ? gv : 'all';
+      s.value = [...s.options].some(o => o.value === sv) ? sv : 'all';
+      filter.group = g.value; filter.status = s.value;
+    }
+    $('q').addEventListener('input', e => { filter.q = e.target.value.trim(); render(true); });
+    $('fGroup').addEventListener('change', e => { filter.group = e.target.value; render(true); });
+    $('fStatus').addEventListener('change', e => { filter.status = e.target.value; render(true); });
+    $('genderSeg').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      filter.gender = b.dataset.g;
+      $('genderSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      render(true);
+    });
+
+    function visiblePersons() {
+      const q = filter.q.toLowerCase(), qd = SR.phoneDigits(filter.q);
+      return persons.filter(p => {
+        if (filter.gender && p.gender !== filter.gender) return false;
+        if (filter.group !== 'all' && (filter.group === '' ? groupMap[p.groupId] : p.groupId !== filter.group)) return false;
+        if (filter.status !== 'all' && (p.status || '') !== filter.status) return false;
+        if (!q) return true;
+        if (String(p.name || '').toLowerCase().includes(q)) return true;
+        if (String(p.address || '').includes(filter.q) || String(p.note || '').includes(filter.q)) return true;
+        return qd.length >= 3 && (SR.phoneDigits(p.mobile).includes(qd) || SR.phoneDigits(p.phone).includes(qd));
+      }).sort((a, b) => {
+        const ga = groupMap[a.groupId]?.order ?? 9999, gb = groupMap[b.groupId]?.order ?? 9999;
+        return ga - gb || String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hant');
+      });
+    }
+
+    // ---------- 畫面 ----------
+    let pendingRender = false;
+    function render(force) {
+      if (!access.canView) return;
+      const active = document.activeElement;
+      if (!force && active && $('tbody').contains(active)) { pendingRender = true; return; }
+      pendingRender = false;
+      if (!loaded) { $('countLine').textContent = '讀取中…'; return; }
+      const list = visiblePersons();
+      const f = persons.filter(p => p.gender === '女').length, m = persons.filter(p => p.gender === '男').length;
+      $('countLine').textContent = `顯示 ${list.length} 人／共 ${persons.length} 人（姊妹 ${f}、弟兄 ${m}）`;
+      $('empty').classList.toggle('hidden', list.length > 0);
+      $('emptyText').textContent = persons.length ? '找不到符合條件的人，試試別的關鍵字。' :
+        (access.isAdmin ? '名單還是空的。可以按「＋ 新增組員」，或到「名單後台」匯入舊通訊錄。' : '名單還是空的。');
+      renderTable(list);
+      renderCards(list);
+    }
+    $('tbody').addEventListener('focusout', () => setTimeout(() => {
+      if (pendingRender && !$('tbody').contains(document.activeElement)) render();
+    }, 80));
+
+    function groupOptionsHtml(selected) {
+      let html = `<option value="">未分組</option>`;
+      groups.forEach(g => {
+        if (g.active === false && g.id !== selected) return;
+        html += `<option value="${g.id}"${g.id === selected ? ' selected' : ''}>${SR.esc(g.name)}</option>`;
+      });
+      if (selected && !groupMap[selected]) html += `<option value="${SR.esc(selected)}" selected>（已刪除的小組）</option>`;
+      return html;
+    }
+    function listOptionsHtml(list, selected, emptyLabel) {
+      let html = `<option value="">${emptyLabel}</option>`;
+      const all = selected && !list.includes(selected) ? [...list, selected] : list;
+      all.forEach(v => { html += `<option value="${SR.esc(v)}"${v === selected ? ' selected' : ''}>${SR.esc(v)}</option>`; });
+      return html;
+    }
+
+    function renderTable(list) {
+      const dis = access.isAdmin ? '' : ' disabled';
+      $('tbody').innerHTML = list.map(p => {
+        const id = SR.esc(p.id);
+        const cell = (field, value, extra = '') => `<input class="sr-cell" data-id="${id}" data-field="${field}" value="${SR.esc(value)}" aria-label="${SR.FIELD_LABELS[field]}"${extra}${dis}>`;
+        return `<tr>
+          <td>${cell('name', p.name, ' style="font-weight:800"')}</td>
+          <td><select class="sr-cell" data-id="${id}" data-field="gender" aria-label="性別"${dis}>
+            <option value=""${!p.gender ? ' selected' : ''}>—</option>
+            <option value="女"${p.gender === '女' ? ' selected' : ''}>女</option>
+            <option value="男"${p.gender === '男' ? ' selected' : ''}>男</option></select></td>
+          <td>${cell('birthday', SR.formatRoc(p.birthday), ' placeholder="45/03/02"')}</td>
+          <td>${cell('mobile', p.mobile, ' type="tel"')}</td>
+          <td>${cell('phone', p.phone, ' type="tel"')}</td>
+          <td><select class="sr-cell" data-id="${id}" data-field="groupId" aria-label="小組"${dis}>${groupOptionsHtml(p.groupId || '')}</select></td>
+          <td><select class="sr-cell" data-id="${id}" data-field="status" aria-label="狀態"${dis}>${listOptionsHtml(options.statuses, p.status || '', '—')}</select></td>
+          <td>${cell('address', p.address)}</td>
+          <td>${cell('note', p.note)}</td>
+          <td><button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-open="${id}" aria-label="開啟 ${SR.esc(p.name)} 的完整資料">⋯</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderCards(list) {
+      $('cards').innerHTML = list.map(p => {
+        const g = groupMap[p.groupId];
+        const tel = SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone);
+        const gChip = p.gender === '女' ? '<span class="sr-chip sr-chip-f">姊妹</span>' : p.gender === '男' ? '<span class="sr-chip sr-chip-m">弟兄</span>' : '';
+        return `<article class="sr-card flex items-stretch overflow-hidden">
+          <button type="button" class="flex-1 min-w-0 text-left p-4 space-y-1.5" data-open="${SR.esc(p.id)}">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[1.3rem] font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
+              ${p.status ? `<span class="sr-chip sr-chip-teal">${SR.esc(p.status)}</span>` : ''}
+            </div>
+            <div class="text-[.98rem] text-slate-300">${g ? SR.esc(g.name) : '未分組'}</div>
+            <div class="text-[1.05rem] font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
+          </button>
+          ${tel ? `<a href="tel:${tel}" class="flex flex-col items-center justify-center w-20 shrink-0 bg-[#007E8A]/20 text-teal-200 font-extrabold border-l border-white/10" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-[.85rem] mt-1">撥打</span></a>` : ''}
+        </article>`;
+      }).join('');
+    }
+
+    // ---------- 表格直接編輯 ----------
+    function normalize(field, raw) {
+      const v = String(raw ?? '').trim();
+      if (field === 'name') return v ? { value: v } : { error: '姓名不能空白' };
+      if (field === 'birthday') {
+        const iso = SR.parseBirthday(v);
+        return iso === null ? { error: '生日看不懂，可以輸入「45/3/2」或「1956/3/2」' } : { value: iso };
+      }
+      if (field === 'mobile' || field === 'phone') return { value: SR.formatPhone(v) };
+      return { value: v };
+    }
+    function displayValue(field, value) {
+      return field === 'birthday' ? SR.formatRoc(value) : (value ?? '');
+    }
+
+    async function saveField(el) {
+      const p = persons.find(x => x.id === el.dataset.id);
+      const field = el.dataset.field;
+      if (!p || !access.isAdmin) return;
+      const r = normalize(field, el.value);
+      if (r.error) {
+        SR.toast(r.error, 'error');
+        el.value = displayValue(field, p[field]);
+        el.classList.add('sr-invalid');
+        setTimeout(() => el.classList.remove('sr-invalid'), 2000);
+        return;
+      }
+      if (el.tagName === 'INPUT') el.value = displayValue(field, r.value);
+      if ((p[field] ?? '') === r.value) return;
+      const old = p[field];
+      p[field] = r.value;
+      try {
+        await window.db.collection('persons').doc(p.id).update({ [field]: r.value, ...SR.stamp() });
+        el.classList.add('sr-saved');
+        setTimeout(() => el.classList.remove('sr-saved'), 1500);
+        SR.toast(`已儲存：${p.name}・${SR.FIELD_LABELS[field]}`);
+      } catch (err) {
+        console.error(err);
+        p[field] = old;
+        el.value = displayValue(field, old);
+        SR.toast('儲存失敗，請稍後再試（' + (err.code || err.message) + '）', 'error');
+      }
+    }
+    $('tbody').addEventListener('change', e => { if (e.target.matches('.sr-cell')) saveField(e.target); });
+    $('tbody').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.matches('input.sr-cell')) { e.preventDefault(); e.target.blur(); }
+      if (e.key === 'Escape' && e.target.matches('input.sr-cell')) {
+        const p = persons.find(x => x.id === e.target.dataset.id);
+        if (p) e.target.value = displayValue(e.target.dataset.field, p[e.target.dataset.field]);
+        e.target.blur();
+      }
+    });
+
+    // ---------- 完整編輯視窗 ----------
+    let editing = null; // null=新增；物件=修改
+    let lastFocus = null;
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-open]');
+      if (b) openSheet(persons.find(p => p.id === b.dataset.open) || null, b);
+    });
+    $('addBtn').addEventListener('click', e => openSheet(null, e.currentTarget));
+
+    function openSheet(p, opener) {
+      if (!p && !access.isAdmin) return;
+      editing = p;
+      lastFocus = opener;
+      const ro = !access.isAdmin;
+      const dis = ro ? ' disabled' : '';
+      const v = p || { gender: filter.gender || '', groupId: filter.group !== 'all' ? filter.group : '', status: '' };
+      $('sheetTitle').textContent = p ? p.name : '新增組員';
+      const tel = p && (SR.phoneDigits(p.mobile) || SR.phoneDigits(p.phone));
+      const field = (key, label, input, help = '') => `<div><label class="sr-label" for="e_${key}">${label}</label>${input}${help ? `<p class="sr-help mt-1.5">${help}</p>` : ''}</div>`;
+      const text = (key, val, extra = '') => `<input class="sr-field" id="e_${key}" name="${key}" value="${SR.esc(val)}"${extra}${dis}>`;
+      $('sheetForm').innerHTML = `
+        ${tel ? `<a href="tel:${tel}" class="sr-btn sr-btn-primary w-full">📞 撥電話給 ${SR.esc(p.name)}</a>` : ''}
+        ${field('name', '姓名<span class="sr-req">＊</span>', text('name', v.name || '', ' maxlength="30" autocomplete="off"'))}
+        <div><span class="sr-label">性別</span>
+          <div class="grid grid-cols-2 gap-3" data-gender>
+            <button type="button" class="sr-choice" data-value="女" aria-pressed="${v.gender === '女'}"${dis}>女（姊妹）</button>
+            <button type="button" class="sr-choice" data-value="男" aria-pressed="${v.gender === '男'}"${dis}>男（弟兄）</button>
+          </div></div>
+        ${field('birthday', '生日', text('birthday', SR.formatRoc(v.birthday), ' placeholder="例：45/3/2" inputmode="numeric"'), `<span id="birthHelp">${v.birthday ? SR.formatRocLong(v.birthday) + `（${SR.age(v.birthday)} 歲）` : '民國或西元都可以，例如「45/3/2」或「1956/3/2」'}</span>`)}
+        ${field('mobile', '手機', text('mobile', v.mobile || '', ' type="tel" inputmode="tel"'))}
+        ${field('phone', '市話', text('phone', v.phone || '', ' type="tel" inputmode="tel"'))}
+        ${field('groupId', '小組', `<select class="sr-field" id="e_groupId" name="groupId"${dis}>${groupOptionsHtml(v.groupId || '')}</select>`)}
+        ${field('status', '狀態', `<select class="sr-field" id="e_status" name="status"${dis}>${listOptionsHtml(options.statuses, v.status || '', '未設定')}</select>`)}
+        <div class="grid grid-cols-2 gap-3">
+          ${field('marital', '婚姻', `<select class="sr-field" id="e_marital" name="marital"${dis}>${listOptionsHtml(options.marital, v.marital || '', '—')}</select>`)}
+          ${field('living', '居住狀況', `<select class="sr-field" id="e_living" name="living"${dis}>${listOptionsHtml(options.living, v.living || '', '—')}</select>`)}
+        </div>
+        ${field('address', '地址', text('address', v.address || '', ' maxlength="120"'))}
+        ${field('note', '備註', `<textarea class="sr-field" id="e_note" name="note" rows="3" maxlength="2000"${dis}>${SR.esc(v.note || '')}</textarea>`)}
+        ${p && access.isAdmin ? `<div class="pt-4 border-t border-white/10"><button type="button" id="deleteBtn" class="sr-btn sr-btn-danger w-full">🗑️ 從名單刪除</button>
+          <p class="sr-help mt-2">只是暫時不來聚會的話，建議改「狀態」就好，不要刪除。</p></div>` : ''}
+        ${p && p.updatedBy ? `<p class="sr-help">最後修改：${SR.esc(p.updatedBy)}</p>` : ''}
+      `;
+      $('sheetForm').dataset.gender = v.gender || '';
+      $('sheetSave').classList.toggle('hidden', ro);
+      $('sheet').querySelector('.sr-sheet-foot [data-close]').textContent = ro ? '關閉' : '取消';
+      $('sheet').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => (ro ? $('sheet').querySelector('[data-close]') : $('e_name')).focus(), 50);
+    }
+    function closeSheet() {
+      $('sheet').classList.add('hidden');
+      document.body.style.overflow = '';
+      if (lastFocus && lastFocus.isConnected) lastFocus.focus();
+    }
+    $('sheet').addEventListener('click', e => {
+      if (e.target === $('sheet') || e.target.closest('[data-close]')) closeSheet();
+      const g = e.target.closest('[data-gender] .sr-choice');
+      if (g) {
+        const cur = $('sheetForm').dataset.gender === g.dataset.value ? '' : g.dataset.value;
+        $('sheetForm').dataset.gender = cur;
+        $('sheetForm').querySelectorAll('[data-gender] .sr-choice').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === cur)));
+      }
+      if (e.target.id === 'deleteBtn') deletePerson();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').classList.contains('hidden')) closeSheet(); });
+    $('sheetForm').addEventListener('input', e => {
+      if (e.target.id !== 'e_birthday') return;
+      const iso = SR.parseBirthday(e.target.value);
+      $('birthHelp').textContent = iso ? `${SR.formatRocLong(iso)}（${SR.age(iso)} 歲）` : (e.target.value ? '還看不懂這個日期，例如「45/3/2」' : '民國或西元都可以，例如「45/3/2」或「1956/3/2」');
+    });
+
+    $('sheetForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!access.isAdmin) return;
+      const fd = new FormData($('sheetForm'));
+      const data = {};
+      for (const key of ['name', 'birthday', 'mobile', 'phone', 'address', 'note', 'groupId', 'status', 'marital', 'living']) {
+        const r = normalize(key, fd.get(key));
+        if (r.error) {
+          SR.toast(r.error, 'error');
+          const el = $('e_' + key); el.classList.add('sr-invalid'); el.focus();
+          return;
+        }
+        data[key] = r.value;
+      }
+      data.gender = $('sheetForm').dataset.gender || '';
+      const btn = $('sheetSave');
+      btn.disabled = true;
+      try {
+        if (editing) {
+          await window.db.collection('persons').doc(editing.id).update({ ...data, ...SR.stamp() });
+          SR.toast(`已儲存：${data.name}`);
+        } else {
+          await window.db.collection('persons').add({ ...data, source: 'manual', createdAt: SR.serverTime(), ...SR.stamp() });
+          SR.toast(`已新增：${data.name}`);
+        }
+        closeSheet();
+      } catch (err) {
+        console.error(err);
+        SR.toast('儲存失敗（' + (err.code || err.message) + '）', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    async function deletePerson() {
+      if (!editing || !access.isAdmin) return;
+      if (!confirm(`確定要把「${editing.name}」從名單刪除嗎？\n刪除後無法復原。`)) return;
+      try {
+        await window.db.collection('persons').doc(editing.id).delete();
+        SR.toast(`已刪除：${editing.name}`);
+        closeSheet();
+      } catch (err) {
+        SR.toast('刪除失敗（' + (err.code || err.message) + '）', 'error');
+      }
+    }
+  })();
+  </script>
+</body>
+</html>

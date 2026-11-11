@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>CLC SR | 名單後台</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{teal:'#007E8A',border:'rgba(255,255,255,0.1)'}}}}};</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111">
+  <style>
+    .tab[aria-selected="true"] { background: #007E8A; color: #fff; border-color: #007E8A; }
+    .mini-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .mini-table th, .mini-table td { padding: .5rem .55rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    .mini-table th { color: #a3acbe; font-weight: 800; white-space: nowrap; position: sticky; top: 0; background: #161924; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#090A0F] text-slate-100">
+  <header id="clc-header"></header>
+
+  <main class="max-w-4xl mx-auto px-4 pt-5 pb-16">
+    <a href="members.html" class="text-[.95rem] font-bold text-teal-300">← 回通訊錄</a>
+    <h1 class="text-[1.7rem] font-extrabold mt-1 mb-4">📋 名單後台</h1>
+
+    <section id="gateChecking" class="sr-card p-6 text-center" role="status">正在確認登入身分…</section>
+    <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
+      <p class="text-[1.1rem] font-bold">請先用已授權的 Google 帳號登入。</p>
+      <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
+    </section>
+
+    <section id="app" class="hidden space-y-5">
+      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-[.95rem]">👁️ 目前是唯讀權限，可以查看設定，不能修改或匯入。</div>
+
+      <div class="grid grid-cols-3 gap-2" role="tablist">
+        <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="groups" aria-selected="true">👥 小組</button>
+        <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="options" aria-selected="false">🏷️ 選項</button>
+        <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="import" aria-selected="false">📥 匯入</button>
+      </div>
+
+      <!-- 小組 -->
+      <section data-panel="groups" class="space-y-4">
+        <p class="sr-help">這裡的小組會出現在通訊錄和新朋友登記表單。停用的小組不會出現在表單，但舊資料保留。牧區與小組長之後在「牧區與小組」設定。</p>
+        <form id="addGroupForm" class="sr-card p-4 flex gap-2 admin-only">
+          <label class="flex-1"><span class="sr-only">新小組名稱</span><input id="newGroup" class="sr-field" maxlength="30" placeholder="新小組名稱，例如：惠玲小組"></label>
+          <button class="sr-btn sr-btn-primary" type="submit">＋ 新增</button>
+        </form>
+        <div id="seedGroups" class="hidden sr-card p-5 space-y-3 admin-only">
+          <p class="font-bold">還沒有任何小組。</p>
+          <button type="button" id="seedGroupsBtn" class="sr-btn sr-btn-primary w-full">建立新朋友表單上的 17 個小組</button>
+        </div>
+        <div id="groupList" class="space-y-2"></div>
+      </section>
+
+      <!-- 選項 -->
+      <section data-panel="options" class="hidden space-y-4">
+        <p class="sr-help">修改後立即生效。刪除選項不會改到已經填好的資料，那些人會顯示原本的文字。</p>
+        <div id="optionLists" class="space-y-4"></div>
+      </section>
+
+      <!-- 匯入 -->
+      <section data-panel="import" class="hidden space-y-4">
+        <div class="sr-card p-5 space-y-3">
+          <h2 class="text-[1.15rem] font-extrabold">匯入舊通訊錄</h2>
+          <ol class="sr-help list-decimal pl-5 space-y-1">
+            <li>在 Google 試算表選「檔案 → 下載 → Microsoft Excel (.xlsx)」。</li>
+            <li>在下面選擇檔案，勾選要匯入的工作表（姊妹、弟兄）。第一頁新朋友表單的回應不用勾。</li>
+            <li>檢查預覽，確認後才會寫入。</li>
+          </ol>
+          <label class="sr-btn sr-btn-primary w-full cursor-pointer admin-only">
+            📂 選擇 Excel 或 CSV 檔案
+            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" class="sr-only">
+          </label>
+          <p id="fileName" class="sr-help"></p>
+        </div>
+        <div id="sheetPanel" class="hidden space-y-3"></div>
+        <div id="previewPanel" class="hidden space-y-3"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="header.js?v=20261111-members"></script>
+  <script src="js/sr-data.js?v=20261111"></script>
+  <script>
+  (function () {
+    const SR = window.SR;
+    const $ = id => document.getElementById(id);
+    let access = {}, groups = [], options = SR.DEFAULT_OPTIONS, optionsExist = false, persons = [];
+    let unsubs = [];
+
+    // ---------- 權限 ----------
+    SR.onAccess(a => {
+      access = a;
+      $('gateChecking').classList.add('hidden');
+      $('gateLogin').classList.toggle('hidden', a.canView);
+      $('app').classList.toggle('hidden', !a.canView);
+      $('viewerNote').classList.toggle('hidden', !a.isViewer);
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !a.isAdmin));
+      if (a.canView && !unsubs.length) {
+        const fail = err => SR.toast('讀取失敗：' + (err.code || err.message), 'error');
+        unsubs.push(SR.watchGroups(list => { groups = list; renderGroups(); }, fail));
+        unsubs.push(SR.watchOptions((o, exists) => { options = o; optionsExist = exists; renderOptions(); }, fail));
+        unsubs.push(window.db.collection('persons').onSnapshot(s => { persons = s.docs.map(d => ({ id: d.id, ...d.data() })); renderGroups(); }, fail));
+      }
+      if (!a.canView) { unsubs.forEach(u => u()); unsubs = []; }
+      renderGroups(); renderOptions();
+    });
+
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+      document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== t.dataset.tab));
+    }));
+
+    const fail = (msg, err) => { console.error(err); SR.toast(msg + '（' + (err.code || err.message) + '）', 'error'); };
+
+    // ---------- 小組 ----------
+    function renderGroups() {
+      const dis = access.isAdmin ? '' : ' disabled';
+      $('seedGroups').classList.toggle('hidden', !access.isAdmin || groups.length > 0);
+      const used = {};
+      persons.forEach(p => { if (p.groupId) used[p.groupId] = (used[p.groupId] || 0) + 1; });
+      $('groupList').innerHTML = groups.map((g, i) => `
+        <div class="sr-card p-3 flex flex-wrap items-center gap-2 ${g.active === false ? 'opacity-60' : ''}">
+          <div class="flex flex-col gap-1">
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-height:36px;padding:0 .7rem" data-move="${g.id}" data-dir="-1" aria-label="${SR.esc(g.name)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-height:36px;padding:0 .7rem" data-move="${g.id}" data-dir="1" aria-label="${SR.esc(g.name)} 往下"${i === groups.length - 1 ? ' disabled' : dis}>▼</button>
+          </div>
+          <label class="flex-1 min-w-[10rem]"><span class="sr-only">小組名稱</span>
+            <input class="sr-field" data-rename="${g.id}" value="${SR.esc(g.name)}" maxlength="30"${dis}></label>
+          <span class="sr-chip">${used[g.id] || 0} 人</span>
+          <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-toggle="${g.id}"${dis}>${g.active === false ? '🔁 重新啟用' : '⏸ 停用'}</button>
+          ${!used[g.id] ? `<button type="button" class="sr-btn sr-btn-danger sr-btn-sm" data-del="${g.id}"${dis}>刪除</button>` : ''}
+        </div>`).join('');
+    }
+
+    $('addGroupForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = $('newGroup').value.trim();
+      if (!name) return;
+      if (groups.some(g => g.name === name)) { SR.toast('已經有這個小組了', 'error'); return; }
+      try {
+        await window.db.collection('groups').add({ name, order: groups.length, active: true, ...SR.stamp() });
+        $('newGroup').value = '';
+        SR.toast('已新增：' + name);
+      } catch (err) { fail('新增失敗', err); }
+    });
+
+    $('seedGroupsBtn').addEventListener('click', async () => {
+      const batch = window.db.batch();
+      SR.DEFAULT_GROUPS.forEach((name, i) => batch.set(window.db.collection('groups').doc(), { name, order: i, active: true, ...SR.stamp() }));
+      try { await batch.commit(); SR.toast('已建立 17 個小組'); } catch (err) { fail('建立失敗', err); }
+    });
+
+    $('groupList').addEventListener('change', async e => {
+      const id = e.target.dataset.rename;
+      if (!id) return;
+      const g = groups.find(x => x.id === id), name = e.target.value.trim();
+      if (!name) { e.target.value = g.name; SR.toast('小組名稱不能空白', 'error'); return; }
+      if (name === g.name) return;
+      try { await window.db.collection('groups').doc(id).update({ name, ...SR.stamp() }); SR.toast('已改名：' + name); }
+      catch (err) { e.target.value = g.name; fail('改名失敗', err); }
+    });
+    $('groupList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.rename) e.target.blur(); });
+
+    $('groupList').addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b || !access.isAdmin) return;
+      try {
+        if (b.dataset.move) {
+          const i = groups.findIndex(g => g.id === b.dataset.move), j = i + Number(b.dataset.dir);
+          if (j < 0 || j >= groups.length) return;
+          const order = groups.slice();
+          [order[i], order[j]] = [order[j], order[i]];
+          const batch = window.db.batch();
+          order.forEach((g, k) => { if (g.order !== k) batch.update(window.db.collection('groups').doc(g.id), { order: k }); });
+          await batch.commit();
+        } else if (b.dataset.toggle) {
+          const g = groups.find(x => x.id === b.dataset.toggle);
+          await window.db.collection('groups').doc(g.id).update({ active: g.active === false, ...SR.stamp() });
+          SR.toast(g.active === false ? '已重新啟用：' + g.name : '已停用：' + g.name);
+        } else if (b.dataset.del) {
+          const g = groups.find(x => x.id === b.dataset.del);
+          if (!confirm(`確定刪除「${g.name}」嗎？`)) return;
+          await window.db.collection('groups').doc(g.id).delete();
+          SR.toast('已刪除：' + g.name);
+        }
+      } catch (err) { fail('操作失敗', err); }
+    });
+
+    // ---------- 選項 ----------
+    function renderOptions() {
+      const dis = access.isAdmin ? '' : ' disabled';
+      $('optionLists').innerHTML = Object.keys(SR.DEFAULT_OPTIONS).map(key => `
+        <div class="sr-card p-4 space-y-3" data-list="${key}">
+          <h2 class="text-[1.15rem] font-extrabold">${SR.OPTION_LABELS[key]}</h2>
+          <div class="space-y-2">
+            ${options[key].map((v, i) => `
+              <div class="flex items-center gap-2">
+                <span class="flex-1 font-bold px-3 py-2.5 rounded-xl bg-white/5">${SR.esc(v)}</span>
+                <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-op="up" data-i="${i}" aria-label="${SR.esc(v)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
+                <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-op="down" data-i="${i}" aria-label="${SR.esc(v)} 往下"${i === options[key].length - 1 ? ' disabled' : dis}>▼</button>
+                <button type="button" class="sr-btn sr-btn-danger sr-btn-sm" data-op="del" data-i="${i}" aria-label="刪除 ${SR.esc(v)}"${dis}>✕</button>
+              </div>`).join('')}
+          </div>
+          ${access.isAdmin ? `<form class="flex gap-2" data-add>
+            <label class="flex-1"><span class="sr-only">新增${SR.OPTION_LABELS[key]}</span><input class="sr-field" maxlength="20" placeholder="新增一個${SR.OPTION_LABELS[key]}"></label>
+            <button class="sr-btn sr-btn-primary" type="submit">＋ 新增</button></form>` : ''}
+        </div>`).join('') +
+        (!optionsExist && access.isAdmin ? `<p class="sr-help">目前顯示的是預設選項；第一次修改時會一起存進資料庫。</p>` : '');
+    }
+    async function saveList(key, list) {
+      try {
+        await window.db.collection('options').doc('lists').set({ ...options, [key]: list, ...SR.stamp() });
+        SR.toast(`已更新${SR.OPTION_LABELS[key]}選項`);
+      } catch (err) { fail('儲存失敗', err); }
+    }
+    $('optionLists').addEventListener('click', e => {
+      const b = e.target.closest('button[data-op]'); if (!b || !access.isAdmin) return;
+      const key = b.closest('[data-list]').dataset.list, i = +b.dataset.i, list = options[key].slice();
+      if (b.dataset.op === 'del') {
+        if (!confirm(`確定刪除選項「${list[i]}」嗎？`)) return;
+        list.splice(i, 1);
+      } else {
+        const j = b.dataset.op === 'up' ? i - 1 : i + 1;
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      saveList(key, list);
+    });
+    $('optionLists').addEventListener('submit', e => {
+      e.preventDefault();
+      const key = e.target.closest('[data-list]').dataset.list, input = e.target.querySelector('input');
+      const v = input.value.trim();
+      if (!v) return;
+      if (options[key].includes(v)) { SR.toast('已經有這個選項了', 'error'); return; }
+      saveList(key, [...options[key], v]);
+    });
+
+    // ---------- 匯入 ----------
+    const ALIASES = {
+      name: ['姓名', '名字', '名稱'],
+      gender: ['性別'],
+      birthday: ['生日', '出生日期', '出生年月日', '生日(民國)', '生日（民國）'],
+      mobile: ['手機', '行動電話', '手機號碼'],
+      phone: ['電話', '聯繫電話', '聯絡電話', '市話', '住家電話', '家用電話'],
+      address: ['地址', '住址', '通訊地址', '住家地址'],
+      marital: ['婚姻', '婚姻狀況'],
+      living: ['居住狀況', '居住'],
+      group: ['小組', '關懷小組', '所屬小組', '組別'],
+      status: ['狀態', '聚會狀態'],
+      note: ['備註', '說明', '附註']
+    };
+    const IMPORT_FIELDS = Object.keys(ALIASES);
+    const fieldLabel = f => f === 'group' ? '小組' : SR.FIELD_LABELS[f];
+    const clean = s => String(s ?? '').replace(/\s+/g, '').replace(/[：:＊*]/g, '');
+    let sheets = []; // {name, rows, headerRow, headers, map, include, gender}
+
+    $('fileInput').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!window.XLSX) { SR.toast('讀檔工具還在載入，請稍後再選一次檔案', 'error'); e.target.value = ''; return; }
+      $('fileName').textContent = '已選擇：' + file.name;
+      try {
+        const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+        sheets = wb.SheetNames.map(name => {
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' });
+          const headerRow = rows.slice(0, 8).findIndex(r => r.some(c => ALIASES.name.includes(clean(c))));
+          const headers = headerRow >= 0 ? rows[headerRow].map(c => String(c ?? '').trim()) : [];
+          const map = {};
+          IMPORT_FIELDS.forEach(f => {
+            const idx = headers.findIndex(h => ALIASES[f].includes(clean(h)));
+            map[f] = idx;
+          });
+          const looksLikeForm = /表單|回應|form|新朋友/i.test(name);
+          const gender = /姊妹|姐妹|女/.test(name) ? '女' : /弟兄|兄弟|男/.test(name) ? '男' : '';
+          return { name, rows, headerRow, headers, map, gender, include: headerRow >= 0 && !looksLikeForm };
+        });
+        renderSheets();
+        analyze();
+      } catch (err) {
+        fail('檔案讀取失敗，請確認是 Excel 或 CSV', err);
+      }
+    });
+
+    function colName(i) { let s = ''; i++; while (i) { s = String.fromCharCode(65 + (i - 1) % 26) + s; i = Math.floor((i - 1) / 26); } return s; }
+
+    function renderSheets() {
+      $('sheetPanel').classList.remove('hidden');
+      $('sheetPanel').innerHTML = `<h2 class="text-[1.15rem] font-extrabold">1. 選擇工作表</h2>` + sheets.map((s, si) => {
+        const dataRows = s.headerRow >= 0 ? s.rows.length - s.headerRow - 1 : 0;
+        return `<div class="sr-card p-4 space-y-3" data-si="${si}">
+          <label class="flex items-center gap-3 font-extrabold text-[1.05rem]">
+            <input type="checkbox" data-k="include" class="w-6 h-6 accent-[#007E8A]" ${s.include ? 'checked' : ''} ${s.headerRow < 0 ? 'disabled' : ''}>
+            ${SR.esc(s.name)} <span class="sr-chip">${dataRows} 列</span>
+            ${s.headerRow < 0 ? '<span class="sr-chip sr-chip-bad">找不到「姓名」欄</span>' : ''}
+          </label>
+          ${s.headerRow >= 0 ? `
+          <label class="block"><span class="sr-help">這張表的性別</span>
+            <select class="sr-field mt-1" data-k="gender">
+              <option value=""${!s.gender ? ' selected' : ''}>依表格的「性別」欄</option>
+              <option value="女"${s.gender === '女' ? ' selected' : ''}>全部是姊妹（女）</option>
+              <option value="男"${s.gender === '男' ? ' selected' : ''}>全部是弟兄（男）</option>
+            </select></label>
+          <details class="text-[.95rem]"><summary class="cursor-pointer font-bold text-teal-300 py-1">欄位對應（自動判斷，可修改）</summary>
+            <div class="grid sm:grid-cols-2 gap-2 mt-2">
+              ${IMPORT_FIELDS.map(f => `<label class="flex items-center gap-2"><span class="w-20 shrink-0 font-bold">${fieldLabel(f)}</span>
+                <select class="sr-field" style="min-height:46px" data-k="map" data-f="${f}">
+                  <option value="-1">（不匯入）</option>
+                  ${s.headers.map((h, i) => h ? `<option value="${i}"${s.map[f] === i ? ' selected' : ''}>${colName(i)} 欄：${SR.esc(h)}</option>` : '').join('')}
+                </select></label>`).join('')}
+            </div></details>` : ''}
+        </div>`;
+      }).join('');
+    }
+    $('sheetPanel').addEventListener('change', e => {
+      const card = e.target.closest('[data-si]'); if (!card) return;
+      const s = sheets[+card.dataset.si], k = e.target.dataset.k;
+      if (k === 'include') s.include = e.target.checked;
+      if (k === 'gender') s.gender = e.target.value;
+      if (k === 'map') s.map[e.target.dataset.f] = +e.target.value;
+      analyze();
+    });
+
+    let plan = null;
+    const groupKey = n => clean(n).replace(/小組$/, '');
+
+    function analyze() {
+      const groupByKey = Object.fromEntries(groups.map(g => [groupKey(g.name), g]));
+      const existing = new Set(persons.map(SR.dupKey));
+      const seen = new Set();
+      const records = [], newGroups = new Set(), newStatuses = new Set();
+      let skippedEmpty = 0;
+      const extraNoteOn = $('extraNote') ? $('extraNote').checked : true;
+
+      sheets.filter(s => s.include).forEach(s => {
+        const used = new Set(Object.values(s.map).filter(i => i >= 0));
+        s.rows.slice(s.headerRow + 1).forEach((row, ri) => {
+          const get = f => s.map[f] >= 0 ? row[s.map[f]] : '';
+          const name = String(get('name') ?? '').trim();
+          if (!name) { if (row.some(c => String(c).trim())) skippedEmpty++; return; }
+          const warns = [];
+          const rec = { name, source: 'import' };
+          rec.gender = s.gender || SR.normGender(get('gender'));
+          if (!rec.gender) warns.push('沒有性別');
+          const bRaw = get('birthday');
+          const b = SR.parseBirthday(bRaw);
+          rec.birthday = b || '';
+          const notes = [];
+          if (b === null) { warns.push('生日看不懂'); notes.push('生日原文：' + String(bRaw).trim()); }
+          rec.mobile = SR.formatPhone(get('mobile'));
+          rec.phone = SR.formatPhone(get('phone'));
+          if (!rec.mobile && /^09/.test(SR.phoneDigits(rec.phone))) { rec.mobile = rec.phone; rec.phone = ''; }
+          rec.address = String(get('address') ?? '').trim();
+          rec.marital = String(get('marital') ?? '').trim();
+          rec.living = String(get('living') ?? '').trim();
+          rec.status = String(get('status') ?? '').trim();
+          if (rec.status && !options.statuses.includes(rec.status)) newStatuses.add(rec.status);
+          const gName = String(get('group') ?? '').trim();
+          rec.groupId = '';
+          if (gName && !/暫不安排|未分組|無/.test(gName)) {
+            const g = groupByKey[groupKey(gName)];
+            if (g) rec.groupId = g.id;
+            else { rec._newGroup = /小組$/.test(gName) ? gName : gName + '小組'; newGroups.add(rec._newGroup); }
+          }
+          const note = String(get('note') ?? '').trim();
+          if (note) notes.unshift(note);
+          if (extraNoteOn) s.headers.forEach((h, i) => {
+            const v = row[i];
+            if (h && !used.has(i) && v !== '' && v !== null && v !== undefined) notes.push(`${h}：${v instanceof Date ? v.toLocaleDateString('zh-TW') : String(v).trim()}`);
+          });
+          rec.note = notes.join('\n').slice(0, 2000);
+          const key = SR.dupKey(rec);
+          rec._dup = existing.has(key) ? '名單裡已經有' : seen.has(key) ? '檔案裡重複' : '';
+          seen.add(key);
+          rec._warns = warns;
+          rec._from = `${s.name} 第 ${s.headerRow + ri + 2} 列`;
+          records.push(rec);
+        });
+      });
+      plan = { records, newGroups: [...newGroups], newStatuses: [...newStatuses], skippedEmpty };
+      renderPreview();
+    }
+
+    function renderPreview() {
+      const p = $('previewPanel');
+      if (!plan || !sheets.some(s => s.include)) { p.classList.add('hidden'); return; }
+      p.classList.remove('hidden');
+      const { records, newGroups, newStatuses } = plan;
+      const dups = records.filter(r => r._dup).length;
+      const warned = records.filter(r => r._warns.length).length;
+      const skipDup = $('skipDup') ? $('skipDup').checked : true;
+      const extraNote = $('extraNote') ? $('extraNote').checked : true;
+      const total = records.length - (skipDup ? dups : 0);
+      p.innerHTML = `
+        <h2 class="text-[1.15rem] font-extrabold">2. 檢查預覽</h2>
+        <div class="sr-card p-4 space-y-3">
+          <div class="flex flex-wrap gap-2">
+            <span class="sr-chip sr-chip-teal">讀到 ${records.length} 人</span>
+            <span class="sr-chip sr-chip-f">姊妹 ${records.filter(r => r.gender === '女').length}</span>
+            <span class="sr-chip sr-chip-m">弟兄 ${records.filter(r => r.gender === '男').length}</span>
+            ${dups ? `<span class="sr-chip sr-chip-warn">疑似重複 ${dups}</span>` : ''}
+            ${warned ? `<span class="sr-chip sr-chip-warn">需要注意 ${warned}</span>` : ''}
+            ${plan.skippedEmpty ? `<span class="sr-chip">沒有姓名略過 ${plan.skippedEmpty} 列</span>` : ''}
+          </div>
+          ${newGroups.length ? `<p class="text-[.95rem]">⚠️ 名單裡有 ${newGroups.length} 個小組還沒建立，匯入時會自動新增：<b>${newGroups.map(SR.esc).join('、')}</b></p>` : ''}
+          ${newStatuses.length ? `<p class="text-[.95rem]">⚠️ 這些狀態不在選項裡，會自動加入選項：<b>${newStatuses.map(SR.esc).join('、')}</b></p>` : ''}
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="skipDup" class="w-6 h-6 accent-[#007E8A]" ${skipDup ? 'checked' : ''}> 略過疑似重複的人（姓名＋手機相同）</label>
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="extraNote" class="w-6 h-6 accent-[#007E8A]" ${extraNote ? 'checked' : ''}> 其他沒有對應的欄位，存進「備註」</label>
+        </div>
+        <div class="sr-card overflow-auto" style="max-height:60vh">
+          <table class="mini-table">
+            <thead><tr><th>來源</th><th>姓名</th><th>性別</th><th>生日</th><th>手機</th><th>市話</th><th>小組</th><th>狀態</th><th>地址</th><th>提醒</th></tr></thead>
+            <tbody>${records.slice(0, 300).map(r => `<tr class="${r._dup && skipDup ? 'opacity-40' : ''}">
+              <td class="whitespace-nowrap text-slate-400">${SR.esc(r._from)}</td>
+              <td class="font-bold whitespace-nowrap">${SR.esc(r.name)}</td>
+              <td>${r.gender}</td>
+              <td class="whitespace-nowrap">${SR.formatRoc(r.birthday)}</td>
+              <td class="whitespace-nowrap">${SR.esc(r.mobile)}</td>
+              <td class="whitespace-nowrap">${SR.esc(r.phone)}</td>
+              <td class="whitespace-nowrap">${SR.esc(r._newGroup || (groups.find(g => g.id === r.groupId) || {}).name || '')}</td>
+              <td>${SR.esc(r.status)}</td>
+              <td>${SR.esc(r.address)}</td>
+              <td class="whitespace-nowrap">${[r._dup, ...r._warns].filter(Boolean).map(w => `<span class="sr-chip sr-chip-warn">${SR.esc(w)}</span>`).join(' ')}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+          ${records.length > 300 ? `<p class="sr-help p-3">只顯示前 300 筆，匯入時全部都會處理。</p>` : ''}
+        </div>
+        <h2 class="text-[1.15rem] font-extrabold">3. 確認匯入</h2>
+        <button type="button" id="importBtn" class="sr-btn sr-btn-primary w-full" style="min-height:62px" ${total && access.isAdmin ? '' : 'disabled'}>確認匯入 ${total} 人</button>
+        <p id="importStatus" class="sr-help" role="status" aria-live="polite"></p>`;
+    }
+    $('previewPanel').addEventListener('change', e => {
+      if (e.target.id === 'extraNote') analyze();
+      else if (e.target.id === 'skipDup') renderPreview();
+    });
+
+    $('previewPanel').addEventListener('click', async e => {
+      if (e.target.id !== 'importBtn' || !access.isAdmin || !plan) return;
+      const skipDup = $('skipDup').checked;
+      const list = plan.records.filter(r => !(skipDup && r._dup));
+      if (!confirm(`確定匯入 ${list.length} 人嗎？`)) return;
+      const btn = e.target, status = $('importStatus');
+      btn.disabled = true;
+      try {
+        // 先建立缺少的小組與狀態選項
+        const created = {};
+        if (plan.newGroups.length) {
+          const batch = window.db.batch();
+          plan.newGroups.forEach((name, i) => {
+            const ref = window.db.collection('groups').doc();
+            created[name] = ref.id;
+            batch.set(ref, { name, order: groups.length + i, active: true, ...SR.stamp() });
+          });
+          await batch.commit();
+        }
+        if (plan.newStatuses.length) {
+          await window.db.collection('options').doc('lists').set({ ...options, statuses: [...options.statuses, ...plan.newStatuses], ...SR.stamp() });
+        }
+        let done = 0;
+        for (let i = 0; i < list.length; i += 400) {
+          const batch = window.db.batch();
+          list.slice(i, i + 400).forEach(r => {
+            const { _newGroup, _dup, _warns, _from, ...data } = r;
+            if (_newGroup) data.groupId = created[_newGroup] || '';
+            batch.set(window.db.collection('persons').doc(), { ...data, createdAt: SR.serverTime(), ...SR.stamp() });
+          });
+          await batch.commit();
+          done = Math.min(list.length, i + 400);
+          status.textContent = `已匯入 ${done} / ${list.length} 人…`;
+        }
+        status.innerHTML = `✅ 完成！已匯入 ${done} 人。<a href="members.html" class="text-teal-300 font-bold underline">打開通訊錄查看</a>`;
+        SR.toast(`匯入完成：${done} 人`);
+        sheets = []; plan = null;
+        $('sheetPanel').classList.add('hidden');
+        $('fileInput').value = '';
+        btn.remove();
+      } catch (err) {
+        btn.disabled = false;
+        status.textContent = '匯入中斷，部分資料可能已寫入。請先到通訊錄確認，再決定是否重新匯入（重複的人會被自動略過）。';
+        fail('匯入失敗', err);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

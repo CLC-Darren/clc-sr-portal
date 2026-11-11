@@ -69,6 +69,8 @@ if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode:
 function getCurrentPageType() {
   const path = window.location.pathname.toLowerCase().replace(/\/+$/, '').replace(/\.html$/, '');
   if (path.includes('admin-users')) return 'admin-users';
+  if (path.includes('members-admin')) return 'members-admin';
+  if (path.endsWith('/join')) return 'join';
   if (path.includes('members')) return 'members';
   if (path.includes('intakes')) return 'intakes';
   if (path.includes('groups')) return 'groups';
@@ -181,6 +183,9 @@ function renderHeaderComponent() {
               管理員已登入
             </div>
 
+            <a href="members-admin.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
+              📋 名單後台
+            </a>
             <a href="admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👤 權限管理
             </a>
