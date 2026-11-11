@@ -383,6 +383,18 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// 已安裝的 App（獨立視窗）內切到其他網域時，瀏覽器會強制顯示網址列；
+// 改用新視窗開啟，讓目標站以自己的 App 或一般分頁開啟，原 App 視窗保持乾淨。
+document.addEventListener('click', function(e) {
+  const link = e.target.closest && e.target.closest('#siteSwitcher a');
+  if (!link) return;
+  const standalone = (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  document.getElementById('siteSwitcher')?.classList.add('hidden');
+  if (!standalone) return; // 一般瀏覽器分頁：照常在同一分頁切換
+  e.preventDefault();
+  window.open(link.href, '_blank', 'noopener');
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   renderHeaderComponent();
   // 登入狀態若比 Header 渲染更早回來，渲染後重新套用一次（不再發出事件）。
