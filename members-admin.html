@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW" class="dark sr-compact">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
@@ -16,7 +16,7 @@
   <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{teal:'#007E8A',border:'rgba(255,255,255,0.1)'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/sr-ui.css?v=20261111">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111b">
   <style>
     .tab[aria-selected="true"] { background: #007E8A; color: #fff; border-color: #007E8A; }
     .mini-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
@@ -27,18 +27,18 @@
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
 
-  <main class="max-w-4xl mx-auto px-4 pt-5 pb-16">
-    <a href="members.html" class="text-[.95rem] font-bold text-teal-300">← 回通訊錄</a>
-    <h1 class="text-[1.7rem] font-extrabold mt-1 mb-4">📋 名單後台</h1>
+  <main class="max-w-3xl mx-auto px-4 py-7">
+    <a href="members.html" class="text-sm font-bold text-teal-300">← 回通訊錄</a>
+    <h1 class="text-xl font-extrabold mt-1 mb-4">📋 名單後台</h1>
 
     <section id="gateChecking" class="sr-card p-6 text-center" role="status">正在確認登入身分…</section>
     <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
-      <p class="text-[1.1rem] font-bold">請先用已授權的 Google 帳號登入。</p>
+      <p class="text-base font-bold">請先用已授權的 Google 帳號登入。</p>
       <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
     </section>
 
     <section id="app" class="hidden space-y-5">
-      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-[.95rem]">👁️ 目前是唯讀權限，可以查看設定，不能修改或匯入。</div>
+      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-sm">👁️ 目前是唯讀權限，可以查看設定，不能修改或匯入。</div>
 
       <div class="grid grid-cols-3 gap-2" role="tablist">
         <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="groups" aria-selected="true">👥 小組</button>
@@ -69,7 +69,7 @@
       <!-- 匯入 -->
       <section data-panel="import" class="hidden space-y-4">
         <div class="sr-card p-5 space-y-3">
-          <h2 class="text-[1.15rem] font-extrabold">匯入舊通訊錄</h2>
+          <h2 class="text-base font-extrabold">匯入舊通訊錄</h2>
           <ol class="sr-help list-decimal pl-5 space-y-1">
             <li>在 Google 試算表選「檔案 → 下載 → Microsoft Excel (.xlsx)」。</li>
             <li>在下面選擇檔案，勾選要匯入的工作表（姊妹、弟兄）。第一頁新朋友表單的回應不用勾。</li>
@@ -128,10 +128,10 @@
       const used = {};
       persons.forEach(p => { if (p.groupId) used[p.groupId] = (used[p.groupId] || 0) + 1; });
       $('groupList').innerHTML = groups.map((g, i) => `
-        <div class="sr-card p-3 flex flex-wrap items-center gap-2 ${g.active === false ? 'opacity-60' : ''}">
-          <div class="flex flex-col gap-1">
-            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-height:36px;padding:0 .7rem" data-move="${g.id}" data-dir="-1" aria-label="${SR.esc(g.name)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
-            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-height:36px;padding:0 .7rem" data-move="${g.id}" data-dir="1" aria-label="${SR.esc(g.name)} 往下"${i === groups.length - 1 ? ' disabled' : dis}>▼</button>
+        <div class="sr-card px-3 py-2 flex flex-wrap items-center gap-2 ${g.active === false ? 'opacity-60' : ''}">
+          <div class="flex gap-1">
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-width:32px;padding:0" data-move="${g.id}" data-dir="-1" aria-label="${SR.esc(g.name)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-width:32px;padding:0" data-move="${g.id}" data-dir="1" aria-label="${SR.esc(g.name)} 往下"${i === groups.length - 1 ? ' disabled' : dis}>▼</button>
           </div>
           <label class="flex-1 min-w-[10rem]"><span class="sr-only">小組名稱</span>
             <input class="sr-field" data-rename="${g.id}" value="${SR.esc(g.name)}" maxlength="30"${dis}></label>
@@ -199,11 +199,11 @@
       const dis = access.isAdmin ? '' : ' disabled';
       $('optionLists').innerHTML = Object.keys(SR.DEFAULT_OPTIONS).map(key => `
         <div class="sr-card p-4 space-y-3" data-list="${key}">
-          <h2 class="text-[1.15rem] font-extrabold">${SR.OPTION_LABELS[key]}</h2>
+          <h2 class="text-base font-extrabold">${SR.OPTION_LABELS[key]}</h2>
           <div class="space-y-2">
             ${options[key].map((v, i) => `
               <div class="flex items-center gap-2">
-                <span class="flex-1 font-bold px-3 py-2.5 rounded-xl bg-white/5">${SR.esc(v)}</span>
+                <span class="flex-1 font-bold px-3 py-1.5 rounded-lg bg-white/5 text-sm">${SR.esc(v)}</span>
                 <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-op="up" data-i="${i}" aria-label="${SR.esc(v)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
                 <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-op="down" data-i="${i}" aria-label="${SR.esc(v)} 往下"${i === options[key].length - 1 ? ' disabled' : dis}>▼</button>
                 <button type="button" class="sr-btn sr-btn-danger sr-btn-sm" data-op="del" data-i="${i}" aria-label="刪除 ${SR.esc(v)}"${dis}>✕</button>
@@ -297,11 +297,11 @@
 
     function renderSheets() {
       $('sheetPanel').classList.remove('hidden');
-      $('sheetPanel').innerHTML = `<h2 class="text-[1.15rem] font-extrabold">1. 選擇工作表</h2>` + sheets.map((s, si) => {
+      $('sheetPanel').innerHTML = `<h2 class="text-base font-extrabold">1. 選擇工作表</h2>` + sheets.map((s, si) => {
         const dataRows = s.headerRow >= 0 ? s.rows.length - s.headerRow - 1 : 0;
         return `<div class="sr-card p-4 space-y-3" data-si="${si}">
-          <label class="flex items-center gap-3 font-extrabold text-[1.05rem]">
-            <input type="checkbox" data-k="include" class="w-6 h-6 accent-[#007E8A]" ${s.include ? 'checked' : ''} ${s.headerRow < 0 ? 'disabled' : ''}>
+          <label class="flex items-center gap-3 font-extrabold text-[15px]">
+            <input type="checkbox" data-k="include" class="w-4 h-4 accent-[#007E8A]" ${s.include ? 'checked' : ''} ${s.headerRow < 0 ? 'disabled' : ''}>
             ${SR.esc(s.name)} <span class="sr-chip">${dataRows} 列</span>
             ${s.headerRow < 0 ? '<span class="sr-chip sr-chip-bad">找不到「姓名」欄</span>' : ''}
           </label>
@@ -312,10 +312,10 @@
               <option value="女"${s.gender === '女' ? ' selected' : ''}>全部是姊妹（女）</option>
               <option value="男"${s.gender === '男' ? ' selected' : ''}>全部是弟兄（男）</option>
             </select></label>
-          <details class="text-[.95rem]"><summary class="cursor-pointer font-bold text-teal-300 py-1">欄位對應（自動判斷，可修改）</summary>
+          <details class="text-sm"><summary class="cursor-pointer font-bold text-teal-300 py-1">欄位對應（自動判斷，可修改）</summary>
             <div class="grid sm:grid-cols-2 gap-2 mt-2">
               ${IMPORT_FIELDS.map(f => `<label class="flex items-center gap-2"><span class="w-20 shrink-0 font-bold">${fieldLabel(f)}</span>
-                <select class="sr-field" style="min-height:46px" data-k="map" data-f="${f}">
+                <select class="sr-field" data-k="map" data-f="${f}">
                   <option value="-1">（不匯入）</option>
                   ${s.headers.map((h, i) => h ? `<option value="${i}"${s.map[f] === i ? ' selected' : ''}>${colName(i)} 欄：${SR.esc(h)}</option>` : '').join('')}
                 </select></label>`).join('')}
@@ -416,7 +416,7 @@
       const extraNote = $('extraNote') ? $('extraNote').checked : true;
       const total = records.length - (skipDup ? dups : 0);
       p.innerHTML = `
-        <h2 class="text-[1.15rem] font-extrabold">2. 檢查預覽</h2>
+        <h2 class="text-base font-extrabold">2. 檢查預覽</h2>
         <div class="sr-card p-4 space-y-3">
           <div class="flex flex-wrap gap-2">
             <span class="sr-chip sr-chip-teal">讀到 ${records.length} 人</span>
@@ -426,11 +426,11 @@
             ${warned ? `<span class="sr-chip sr-chip-warn">需要注意 ${warned}</span>` : ''}
             ${plan.skippedEmpty ? `<span class="sr-chip">沒有姓名略過 ${plan.skippedEmpty} 列</span>` : ''}
           </div>
-          ${newGroups.length ? `<p class="text-[.95rem]">⚠️ 這些小組不在「小組」清單裡：<b>${newGroups.map(SR.esc).join('、')}</b></p>
-          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="autoGroup" class="w-6 h-6 accent-[#007E8A]" ${plan.autoGroup ? 'checked' : ''}> 匯入時自動新增這些小組（不勾：這些人先不分組，原本的小組寫進備註）</label>` : ''}
-          ${newStatuses.length ? `<p class="text-[.95rem]">⚠️ 這些狀態不在選項裡，會自動加入選項：<b>${newStatuses.map(SR.esc).join('、')}</b></p>` : ''}
-          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="skipDup" class="w-6 h-6 accent-[#007E8A]" ${skipDup ? 'checked' : ''}> 略過疑似重複的人（姓名＋手機相同）</label>
-          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="extraNote" class="w-6 h-6 accent-[#007E8A]" ${extraNote ? 'checked' : ''}> 其他沒有對應的欄位，存進「備註」</label>
+          ${newGroups.length ? `<p class="text-sm">⚠️ 這些小組不在「小組」清單裡：<b>${newGroups.map(SR.esc).join('、')}</b></p>
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="autoGroup" class="w-4 h-4 accent-[#007E8A]" ${plan.autoGroup ? 'checked' : ''}> 匯入時自動新增這些小組（不勾：這些人先不分組，原本的小組寫進備註）</label>` : ''}
+          ${newStatuses.length ? `<p class="text-sm">⚠️ 這些狀態不在選項裡，會自動加入選項：<b>${newStatuses.map(SR.esc).join('、')}</b></p>` : ''}
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="skipDup" class="w-4 h-4 accent-[#007E8A]" ${skipDup ? 'checked' : ''}> 略過疑似重複的人（姓名＋手機相同）</label>
+          <label class="flex items-center gap-3 font-bold"><input type="checkbox" id="extraNote" class="w-4 h-4 accent-[#007E8A]" ${extraNote ? 'checked' : ''}> 其他沒有對應的欄位，存進「備註」</label>
         </div>
         <div class="sr-card overflow-auto" style="max-height:60vh">
           <table class="mini-table">
@@ -450,8 +450,8 @@
           </table>
           ${records.length > 300 ? `<p class="sr-help p-3">只顯示前 300 筆，匯入時全部都會處理。</p>` : ''}
         </div>
-        <h2 class="text-[1.15rem] font-extrabold">3. 確認匯入</h2>
-        <button type="button" id="importBtn" class="sr-btn sr-btn-primary w-full" style="min-height:62px" ${total && access.isAdmin ? '' : 'disabled'}>確認匯入 ${total} 人</button>
+        <h2 class="text-base font-extrabold">3. 確認匯入</h2>
+        <button type="button" id="importBtn" class="sr-btn sr-btn-primary w-full" ${total && access.isAdmin ? '' : 'disabled'}>確認匯入 ${total} 人</button>
         <p id="importStatus" class="sr-help" role="status" aria-live="polite"></p>`;
     }
     $('previewPanel').addEventListener('change', e => {

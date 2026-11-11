@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW" class="dark sr-compact">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
@@ -15,7 +15,7 @@
   <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{teal:'#007E8A',border:'rgba(255,255,255,0.1)'}}}}};</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/sr-ui.css?v=20261111">
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111b">
 </head>
 <body class="min-h-screen bg-[#090A0F] text-slate-100">
   <header id="clc-header"></header>
@@ -23,8 +23,8 @@
   <main class="max-w-[1500px] mx-auto px-4 lg:px-6 pt-5 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div>
-        <a href="index.html" class="text-[.95rem] font-bold text-teal-300">← 返回首頁</a>
-        <h1 class="text-[1.7rem] font-extrabold mt-1">📖 組員通訊錄</h1>
+        <a href="index.html" class="text-sm font-bold text-teal-300">← 返回首頁</a>
+        <h1 class="text-xl font-extrabold mt-1">📖 組員通訊錄</h1>
       </div>
       <div id="topActions" class="hidden flex flex-wrap gap-2">
         <a href="members-admin.html" class="sr-btn sr-btn-ghost sr-btn-sm">📋 名單後台</a>
@@ -33,23 +33,23 @@
     </div>
 
     <!-- 權限檢查 -->
-    <section id="gateChecking" class="sr-card p-6 text-center text-[1.05rem]" role="status">正在確認登入身分…</section>
+    <section id="gateChecking" class="sr-card p-6 text-center text-[15px]" role="status">正在確認登入身分…</section>
     <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
       <div class="text-5xl" aria-hidden="true">🔐</div>
-      <p class="text-[1.1rem] font-bold">通訊錄含有個人資料，請先登入。</p>
+      <p class="text-base font-bold">通訊錄含有個人資料，請先登入。</p>
       <p class="sr-help">需使用已授權的 Google 帳號。如果還沒有權限，請聯絡管理員。</p>
       <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
     </section>
 
     <section id="app" class="hidden">
-      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 mb-4 font-bold text-[.95rem]">👁️ 目前是唯讀權限，可以查看，不能修改。</div>
+      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 mb-4 font-bold text-sm">👁️ 目前是唯讀權限，可以查看，不能修改。</div>
 
       <!-- 搜尋與篩選 -->
       <div class="flex flex-col lg:flex-row lg:items-center gap-3 mb-3">
         <label class="relative flex-1 min-w-0">
           <span class="sr-only">搜尋</span>
           <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true">🔍</span>
-          <input id="q" type="search" class="sr-field" style="padding-left:2.7rem" placeholder="搜尋姓名、電話或地址">
+          <input id="q" type="search" class="sr-field" style="padding-left:2.3rem" placeholder="搜尋姓名、電話或地址">
         </label>
         <div class="sr-seg self-start" role="group" aria-label="性別篩選" id="genderSeg">
           <button type="button" data-g="" aria-pressed="true">全部</button>
@@ -90,7 +90,7 @@
 
       <div id="empty" class="hidden sr-card p-8 text-center space-y-2">
         <div class="text-4xl" aria-hidden="true">🗂️</div>
-        <p id="emptyText" class="text-[1.05rem] font-bold"></p>
+        <p id="emptyText" class="text-[15px] font-bold"></p>
       </div>
     </section>
   </main>
@@ -99,7 +99,7 @@
   <div id="sheet" class="sr-sheet-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sr-sheet">
       <div class="sr-sheet-head">
-        <h2 id="sheetTitle" class="text-[1.3rem] font-extrabold truncate"></h2>
+        <h2 id="sheetTitle" class="text-lg font-extrabold truncate"></h2>
         <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-close aria-label="關閉">✕ 關閉</button>
       </div>
       <form id="sheetForm" class="sr-sheet-body space-y-4" novalidate></form>
@@ -263,13 +263,13 @@
         return `<article class="sr-card flex items-stretch overflow-hidden">
           <button type="button" class="flex-1 min-w-0 text-left p-4 space-y-1.5" data-open="${SR.esc(p.id)}">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-[1.3rem] font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
+              <span class="text-lg font-extrabold leading-tight">${SR.esc(p.name)}</span>${gChip}
               ${p.status ? `<span class="sr-chip sr-chip-teal">${SR.esc(p.status)}</span>` : ''}
             </div>
-            <div class="text-[.98rem] text-slate-300">${g ? SR.esc(g.name) : '未分組'}</div>
-            <div class="text-[1.05rem] font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
+            <div class="text-sm text-slate-300">${g ? SR.esc(g.name) : '未分組'}</div>
+            <div class="text-[15px] font-bold tracking-wide">${SR.esc(p.mobile || p.phone || '')}</div>
           </button>
-          ${tel ? `<a href="tel:${tel}" class="flex flex-col items-center justify-center w-20 shrink-0 bg-[#007E8A]/20 text-teal-200 font-extrabold border-l border-white/10" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-[.85rem] mt-1">撥打</span></a>` : ''}
+          ${tel ? `<a href="tel:${tel}" class="flex flex-col items-center justify-center w-20 shrink-0 bg-[#007E8A]/20 text-teal-200 font-extrabold border-l border-white/10" aria-label="撥電話給 ${SR.esc(p.name)}"><span class="text-2xl" aria-hidden="true">📞</span><span class="text-xs mt-1">撥打</span></a>` : ''}
         </article>`;
       }).join('');
     }

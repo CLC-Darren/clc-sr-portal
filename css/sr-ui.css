@@ -100,3 +100,28 @@ select.sr-cell option { background: #161924; }
 
 /* Tailwind 的 hidden 要能蓋過 .sr-btn 的 display */
 .sr-btn.hidden, .sr-choice.hidden { display: none; }
+
+/* ---------- 後台精簡版（與 YA 後台一致）----------
+   給同工用的頁面在 <html> 加上 sr-compact：字級與按鈕回到 YA 後台的大小。
+   給長輩看的前台（例如新朋友登記）不要加。 */
+html.sr-compact, html.sr-compact body { font-size: 15px; }
+.sr-compact .sr-card { border-radius: 14px; }
+.sr-compact .sr-label { font-size: 13px; margin-bottom: .3rem; }
+.sr-compact .sr-help { font-size: 12.5px; }
+.sr-compact .sr-error-text { font-size: 12.5px; }
+.sr-compact .sr-field { min-height: 40px; padding: .45rem .7rem; font-size: 14px; border-width: 1px; border-color: #334155; border-radius: 10px; background: #161924; }
+.sr-compact select.sr-field { padding-right: 2rem; background-position: right .6rem center; background-size: .9rem; }
+.sr-compact .sr-btn { min-height: 36px; padding: 0 .8rem; font-size: 13px; border-width: 1px; border-radius: 10px; }
+.sr-compact .sr-btn-sm { min-height: 32px; padding: 0 .6rem; font-size: 12px; border-radius: 9px; }
+.sr-compact .sr-choice { min-height: 40px; font-size: 14px; border-width: 1px; border-radius: 10px; }
+.sr-compact .sr-seg { padding: 3px; border-width: 1px; border-color: #334155; border-radius: 10px; background: #161924; }
+.sr-compact .sr-seg button { min-height: 32px; padding: 0 .85rem; font-size: 13px; border-radius: 7px; }
+.sr-compact .sr-chip { min-height: 22px; padding: 0 .5rem; font-size: 11.5px; }
+.sr-compact .sr-table { font-size: 13.5px; }
+.sr-compact .sr-table th { padding: .5rem .45rem; font-size: 12.5px; }
+.sr-compact .sr-cell { min-height: 34px; padding: .3rem .45rem; font-size: 13.5px; border-radius: 8px; }
+.sr-compact .sr-toast { padding: .6rem 1rem; font-size: 14px; border-radius: 10px; }
+.sr-compact .sr-sheet { max-width: 560px; }
+.sr-compact .sr-sheet-head { padding: 10px 14px; }
+.sr-compact .sr-sheet-body { padding: 14px; }
+.sr-compact .sr-sheet-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
