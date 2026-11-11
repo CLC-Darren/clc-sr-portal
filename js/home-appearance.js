@@ -224,7 +224,17 @@
       video.addEventListener('error', () => {
         if (version !== playbackVersion) return;
         hideBackground();
-        if (editing) statusText('無法播放此影片網址，請確認連結是否允許跨域或格式正確。', true);
+        const mediaError = video.error ? video.error.code : 'unknown';
+        console.error('[home-appearance] 影片播放失敗 code=' + mediaError + ' src=' + source);
+        if (editing) {
+          if (previewUrl && source === previewUrl) {
+            // 選取的檔案本身無法在此裝置解碼（常見於手機錄影的 HEVC/H.265、4K 或 HDR 影片）。
+            // 只提示、不阻擋：此裝置預覽不了，不代表其他裝置播不了。
+            statusText('此裝置無法預覽這支影片，仍可按「儲存套用」上傳。若上傳後其他裝置也播不出來，請轉成 H.264 的 MP4（建議 720p、30 秒內）。', true);
+          } else {
+            statusText('無法播放此影片網址，請確認連結是否允許跨域或格式正確。', true);
+          }
+        }
       });
       video.src = source;
       background.insertBefore(video, shade);
