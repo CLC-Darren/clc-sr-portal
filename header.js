@@ -29,11 +29,13 @@ window.ADMIN_WHITELIST = [
 ];
 
 // 站台切換（僅 Superuser）：Logo 單擊回首頁，雙擊開啟其他站台選單。
-// 新增站台時只要在 CLC_SITES 加一筆；YA 的 header.js 使用同一份清單，只把 CLC_SITE_KEY 改成 'ya'。
+// 三站（DX04、YA、SR）使用同一份 CLC_SITES，只有 CLC_SITE_KEY 不同；新增站台時三站都要加同一筆。
+// 連結一律指向 DX04 底下的網址（同一個網域），在同一個視窗內切換。
 window.CLC_SITE_KEY = 'sr';
 window.CLC_SITES = [
-  { key: 'ya', label: 'CLC YA', url: 'https://clc-ya-portal.pages.dev/' },
-  { key: 'sr', label: 'CLC SR', url: 'https://clc-sr-portal.pages.dev/' }
+  { key: 'dx04', label: 'CLC DX04', url: 'https://clc-dx04.pages.dev/' },
+  { key: 'ya', label: 'CLC YA', url: 'https://clc-dx04.pages.dev/ya/' },
+  { key: 'sr', label: 'CLC SR', url: 'https://clc-dx04.pages.dev/sr/' }
 ];
 
 // 將使用者輸入的文字放進 innerHTML 前必須先跳脫，避免被植入惡意程式碼。
@@ -439,18 +441,6 @@ document.addEventListener('click', function(e) {
   if (logoWrap && switcher && !logoWrap.contains(e.target)) {
     switcher.classList.add('hidden');
   }
-});
-
-// 已安裝的 App（獨立視窗）內切到其他網域時，瀏覽器會強制顯示網址列；
-// 改用新視窗開啟，讓目標站以自己的 App 或一般分頁開啟，原 App 視窗保持乾淨。
-document.addEventListener('click', function(e) {
-  const link = e.target.closest && e.target.closest('#siteSwitcher a');
-  if (!link) return;
-  const standalone = (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-  document.getElementById('siteSwitcher')?.classList.add('hidden');
-  if (!standalone) return; // 一般瀏覽器分頁：照常在同一分頁切換
-  e.preventDefault();
-  window.open(link.href, '_blank', 'noopener');
 });
 
 document.addEventListener('DOMContentLoaded', () => {
