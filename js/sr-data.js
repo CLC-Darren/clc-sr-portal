@@ -164,17 +164,23 @@
 
 
   // ---------- 身分與小組對象 ----------
-  // 篩選的「身分」：姊妹、弟兄看性別；全職同工、其他是另外標記的身分（不放在小組裡）。
-  SR.WHO = ['姊妹', '弟兄', '全職同工', '其他'];
+  // 上方「大分類」：姊妹小組、弟兄小組看所屬小組（小組沒設定對象時看性別）；
+  // 加樂同工（小組名稱含「同工」）、全職同工（身分）、未分組各自一類。
+  SR.WHO = ['姊妹小組', '弟兄小組', '加樂同工', '全職同工', '未分組'];
   SR.CATEGORIES = ['全職同工', '其他'];
-  SR.personWho = function (p) {
-    if (SR.CATEGORIES.includes(p.category)) return p.category;
-    return p.gender === '女' ? '姊妹' : p.gender === '男' ? '弟兄' : '其他';
+  SR.personWho = function (p, groupMap) {
+    if (p.category === '全職同工') return '全職同工';
+    const g = groupMap && groupMap[p.groupId];
+    if (!g) return '未分組';
+    if (/同工/.test(g.name)) return '加樂同工';
+    const gg = SR.groupGender(g) || p.gender;
+    return gg === '男' ? '弟兄小組' : gg === '女' ? '姊妹小組' : '未分組';
   };
   /** 小組的對象：'女' 姊妹小組、'男' 弟兄小組、'' 不限。沒設定時：培榮、文泉是弟兄小組，其他是姊妹小組。 */
   SR.groupGender = function (g) {
     if (!g) return '';
     if (g.gender === '女' || g.gender === '男' || g.gender === '') return g.gender;
+    if (/同工/.test(g.name)) return '';
     return /培榮|文泉/.test(g.name) ? '男' : '女';
   };
   /** 某個性別可以選的小組（加上目前已選的那一組，避免舊資料看不到）。 */
