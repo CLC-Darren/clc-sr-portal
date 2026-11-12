@@ -14,7 +14,7 @@
     const createdMs = p => (p.createdAt && typeof p.createdAt.toMillis === 'function') ? p.createdAt.toMillis() : 0;
     const fmtDate = ms => { if (!ms) return ''; const d = new Date(ms); return `${d.getFullYear() - 1911}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`; };
     let persons = [], groups = [], groupMap = {}, options = SR.DEFAULT_OPTIONS;
-    let access = { canView: false, isAdmin: false };
+    let access = { canView: false, isAdmin: false, isViewer: false, isLeader: false, isStaff: false, scopeGroups: [], leadDistricts: [] };
     let unsubs = [], loaded = false, slow = false, slowTimer = null;
     // 預設只看「聚會小組」，要看其他狀態再從表頭切換
     // 新朋友名單預設看全部、最新的在最上面
@@ -36,15 +36,47 @@
     placeGear();
 
     // ---------- 權限 ----------
+    // 管理員：全部可改。檢視者：全部只能看。牧區／小組長（檢視者也可兼任）：自己範圍的小組可看可改。
+    // 新朋友名單：管理員可改；檢視者、牧區／小組長都看得到全部，但不能改，
+    //             只能把「登記自己範圍小組」的新朋友加入通訊錄。
+    // 刪除只有管理員可以。
+    const inScope = gid => !!gid && access.scopeGroups.includes(gid);
+    const leadsDistrictOf = gid => { const g = groupMap[gid]; return !!(g && g.districtId && access.leadDistricts.includes(g.districtId)); };
+    const canEditRec = p => !!p && (access.isAdmin || (!IS_INTAKE && inScope(p.groupId)));
+    const canAdd = () => access.isAdmin || (!IS_INTAKE && access.scopeGroups.length > 0);
+    const canJoin = p => !!p && IS_INTAKE && !p.personId && (access.isAdmin || inScope(p.groupId));
+    // 只讀得到自己範圍的人（不是管理員、也不是檢視者）
+    const scopedOnly = () => !IS_INTAKE && !access.isStaff;
+    let scopeKey = '';
     SR.onAccess(a => {
       access = a;
       $('gateChecking').classList.add('hidden');
       $('gateLogin').classList.toggle('hidden', a.canView);
       $('app').classList.toggle('hidden', !a.canView);
-      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !a.isAdmin));
+      document.querySelectorAll('[data-new]').forEach(el => el.classList.toggle('hidden', !canAdd()));
+      // 範圍換了（例如管理員剛改了你負責的小組），重新讀資料
+      const key = [a.isAdmin, a.isStaff, a.scopeGroups.join(',')].join('|');
+      if (key !== scopeKey) { scopeKey = key; stop(); }
       if (a.canView) start(); else stop();
     });
     function stop() { unsubs.forEach(u => u && u()); unsubs = []; persons = []; loaded = false; }
+    // 牧區／小組長：每個小組各讀一次再合併（資料庫只允許讀自己範圍的小組）
+    function watchScoped(fail) {
+      const parts = {};
+      const ids = access.scopeGroups.slice();
+      const merge = () => {
+        persons = ids.flatMap(id => parts[id] || []);
+        loaded = ids.every(id => parts[id]);
+        if (loaded) slow = false;
+        render();
+      };
+      if (!ids.length) { loaded = true; render(); return; }
+      ids.forEach(id => unsubs.push(window.db.collection(COLL).where('groupId', '==', id).onSnapshot({ includeMetadataChanges: true }, snap => {
+        if (snap.metadata.fromCache && !snap.size && !parts[id]) return;
+        parts[id] = snap.docs.map(d => normalizeRec({ id: d.id, ...d.data() }));
+        merge();
+      }, fail)));
+    }
     function start() {
       if (unsubs.length) { render(); return; }
       const fail = err => { console.error(err); SR.toast('讀取資料失敗：' + (err.code || err.message), 'error'); };
@@ -52,6 +84,7 @@
       unsubs.push(SR.watchOptions(o => { options = o; fillSelects(); render(); }, fail));
       clearTimeout(slowTimer);
       slowTimer = setTimeout(() => { if (!loaded) { slow = true; render(); } }, 8000);
+      if (scopedOnly()) { watchScoped(fail); return; }
       // 只信任伺服器回來的結果：離線快取的「0 筆」不代表名單是空的。
       unsubs.push(window.db.collection(COLL).onSnapshot({ includeMetadataChanges: true }, snap => {
         if (snap.metadata.fromCache && !snap.size && !loaded) return;
@@ -73,16 +106,19 @@
     // ---------- 篩選 ----------
     // 依大分類決定可選的小組
     function groupsForWho() {
-      if (filter.who === '姊妹小組') return groups.filter(g => !/同工/.test(g.name) && SR.groupGender(g) === '女');
-      if (filter.who === '弟兄小組') return groups.filter(g => !/同工/.test(g.name) && SR.groupGender(g) === '男');
-      if (!filter.who) return groups;
-      return [];
+      let list;
+      if (filter.who === '姊妹小組') list = groups.filter(g => !/同工/.test(g.name) && SR.groupGender(g) === '女');
+      else if (filter.who === '弟兄小組') list = groups.filter(g => !/同工/.test(g.name) && SR.groupGender(g) === '男');
+      else if (!filter.who) list = groups;
+      else list = [];
+      // 牧區／小組長只看得到自己範圍的小組
+      return scopedOnly() ? list.filter(g => inScope(g.id)) : list;
     }
     function fillSelects() {
       const glist = groupsForWho();
-      if (filter.group !== 'all' && !(filter.group === '' ? !filter.who : glist.some(g => g.id === filter.group))) filter.group = 'all';
+      if (filter.group !== 'all' && !(filter.group === '' ? !filter.who && !scopedOnly() : glist.some(g => g.id === filter.group))) filter.group = 'all';
       document.querySelectorAll('[data-filter="group"]').forEach(s => {
-        s.innerHTML = `<option value="all">小組：全部</option>` + glist.map(g => `<option value="${g.id}">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</option>`).join('') + (filter.who ? '' : `<option value="">未分組</option>`);
+        s.innerHTML = `<option value="all">小組：全部</option>` + glist.map(g => `<option value="${g.id}">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</option>`).join('') + (filter.who || scopedOnly() ? '' : `<option value="">未分組</option>`);
         s.disabled = !glist.length;
         s.value = filter.group;
       });
@@ -131,7 +167,7 @@
       if (col === 'export') return [['pdf', '下載 PDF（A4 橫式，可列印）'], ['jpg', '下載 JPG 圖片']];
       if (col === 'group') {
         const list = groupsForWho();
-        return [['all', '所有小組'], null, ...list.map(g => [g.id, g.name]), ...(filter.who ? [] : [null, ['', '未分組']])];
+        return [['all', '所有小組'], null, ...list.map(g => [g.id, g.name]), ...(filter.who || scopedOnly() ? [] : [null, ['', '未分組']])];
       }
       return [['all', '所有狀態'], null, ...statusList().map(x => [x, x]), null, ['', EMPTY_STATUS]];
     }
@@ -230,7 +266,9 @@
       const line = `顯示 ${list.length} 人／共 ${persons.length} 人`;
       $('countLine').textContent = line;
       $('tableFoot').textContent = line + '・排序：' + (SORTS[filter.sort] || SORTS.name)[0];
-      const emptyText = persons.length ? '找不到符合條件的人。' : IS_INTAKE ? '還沒有新朋友留名單。' : (access.isAdmin ? '名單還是空的。可以按「＋ 新增」，或從齒輪 → 名單後台匯入。' : '名單還是空的。');
+      const emptyText = persons.length ? '找不到符合條件的人。' : IS_INTAKE ? '還沒有新朋友留名單。'
+        : scopedOnly() && !access.scopeGroups.length ? '你還沒有被指派負責的小組，請聯絡管理員。'
+        : (access.isAdmin ? '名單還是空的。可以按「＋ 新增」，或從齒輪 → 名單後台匯入。' : '名單還是空的。');
       $('tableEmpty').classList.toggle('hidden', list.length > 0); $('tableEmpty').textContent = emptyText;
       $('cardsEmpty').classList.toggle('hidden', list.length > 0); $('cardsEmpty').textContent = emptyText;
       renderTable(list);
@@ -310,7 +348,7 @@
           ${sms ? `<a class="m-act" href="sms:${sms}" style="background:#2C2C2E;color:#fff">${ICON_MSG}簡訊</a>` : ''}
           ${p.address ? `<a class="m-act" href="https://maps.apple.com/?q=${encodeURIComponent(p.address)}" target="_blank" rel="noopener" style="background:#2C2C2E;color:#fff">${ICON_MAP}地圖</a>` : ''}
         </div>
-        ${IS_INTAKE && access.isAdmin && !p.personId ? `<button type="button" class="m-btn" data-join-sheet="${SR.esc(p.id)}" style="width:100%;margin-bottom:14px;background:#F2B33D;color:#3B2A10;min-height:50px;font-size:17px">＋ 加入組員通訊錄</button>` : ''}
+        ${canJoin(p) ? `<button type="button" class="m-btn" data-join-sheet="${SR.esc(p.id)}" style="width:100%;margin-bottom:14px;background:#F2B33D;color:#3B2A10;min-height:50px;font-size:17px">＋ 加入組員通訊錄</button>` : ''}
         <div style="display:flex;flex-direction:column;gap:14px">
           ${g1 ? `<div class="m-group">${g1}</div>` : ''}
           ${g2 ? `<div class="m-group">${g2}</div>` : ''}
@@ -334,12 +372,20 @@
 
     // ---------- 編輯表單（檢閱器與手機共用） ----------
     function startEditor(p, where) {
-      editor = { id: p ? p.id : null, where, dirty: false, photo: null, removePhoto: false,
-        draft: p ? { ...p } : { gender: filter.who === '姊妹小組' ? '女' : filter.who === '弟兄小組' ? '男' : '', category: filter.who === '全職同工' ? '全職同工' : '', groupId: filter.group !== 'all' ? filter.group : '', status: '', memberNo: '' } };
+      const defGroup = filter.group !== 'all' ? filter.group : (!access.isAdmin && access.scopeGroups.length === 1 ? access.scopeGroups[0] : '');
+      editor = { id: p ? p.id : null, where, dirty: false, photo: null, removePhoto: false, origGroupId: p ? (p.groupId || '') : '',
+        draft: p ? { ...p } : { gender: filter.who === '姊妹小組' ? '女' : filter.who === '弟兄小組' ? '男' : '', category: filter.who === '全職同工' ? '全職同工' : '', groupId: defGroup, status: '', memberNo: '' } };
+    }
+    // 牧區／小組長能選的小組：自己範圍內的；區長可以把自己牧區的組員改到任何小組。
+    function groupChoiceOk(g, selected) {
+      if (access.isAdmin || g.id === selected) return true;
+      if (inScope(g.id)) return true;
+      return !!(editor && editor.id && leadsDistrictOf(editor.origGroupId));
     }
     function groupOptions(gender, selected) {
-      let html = `<option value="">未分組</option>`;
-      SR.groupsFor(groups, gender, selected).forEach(g => { html += `<option value="${g.id}"${g.id === selected ? ' selected' : ''}>${SR.esc(g.name)}</option>`; });
+      const allowNone = access.isAdmin || IS_INTAKE || selected === '' || !!(editor && editor.id && leadsDistrictOf(editor.origGroupId));
+      let html = allowNone ? `<option value="">未分組</option>` : '';
+      SR.groupsFor(groups, gender, selected).filter(g => groupChoiceOk(g, selected)).forEach(g => { html += `<option value="${g.id}"${g.id === selected ? ' selected' : ''}>${SR.esc(g.name)}</option>`; });
       if (selected && !groupMap[selected]) html += `<option value="${SR.esc(selected)}" selected>（已刪除的小組）</option>`;
       return html;
     }
@@ -370,7 +416,7 @@
         ${!isNew && (SR.phoneDigits(d.mobile) || SR.phoneDigits(d.phone)) ? `<a class="m-btn m-btn-teal" href="tel:${SR.phoneDigits(d.mobile) || SR.phoneDigits(d.phone)}">${ICON_PHONE.replace(/22/g, '18')} 撥打 ${SR.esc(d.mobile || d.phone)}</a>` : ''}
         ${IS_INTAKE && !isNew ? (d.personId
           ? `<a class="m-btn" href="members.html" style="background:#DFF7E5;color:#1B6B34">✓ 已在組員通訊錄裡</a>`
-          : `<button type="button" class="m-btn" data-join style="background:#F2B33D;color:#3B2A10;min-height:48px;font-size:16px">＋ 加入組員通訊錄</button>`) : ''}
+          : canJoin(d) ? `<button type="button" class="m-btn" data-join style="background:#F2B33D;color:#3B2A10;min-height:48px;font-size:16px">＋ 加入組員通訊錄</button>` : '') : ''}
         <div class="m-group">
           ${field('name', '姓名＊', text('name', d.name, ' maxlength="30" autocomplete="off"'))}
           <div class="m-row"><span class="m-lab">性別</span><div class="m-lseg" data-lseg>
@@ -390,7 +436,7 @@
             <label style="display:flex;flex-direction:column;gap:2px"><span class="m-lab">婚姻</span>${sel('marital', options.marital, d.marital || '', '—')}</label>
             <label style="display:flex;flex-direction:column;gap:2px"><span class="m-lab">居住</span>${sel('living', options.living, d.living || '', '—')}</label>
           </div>
-          ${IS_INTAKE ? '' : field('memberNo', '編號', text('memberNo', d.memberNo, ' maxlength="20" placeholder="' + (isNew ? '留白會自動編號' : '') + '"'), '點名表的序號，弟兄前面有 *。不顯示在列表，可搜尋。')}
+          ${IS_INTAKE ? '' : field('memberNo', '編號', text('memberNo', d.memberNo, ' maxlength="20" placeholder="' + (isNew ? (access.isAdmin ? '留白會自動編號' : '留白由管理員補上') : '') + '"'), '點名表的序號，弟兄前面有 *。不顯示在列表，可搜尋。')}
         </div>
         ${IS_INTAKE ? `<div class="m-group">
           ${field('refName', '介紹人', text('refName', d.refName, ' maxlength="30"'))}
@@ -406,7 +452,7 @@
           <button type="button" class="m-btn m-btn-white" style="flex:1" data-cancel>取消</button>
           <button type="submit" class="m-btn m-btn-teal" style="flex:2" id="saveBtn">儲存</button>
         </div>
-        ${!isNew ? `<button type="button" class="m-btn m-btn-red" data-delete>從名單刪除</button>
+        ${!isNew && access.isAdmin ? `<button type="button" class="m-btn m-btn-red" data-delete>從名單刪除</button>
           <p style="font-size:12px;color:#6E6E73;text-align:center;margin-top:-8px">${IS_INTAKE ? '刪除只會刪掉這筆留名單，不會動到通訊錄。' : '只是暫時不來聚會的話，改「聚會狀態」就好，不要刪除。'}</p>` : ''}
       </form>`;
     }
@@ -420,7 +466,7 @@
       box.classList.toggle('hidden', !open);
       if (!open) return;
       if (editor && editor.where === 'inspector') { box.innerHTML = formHtml(); return; }
-      if (access.isAdmin) { startEditor(p, 'inspector'); box.innerHTML = formHtml(); }
+      if (canEditRec(p)) { startEditor(p, 'inspector'); box.innerHTML = formHtml(); }
       else { box.innerHTML = CLOSE_BTN + `<div style="background:#1C1C1E;border-radius:14px;padding:12px">${detailHtml(p)}</div>`; }
       loadBigPhoto(p);
     }
@@ -470,7 +516,7 @@
           if (where === 'sheet') { const p = persons.find(x => x.id === sheetId); p ? showSheetDetail(p) : closeSheet(); }
           else { if (!persons.some(x => x.id === selectedId)) selectedId = null; renderInspector(); }
         }
-        if (e.target.closest('[data-delete]')) deletePerson();
+        if (e.target.closest('[data-delete]') && access.isAdmin) deletePerson();
         if (e.target.closest('[data-join]')) joinMembers();
       });
       root.addEventListener('submit', e => { e.preventDefault(); save(); });
@@ -498,7 +544,9 @@
     }
 
     async function save() {
-      if (!access.isAdmin || !editor) return;
+      if (!editor) return;
+      const orig = editor.id ? persons.find(x => x.id === editor.id) : null;
+      if (editor.id ? !canEditRec(orig) : !canAdd()) return;
       readForm();
       const data = {};
       const keys = IS_INTAKE
@@ -510,12 +558,17 @@
         data[key] = r.value;
       }
       data.gender = editor.draft.gender || '';
+      if (!access.isAdmin && !IS_INTAKE) {
+        // 資料庫只接受：新增到自己範圍的小組；改到範圍外只限該牧區區長
+        if (!editor.id && !inScope(data.groupId)) { SR.toast('請選擇你負責的小組', 'error'); return; }
+        if (editor.id && data.groupId !== editor.origGroupId && !inScope(data.groupId) && !leadsDistrictOf(editor.origGroupId)) { SR.toast('只有區長可以把組員移到別的牧區', 'error'); return; }
+      }
       if (IS_INTAKE) {
         const split = v => String(Array.isArray(v) ? v.join('、') : v || '').split(/[、,，\n]/).map(x => x.trim()).filter(Boolean).slice(0, 10);
         data.faith = split(editor.draft.faith); data.intent = split(editor.draft.intent);
         data.refPhone = SR.formatPhone(data.refPhone);
         data.groupName = groupMap[data.groupId] ? groupMap[data.groupId].name : '';
-      } else if (!editor.id && !data.memberNo) data.memberNo = SR.nextMemberNo(persons, data.gender);
+      } else if (!editor.id && !data.memberNo && access.isAdmin) data.memberNo = SR.nextMemberNo(persons, data.gender);   // 小組長看不到全部名單，編號留給管理員補
       if (editor.photo) data.photoThumb = editor.photo.thumb;
       else if (editor.removePhoto) data.photoThumb = firebase.firestore.FieldValue.delete();
       const btn = formRoot().querySelector('#saveBtn');
@@ -539,6 +592,7 @@
     }
 
     async function deletePerson() {
+      if (!access.isAdmin) return;
       const p = persons.find(x => x.id === editor.id);
       if (!p || !confirm(`確定要把「${p.name}」${IS_INTAKE ? '這筆留名單刪除' : '從名單刪除'}嗎？\n刪除後無法復原。`)) return;
       try {
@@ -552,12 +606,15 @@
 
     // ---------- 新朋友 → 加入組員通訊錄 ----------
     async function joinMembers() {
-      if (!IS_INTAKE || !access.isAdmin || !editor || !editor.id) return;
+      if (!IS_INTAKE || !editor || !editor.id) return;
       if (editor.dirty) { SR.toast('請先按「儲存」，再加入通訊錄', 'error'); return; }
       const p = persons.find(x => x.id === editor.id);
-      if (!p || p.personId) return;
+      if (!p || !canJoin(p)) return;
       try {
-        const members = (await window.db.collection('persons').get()).docs.map(d => ({ id: d.id, ...d.data() }));
+        // 管理員比對全部組員；牧區／小組長只讀得到自己範圍的小組
+        const snaps = access.isAdmin ? [await window.db.collection('persons').get()]
+          : await Promise.all(access.scopeGroups.map(id => window.db.collection('persons').where('groupId', '==', id).get()));
+        const members = snaps.flatMap(s => s.docs.map(d => ({ id: d.id, ...d.data() })));
         const same = members.find(m => SR.dupKey(m) === SR.dupKey(p)) || members.find(m => m.name === p.name && SR.phoneDigits(m.mobile) && SR.phoneDigits(m.mobile) === SR.phoneDigits(p.mobile));
         if (same && !confirm(`通訊錄裡好像已經有「${same.name}」了，還是要再加一筆嗎？`)) return;
         if (!same && !confirm(`把「${p.name}」加入組員通訊錄？`)) return;
@@ -569,7 +626,7 @@
           name: p.name, gender: p.gender || '', birthday: p.birthday || '', mobile: p.mobile || '', phone: p.phone || '',
           address: (p.address || '').slice(0, 200), marital: p.marital || '', living: p.living || '', groupId: p.groupId || '',
           status: p.status === '加入小組' ? '聚會小組' : '', note: lines.join('\n').slice(0, 2000),
-          memberNo: SR.nextMemberNo(members, p.gender), source: 'intake', createdAt: SR.serverTime(), ...SR.stamp()
+          memberNo: access.isAdmin ? SR.nextMemberNo(members, p.gender) : '', source: 'intake', createdAt: SR.serverTime(), ...SR.stamp()
         };
         if (p.photoThumb) data.photoThumb = p.photoThumb;
         const pref = window.db.collection('persons').doc();
@@ -582,7 +639,7 @@
           if (ph && ph.exists && ph.data().data) await window.db.collection('personPhotos').doc(pref.id).set({ data: ph.data().data, ...SR.stamp() }).catch(() => {});
         }
         p.personId = pref.id;   // 先在畫面上更新，不用等資料庫回傳
-        SR.toast(`已加入通訊錄：${p.name}（編號 ${data.memberNo}）`);
+        SR.toast(data.memberNo ? `已加入通訊錄：${p.name}（編號 ${data.memberNo}）` : `已加入通訊錄：${p.name}（編號由管理員補上）`);
         editor = null;
         render();
         if (!$('sheet').classList.contains('hidden')) showSheetDetail({ ...p, personId: pref.id }); else renderInspector();
@@ -591,7 +648,7 @@
 
     // 新增
     document.addEventListener('click', e => {
-      if (!e.target.closest('[data-new]') || !access.isAdmin) return;
+      if (!e.target.closest('[data-new]') || !canAdd()) return;
       if (isDesktop()) {
         if (editor && editor.dirty && !confirm('剛剛的修改還沒儲存，要放棄嗎？')) return;
         selectedId = null;
@@ -619,7 +676,7 @@
       if (lastFocus && lastFocus.isConnected) lastFocus.focus();
     }
     function showSheetDetail(p) {
-      $('sheetEdit').classList.toggle('hidden', !access.isAdmin);
+      $('sheetEdit').classList.toggle('hidden', !canEditRec(p));
       $('sheetBody').innerHTML = detailHtml(p);
       $('sheet').scrollTop = 0;
       loadBigPhoto(p);
@@ -634,7 +691,7 @@
     });
     $('sheetEdit').addEventListener('click', () => {
       const p = persons.find(x => x.id === sheetId);
-      if (!p) return;
+      if (!p || !canEditRec(p)) return;
       startEditor(p, 'sheet'); $('sheetBody').innerHTML = formHtml(); $('sheetEdit').classList.add('hidden'); $('sheet').scrollTop = 0;
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sheet').classList.contains('hidden') && !(editor && editor.dirty)) closeSheet(); });

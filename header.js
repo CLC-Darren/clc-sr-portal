@@ -12,6 +12,8 @@
  *  - Superuser：ADMIN_WHITELIST 內的固定初始管理員（不可停用／刪除）
  *  - admin：Firestore admin_users 內啟用中的管理員（可編輯）
  *  - viewer：Firestore admin_users 內啟用中的檢視者（唯讀）
+ *  - leader：牧區／小組長，只看、只改自己範圍內的小組（leadDistricts／leadGroups → scopeGroups）
+ *  身分可疊加：檢視者兼區長＝全站可看、自己的牧區可改。
  * 尚未串接審核功能；notifyReview 欄位先保留供日後使用。
  */
 
@@ -72,6 +74,9 @@ window.currentAdminRole = "";
 window.isSuperuser = false;
 window.isViewer = false;
 window.canViewAdmin = false;
+// 牧區／小組長範圍（檢視者也可能兼任）
+window.isLeader = false;          // 有任何可以編輯的小組範圍，或身分是牧區／小組長
+window.leaderScope = { groups: [], districts: [], scopeGroups: [] };
 
 // 在獨立 PWA 視窗內避免視窗標題顯示兩次。
 if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) {
@@ -196,7 +201,7 @@ function renderHeaderComponent() {
               管理員已登入
             </div>
 
-            <a href="admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
+            <a id="adminUsersLink" href="admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👤 權限管理
             </a>
 
@@ -226,7 +231,8 @@ window.CLC_PAGE_MENUS = {
   members: [
     { page: 'members', href: 'members.html', label: '📖 組員通訊錄' },
     { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單' },
-    { page: 'members-admin', href: 'members-admin.html', label: '📋 名單後台' }
+    { page: 'groups', href: 'groups.html', label: '🗺️ 牧區與小組' },
+    { page: 'members-admin', href: 'members-admin.html', label: '📋 名單後台', staff: true }
   ],
   newfriends: [
     { page: 'join', href: 'join.html', label: '📝 新朋友留名單（表單）' },
@@ -236,9 +242,15 @@ window.CLC_PAGE_MENUS = {
 };
 function renderPageMenu() {
   const gear = document.getElementById('pageMenuGear');
-  if (!gear || document.getElementById('pageMenuDropdown')) return;
-  const items = window.CLC_PAGE_MENUS[gear.dataset.menu] || [];
+  if (!gear) return;
+  // staff：只有管理員、檢視者看得到（牧區／小組長看不到）
+  const staff = window.isAdmin || window.isViewer;
+  const items = (window.CLC_PAGE_MENUS[gear.dataset.menu] || []).filter(i => !i.staff || staff);
   const page = getCurrentPageType();
+  const link = 'block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition';
+  const html = items.map(i => `<a href="${i.href}" class="${link}${i.page === page ? ' bg-slate-100 dark:bg-white/5' : ''}"${i.page === page ? ' aria-current="page"' : ''}>${i.label}</a>`).join('');
+  const existing = document.getElementById('pageMenuDropdown');
+  if (existing) { existing.innerHTML = html; return; }
   gear.parentElement.classList.add('relative');
   gear.setAttribute('aria-haspopup', 'true');
   gear.setAttribute('aria-expanded', 'false');
@@ -247,8 +259,7 @@ function renderPageMenu() {
   nav.id = 'pageMenuDropdown';
   nav.setAttribute('aria-label', '頁面選單');
   nav.className = 'hidden absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#161924] rounded-xl shadow-2xl border border-slate-200 dark:border-brand-border py-2 z-50 text-left';
-  const link = 'block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition';
-  nav.innerHTML = items.map(i => `<a href="${i.href}" class="${link}${i.page === page ? ' bg-slate-100 dark:bg-white/5' : ''}"${i.page === page ? ' aria-current="page"' : ''}>${i.label}</a>`).join('');
+  nav.innerHTML = html;
   gear.insertAdjacentElement('afterend', nav);
 }
 function setPageMenuOpen(open) {
@@ -268,6 +279,7 @@ window.togglePageMenu = async function () {
     await triggerAdminLogin();
     if (!window.canViewAdmin) return;
   }
+  renderPageMenu();
   setPageMenuOpen(menu.classList.contains('hidden'));
 };
 document.addEventListener('click', e => {
@@ -277,16 +289,30 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') setPageMenuOpen(false); });
 
-function applyAdminState(active, email, notify = true, viewer = false) {
+// 從 admin_users 文件取出牧區／小組長範圍
+function clcLeadInfo(data) {
+  const list = v => Array.isArray(v) ? v.filter(x => typeof x === 'string' && x) : [];
+  return { role: data && data.role, groups: list(data && data.leadGroups), districts: list(data && data.leadDistricts), scopeGroups: list(data && data.scopeGroups) };
+}
+function clcLeadLabel(lead) {
+  if (!lead) return '';
+  return [lead.districts.length ? '區長' : '', lead.groups.length ? '小組長' : ''].filter(Boolean).join('・') || (lead.role === 'leader' ? '牧區／小組長（尚未指派）' : '');
+}
+
+function applyAdminState(active, email, notify = true, viewer = false, lead = null) {
   // active = 已授權可進入後台；viewer = 唯讀檢視者（可看後台、不可編輯）
+  // lead = 牧區／小組長範圍（role 為 leader，或檢視者兼任）
+  const leaderRole = !!(active && lead && lead.role === 'leader');
   const viewerOnly = !!(active && viewer);
-  window.isAdmin = !!active && !viewerOnly;
+  window.isAdmin = !!active && !viewerOnly && !leaderRole;
   window.isViewer = viewerOnly;
   window.canViewAdmin = !!active;
+  window.isLeader = !!active && !window.isAdmin && !!lead && (leaderRole || lead.scopeGroups.length > 0);
+  window.leaderScope = window.isLeader ? lead : { groups: [], districts: [], scopeGroups: [] };
   window.currentAdminEmail = email;
-  window.__clcLastAdminState = { active: !!active, email, viewer: viewerOnly };
+  window.__clcLastAdminState = { active: !!active, email, viewer: viewerOnly, lead: active ? lead : null };
   const superuser = window.isAdmin && window.ADMIN_WHITELIST.includes(String(email || '').toLowerCase());
-  window.currentAdminRole = active ? (viewerOnly ? 'viewer' : (superuser ? 'superuser' : 'admin')) : '';
+  window.currentAdminRole = active ? (leaderRole ? 'leader' : viewerOnly ? 'viewer' : (superuser ? 'superuser' : 'admin')) : '';
   window.isSuperuser = superuser;
   if (!active) setPageMenuOpen(false);
   if (!superuser) {
@@ -300,9 +326,10 @@ function applyAdminState(active, email, notify = true, viewer = false) {
   if (icon && dot) {
     if (active) {
       localStorage.setItem('clc_sr_admin_email', email);
-      icon.innerText = viewerOnly ? "👁️" : "👑";
+      icon.innerText = leaderRole ? "👥" : viewerOnly ? "👁️" : "👑";
       dot.classList.remove('hidden');
-      if (emailDisp) emailDisp.innerText = email + (viewerOnly ? ' · Viewer（唯讀）' : (superuser ? ' · Superuser' : ' · Admin'));
+      const leadText = window.isLeader ? clcLeadLabel(lead) : '';
+      if (emailDisp) emailDisp.innerText = email + (leaderRole ? ' · ' + leadText : viewerOnly ? ' · Viewer（唯讀）' + (leadText ? '・' + leadText : '') : (superuser ? ' · Superuser' : ' · Admin'));
     } else {
       localStorage.removeItem('clc_sr_admin_email');
       icon.innerText = "🔐";
@@ -312,9 +339,14 @@ function applyAdminState(active, email, notify = true, viewer = false) {
     }
   }
 
+  // 權限管理只給管理員、檢視者（牧區／小組長看不到名單）
+  const usersLink = document.getElementById('adminUsersLink');
+  if (usersLink) usersLink.classList.toggle('hidden', !(window.isAdmin || window.isViewer));
+  if (document.getElementById('pageMenuDropdown')) renderPageMenu();
+
   if (notify) {
     window.dispatchEvent(new CustomEvent('clc-admin-changed', {
-      detail: { isAdmin: window.isAdmin, isViewer: window.isViewer, canView: !!active, email: email }
+      detail: { isAdmin: window.isAdmin, isViewer: window.isViewer, isLeader: window.isLeader, canView: !!active, email: email }
     }));
   }
 }
@@ -323,7 +355,7 @@ function applyAdminState(active, email, notify = true, viewer = false) {
 window.clcIsAuthorizedAdmin = async function(user) {
   return !!(await window.clcGetAdminRole(user));
 };
-// 回傳 'admin'（可編輯）、'viewer'（唯讀）或 null（無權限）。
+// 回傳 'admin'（可編輯）、'viewer'（唯讀）、'leader'（牧區／小組長）或 null（無權限）。
 window.clcGetAdminRole = async function(user) {
   if (!user || !user.email || !user.emailVerified) return null;
   const email = user.email.toLowerCase().trim();
@@ -333,7 +365,7 @@ window.clcGetAdminRole = async function(user) {
     if (!snap.exists) return null;
     const d = snap.data();
     if (d.active === false || (d.email && d.email !== email)) return null;
-    return (d.role === 'admin' || d.role === 'viewer') ? d.role : null;
+    return ['admin', 'viewer', 'leader'].includes(d.role) ? d.role : null;
   } catch(err) { console.warn('管理員權限讀取失敗', err); return null; }
 };
 
@@ -358,8 +390,8 @@ if (window.auth) window.auth.onAuthStateChanged(user => {
   clcAdminPermissionUnsubscribe = window.db.collection('admin_users').doc(email).onSnapshot(snap => {
     if (window.auth.currentUser?.uid !== user.uid) return;
     const data = snap.exists ? snap.data() : null;
-    const allowed = !!(data && (data.role === 'admin' || data.role === 'viewer') && data.active !== false && (!data.email || data.email === email));
-    applyAdminState(allowed, allowed ? email : '', true, allowed && data.role === 'viewer');
+    const allowed = !!(data && ['admin', 'viewer', 'leader'].includes(data.role) && data.active !== false && (!data.email || data.email === email));
+    applyAdminState(allowed, allowed ? email : '', true, allowed && data.role === 'viewer', allowed && data.role !== 'admin' ? clcLeadInfo(data) : null);
   }, err => {
     console.warn('無法驗證管理員權限：', err);
     if (window.auth.currentUser?.uid === user.uid) applyAdminState(false, '');
@@ -392,7 +424,7 @@ function handleLogoClick(e) {
 }
 
 function toggleAdminDropdown() {
-  if (window.isAdmin || window.isViewer) {
+  if (window.canViewAdmin) {
     const dropdown = document.getElementById('adminDropdown');
     if (dropdown) dropdown.classList.toggle('hidden');
   } else {
@@ -412,13 +444,17 @@ async function triggerAdminLogin() {
 
     const loginRole = await window.clcGetAdminRole(result.user);
     if (loginRole) {
-      applyAdminState(true, email, true, loginRole === 'viewer');
+      // 範圍（牧區／小組）由 onSnapshot 即時帶入；這裡先開放進入。
+      const last = window.__clcLastAdminState;
+      const lead = (last && last.email === email && last.lead) || (loginRole === 'leader' ? { role: 'leader', groups: [], districts: [], scopeGroups: [] } : null);
+      applyAdminState(true, email, true, loginRole === 'viewer', lead);
       await result.user.getIdToken(true);
-      alert(loginRole === 'viewer' ? `歡迎，${result.user.displayName || email}！目前為唯讀檢視權限。` : `歡迎回來，管理員 ${result.user.displayName || email}！`);
+      const who = result.user.displayName || email;
+      alert(loginRole === 'leader' ? `歡迎，${who}！可以查看與編輯你負責的小組。` : loginRole === 'viewer' ? `歡迎，${who}！目前為唯讀檢視權限。` : `歡迎回來，管理員 ${who}！`);
     } else {
       await window.auth.signOut();
       applyAdminState(false, "");
-      alert(`帳號【${email}】非授權管理員！`);
+      alert(`帳號【${email}】還沒有權限，請聯絡管理員。`);
     }
   } catch (error) {
     console.error("登入錯誤:", error);
@@ -461,5 +497,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHeaderComponent();
   // 登入狀態若比 Header 渲染更早回來，渲染後重新套用一次（不再發出事件）。
   const last = window.__clcLastAdminState;
-  if (last && last.active) applyAdminState(true, last.email, false, last.viewer);
+  if (last && last.active) applyAdminState(true, last.email, false, last.viewer, last.lead);
 });

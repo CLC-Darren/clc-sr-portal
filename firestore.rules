@@ -1,5 +1,9 @@
 rules_version = '2';
-// CLC SR｜Firestore 規則（權限模型與 YA 一致：Superuser / Admin / Viewer）
+// CLC SR｜Firestore 規則（Superuser / Admin / Viewer 與 YA 一致；SR 另有牧區長、小組長）
+// 身分可以疊加：例如檢視者兼區長＝全站可看、自己牧區可改。
+//   admin_users/{email}.leadDistricts：擔任區長的牧區
+//   admin_users/{email}.leadGroups   ：擔任小組長的小組
+//   admin_users/{email}.scopeGroups  ：可看可改的所有小組（上面兩項展開，後台存檔時自動重算）
 // 注意：只提交 GitHub 不會自動變更 Firebase 線上規則，必須到 Firebase Console → Firestore → Rules 發布。
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -30,6 +34,30 @@ service cloud.firestore {
       return id in ['darren710404@gmail.com', 'darren.lin@twclc.org'];
     }
 
+    // ---------- 牧區長／小組長 ----------
+    // 檢視者也可以兼任區長、小組長，所以 viewer 一樣看 scopeGroups。
+    function activeScoped() {
+      return signedIn() && !bootstrapAdmin() && hasAdminDoc()
+        && adminDoc().active == true && adminDoc().role in ['leader', 'viewer'];
+    }
+    // 只有「牧區／小組長」這個身分（不含檢視者）
+    function isLeader() {
+      return activeScoped() && adminDoc().role == 'leader';
+    }
+    function inScope(gid) {
+      return activeScoped() && gid is string && gid != '' && gid in adminDoc().get('scopeGroups', []);
+    }
+    // 這個小組是不是在「我當區長」的牧區裡（區長才可以把組員移到別的牧區）
+    function leadsDistrictOf(gid) {
+      return activeScoped() && gid is string && gid != ''
+        && exists(/databases/$(database)/documents/groups/$(gid))
+        && get(/databases/$(database)/documents/groups/$(gid)).data.get('districtId', '') in adminDoc().get('leadDistricts', []);
+    }
+    function personScopeOk(personId) {
+      return exists(/databases/$(database)/documents/persons/$(personId))
+        && inScope(get(/databases/$(database)/documents/persons/$(personId)).data.get('groupId', ''));
+    }
+
     // ---------- 管理員名單 ----------
     match /admin_users/{email} {
       // 登入時需要讀「自己的」文件來判斷權限；名單列表只有管理員 / 檢視者可讀。
@@ -39,15 +67,19 @@ service cloud.firestore {
       // 只有管理員可新增 / 修改；欄位與權限值固定；文件 ID 必須是小寫 Email。
       allow create, update: if isAdmin()
         && email == email.lower()
-        && request.resource.data.keys().hasOnly(['role', 'active', 'notifyReview', 'updatedAt', 'email'])
+        && request.resource.data.keys().hasOnly(['role', 'active', 'notifyReview', 'updatedAt', 'email',
+            'leadDistricts', 'leadGroups', 'scopeGroups'])
         && request.resource.data.keys().hasAll(['role', 'active', 'notifyReview'])
-        && request.resource.data.role in ['admin', 'viewer']
+        && request.resource.data.role in ['admin', 'viewer', 'leader']
         && request.resource.data.active is bool
         && request.resource.data.notifyReview is bool
+        && (!('leadDistricts' in request.resource.data) || (request.resource.data.leadDistricts is list && request.resource.data.leadDistricts.size() <= 30))
+        && (!('leadGroups' in request.resource.data) || (request.resource.data.leadGroups is list && request.resource.data.leadGroups.size() <= 30))
+        && (!('scopeGroups' in request.resource.data) || (request.resource.data.scopeGroups is list && request.resource.data.scopeGroups.size() <= 60))
         // 初始管理員永遠是啟用中的 admin，只能調整通知設定。
         && (!isBootstrapId(email) || (request.resource.data.role == 'admin' && request.resource.data.active == true))
-        // 檢視者不能接收審核通知。
-        && (request.resource.data.role != 'viewer' || request.resource.data.notifyReview == false);
+        // 檢視者、牧區／小組長不能接收審核通知。
+        && (request.resource.data.role == 'admin' || request.resource.data.notifyReview == false);
 
       // 初始管理員不可刪除。
       allow delete: if isAdmin() && !isBootstrapId(email);
@@ -88,20 +120,31 @@ service cloud.firestore {
         && (!('memberNo' in d) || (d.memberNo is string && d.memberNo.size() <= 20))
         && (!('photoThumb' in d) || (d.photoThumb is string && d.photoThumb.size() <= 60000));
     }
+    // 牧區長／小組長：只能看、改自己範圍內小組的組員；可以新增到自己的小組；不能刪除。
+    // 把組員改到範圍外的小組（或未分組），只有該組所屬牧區的區長可以。
+    function leaderMoveOk(oldGid, newGid) {
+      return newGid == oldGid || inScope(newGid) || leadsDistrictOf(oldGid);
+    }
     match /persons/{docId} {
-      allow read: if isAdmin() || isViewer();
-      allow create, update: if isAdmin() && validPerson(request.resource.data);
+      allow read: if isAdmin() || isViewer() || inScope(resource.data.groupId);
+      allow create: if validPerson(request.resource.data)
+        && (isAdmin() || inScope(request.resource.data.get('groupId', '')));
+      allow update: if validPerson(request.resource.data)
+        && (isAdmin() || (inScope(resource.data.get('groupId', ''))
+          && leaderMoveOk(resource.data.get('groupId', ''), request.resource.data.get('groupId', ''))));
       allow delete: if isAdmin();
     }
     // 組員相片（大圖）：與通訊錄同權限；文件 ID 與組員相同。
+    function validPhoto(d) {
+      return d.keys().hasOnly(['data', 'updatedAt', 'updatedBy'])
+        && d.data is string
+        && d.data.size() <= 900000
+        && d.data.matches('^data:image/(jpeg|png|webp);base64,.*');
+    }
     match /personPhotos/{docId} {
-      allow read: if isAdmin() || isViewer();
-      allow create, update: if isAdmin()
-        && request.resource.data.keys().hasOnly(['data', 'updatedAt', 'updatedBy'])
-        && request.resource.data.data is string
-        && request.resource.data.data.size() <= 900000
-        && request.resource.data.data.matches('^data:image/(jpeg|png|webp);base64,.*');
-      allow delete: if isAdmin();
+      allow read: if isAdmin() || isViewer() || personScopeOk(docId);
+      allow create, update: if validPhoto(request.resource.data) && (isAdmin() || personScopeOk(docId));
+      allow delete: if isAdmin() || personScopeOk(docId);
     }
 
     // ---------- 新朋友留名單 ----------
@@ -129,8 +172,16 @@ service cloud.firestore {
         && !('personId' in request.resource.data) && !('joinedAt' in request.resource.data)
         && (!('status' in request.resource.data) || request.resource.data.status == '')
         && (!('notify' in request.resource.data) || request.resource.data.notify == 'pending')));
-      allow read: if isAdmin() || isViewer();
-      allow update: if isAdmin() && validIntake(request.resource.data);
+      // 牧區／小組長可以看全部新朋友（不分小組），但不能改資料。
+      allow read: if isAdmin() || isViewer() || isLeader();
+      allow update: if validIntake(request.resource.data) && (isAdmin() || (
+        // 唯一例外：把「登記自己範圍小組」的新朋友加入通訊錄時，標記已加入。
+        inScope(resource.data.get('groupId', ''))
+        && !('personId' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['personId', 'joinedAt', 'updatedAt', 'updatedBy'])
+        && request.resource.data.personId is string
+        && !exists(/databases/$(database)/documents/persons/$(request.resource.data.personId))
+        && existsAfter(/databases/$(database)/documents/persons/$(request.resource.data.personId))));
       allow delete: if isAdmin();
     }
     // 新朋友的照片（大圖）：只能跟著同一次送出的留名單一起新增
@@ -141,7 +192,7 @@ service cloud.firestore {
         && request.resource.data.data.matches('^data:image/(jpeg|png|webp);base64,.*')
         && (isAdmin() || (existsAfter(/databases/$(database)/documents/intakes/$(docId))
                           && !exists(/databases/$(database)/documents/intakes/$(docId))));
-      allow read: if isAdmin() || isViewer();
+      allow read: if isAdmin() || isViewer() || isLeader();
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -165,11 +216,17 @@ service cloud.firestore {
         && request.resource.data.emails is list && request.resource.data.emails.size() <= 10;
     }
 
-    // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
+    // ---------- 牧區 ----------
+    // 牧區：名稱與排序。登入的同工、牧區／小組長可讀，只有 Admin 可改。
     match /districts/{docId} {
-      allow read: if isAdmin() || isViewer();
-      allow write: if isAdmin();
+      allow read: if isAdmin() || isViewer() || isLeader();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'order', 'updatedAt', 'updatedBy'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 30;
+      allow delete: if isAdmin();
     }
+    // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
     match /careRecords/{docId} {
       allow read: if isAdmin() || isViewer();
       allow write: if isAdmin();

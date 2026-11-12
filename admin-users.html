@@ -34,32 +34,43 @@
   <main class="max-w-3xl mx-auto px-4 py-7 space-y-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h1 class="text-xl font-extrabold">👤 權限管理</h1>
-      <a href="index.html" class="text-sm font-bold text-[#007E8A] dark:text-teal-300 hover:underline">← 返回首頁</a>
     </div>
-    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">新增授權管理員。新增者需使用相同 Google Email 登入；此處不會建立 Google 密碼或寄送邀請信。</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">新增可以登入後台的 Google 帳號。對方使用相同 Google Email 登入即可；這裡不會建立密碼或寄送邀請信。</p>
+    <details class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161924] p-4 text-sm">
+      <summary class="font-bold cursor-pointer">權限等級說明</summary>
+      <ul class="mt-2 space-y-1 text-slate-600 dark:text-slate-300 list-disc pl-5">
+        <li><b>管理員</b>：全站可看、可改、可刪除。</li>
+        <li><b>檢視者</b>：全站可看，不能改。給人參觀網站前後台用。</li>
+        <li><b>牧區／小組長</b>：區長看、改自己牧區所有小組的組員；小組長看、改自己的小組。不能刪除。新朋友名單全部看得到但不能改，只能把登記自己小組的新朋友加入通訊錄。</li>
+        <li>身分可以疊加：檢視者也可以勾選兼任區長、小組長＝全站可看、自己的範圍可改。</li>
+      </ul>
+    </details>
     <div id="access" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161924] p-4 text-sm" role="status">正在驗證管理員身分…</div>
     <section id="mainPanel" class="hidden space-y-5">
-      <div id="viewerNote" class="hidden rounded-xl p-3 border border-sky-500/30 bg-sky-500/10 text-sm text-sky-600 dark:text-sky-300">👁️ 目前為唯讀檢視權限：可查看管理員名單，無法新增或修改。</div>
+      <div id="viewerNote" class="hidden rounded-xl p-3 border border-sky-500/30 bg-sky-500/10 text-sm text-sky-600 dark:text-sky-300">👁️ 目前為唯讀檢視權限：可查看帳號名單，無法新增或修改。</div>
       <form id="addForm" class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161924] p-4 space-y-3">
-        <h2 class="font-bold">新增管理員</h2>
+        <h2 class="font-bold">新增帳號</h2>
         <label class="text-sm block">Google 帳號 Email<input class="field mt-1" id="newEmail" type="email" placeholder="name@example.com" required autocomplete="off"></label>
         <label class="text-sm block">權限等級
           <select class="field mt-1" id="newRole">
             <option value="admin">管理員（可編輯）</option>
             <option value="viewer">檢視者（唯讀，可看後台但不能修改）</option>
+            <option value="leader">牧區／小組長（只看、只改自己負責的）</option>
           </select>
         </label>
-        <label class="flex gap-2 items-center text-sm"><input id="newNotify" type="checkbox" class="accent-[#007E8A]">接收審核 Email（保留選項，尚未串接）</label>
-        <button class="btn btn-primary" type="submit">＋ 新增管理員</button>
+        <label id="newNotifyWrap" class="flex gap-2 items-center text-sm"><input id="newNotify" type="checkbox" class="accent-[#007E8A]">接收審核 Email（保留選項，尚未串接）</label>
+        <div id="newScopeWrap" class="hidden"><div id="newScope"></div></div>
+        <button class="btn btn-primary" type="submit">＋ 新增帳號</button>
       </form>
       <section class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161924] p-4">
-        <div class="flex items-center justify-between gap-3 mb-3"><h2 class="font-bold">管理員名單</h2><span id="usersCount" class="text-xs text-slate-500 dark:text-slate-400"></span></div>
+        <div class="flex items-center justify-between gap-3 mb-3"><h2 class="font-bold">帳號名單</h2><span id="usersCount" class="text-xs text-slate-500 dark:text-slate-400"></span></div>
         <p id="usersListStatus" role="status" aria-live="polite" class="text-xs text-slate-500 dark:text-slate-400 mb-3"></p>
         <div id="usersList" class="space-y-2 text-sm"></div>
       </section>
       <p class="text-xs text-slate-500 dark:text-slate-400">SR 目前沒有需要審核的項目，「接收審核 Email」僅先保存設定，日後串接審核功能後才會生效。固定初始 Superuser 不可降權、停用或刪除。</p>
     </section>
   </main>
-  <script src="header.js?v=20261112-fonts"></script>
-  <script src="admin-users.js?v=20261110-ya-auth"></script>
+  <script src="header.js?v=20261112-leaders"></script>
+  <script src="js/sr-data.js?v=20261112-leaders"></script>
+  <script src="admin-users.js?v=20261112-leaders"></script>
 </body></html>

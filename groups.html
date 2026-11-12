@@ -1,24 +1,204 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>CLC SR | 牧區與小組</title>
-<link rel="manifest" href="/manifest.json"><link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
-<script src="https://cdn.tailwindcss.com"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<style>html{font-family:'CLC Arial',Arial,'Microsoft JhengHei',sans-serif}body{margin:0}</style>
-<script>(function(){const saved='dark';const m=matchMedia('(prefers-color-scheme:dark)');document.documentElement.classList.toggle('dark',saved==='dark'||(saved!=='light'&&m.matches))})();</script>
+<html lang="zh-TW" class="dark sr-compact">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>CLC SR | 牧區與小組</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"CLC Arial"','Arial','"Microsoft JhengHei"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111c">
+  <style>
+    .lead-line { font-size: .8rem; color: #5eead4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lead-none { font-size: .8rem; color: #6b7488; white-space: nowrap; }
+  </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 dark:bg-[#090A0F] dark:text-white">
-<header id="clc-header"></header>
-<main class="max-w-3xl mx-auto px-5 py-12 sm:py-20">
-  <a class="text-[#007E8A] dark:text-teal-300 text-sm font-bold" href="index.html">← 返回首頁</a>
-  <section class="mt-5 rounded-3xl bg-white dark:bg-[#161924] border border-slate-200 dark:border-white/10 p-8 sm:p-12 text-center space-y-4">
-    <div class="text-5xl" aria-hidden="true">👥</div>
-    <h1 class="text-2xl sm:text-3xl font-extrabold">牧區與小組</h1>
-    <p class="text-base text-slate-500 dark:text-slate-400">此功能已保留在原本的 SR 功能選單，後續開發完成後在這裡啟用。</p>
-    <p class="text-sm text-slate-500 dark:text-slate-400">目前尚未開放資料操作。</p>
-  </section>
-</main>
-<script src="header.js?v=20261112-fonts"></script>
-</body></html>
+<body class="min-h-screen bg-[#090A0F] text-slate-100">
+  <header id="clc-header"></header>
+
+  <main class="max-w-3xl mx-auto px-4 py-7">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h1 class="text-xl font-extrabold whitespace-nowrap">🗺️ 牧區與小組</h1>
+      <div class="relative shrink-0"><button id="pageMenuGear" data-menu="members" type="button" onclick="togglePageMenu()" title="名單選單" aria-label="名單選單" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button></div>
+    </div>
+
+    <section id="gateChecking" class="sr-card p-6 text-center" role="status">正在確認登入身分…</section>
+    <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
+      <p class="text-base font-bold">請先用已授權的 Google 帳號登入。</p>
+      <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
+    </section>
+
+    <section id="app" class="hidden space-y-5">
+      <div id="readOnlyNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-sm">👁️ 只有管理員可以修改牧區設定。</div>
+      <p class="sr-help">先建立牧區，再指定每個小組屬於哪個牧區。區長、小組長是誰，在「👤 權限管理」設定；這裡改了牧區，區長看得到的小組會自動跟著改。加樂同工不屬於任何牧區，由管理員管理。</p>
+
+      <!-- 牧區 -->
+      <section class="space-y-2">
+        <h2 class="text-base font-extrabold">牧區</h2>
+        <form id="addDistrictForm" class="sr-card p-3 flex gap-2 admin-only">
+          <label class="flex-1"><span class="sr-only">新牧區名稱</span><input id="newDistrict" class="sr-field" maxlength="30" placeholder="新牧區名稱，例如：第一牧區"></label>
+          <button class="sr-btn sr-btn-primary sr-btn-sm whitespace-nowrap" type="submit">＋ 新增</button>
+        </form>
+        <div id="districtList" class="space-y-2"></div>
+      </section>
+
+      <!-- 小組 → 牧區 -->
+      <section class="space-y-2">
+        <h2 class="text-base font-extrabold">小組屬於哪個牧區</h2>
+        <div id="groupList" class="space-y-2"></div>
+        <p id="saveStatus" class="sr-help" role="status" aria-live="polite"></p>
+      </section>
+    </section>
+  </main>
+
+  <script src="header.js?v=20261112-leaders"></script>
+  <script src="js/sr-data.js?v=20261112-leaders"></script>
+  <script>
+  (function () {
+    const SR = window.SR;
+    const $ = id => document.getElementById(id);
+    let access = {}, groups = [], districts = [], accounts = [], unsubs = [];
+
+    const fail = (msg, err) => { console.error(err); SR.toast(msg + '（' + (err.code || err.message) + '）', 'error'); };
+
+    SR.onAccess(a => {
+      access = a;
+      $('gateChecking').classList.add('hidden');
+      $('gateLogin').classList.toggle('hidden', a.canView);
+      $('app').classList.toggle('hidden', !a.canView);
+      $('readOnlyNote').classList.toggle('hidden', !a.canView || a.isAdmin);
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !a.isAdmin));
+      if (a.canView && !unsubs.length) {
+        const f = err => fail('讀取失敗', err);
+        unsubs.push(SR.watchGroups(list => { groups = list; render(); }, f));
+        unsubs.push(SR.watchDistricts(list => { districts = list; render(); }, f));
+        // 區長、小組長名單只有管理員、檢視者讀得到
+        if (a.isStaff) unsubs.push(window.db.collection('admin_users').onSnapshot(s => {
+          accounts = s.docs.map(d => ({ email: d.id, ...d.data() })).filter(x => x.active !== false && x.role !== 'admin');
+          render();
+        }, err => console.warn('讀取區長、小組長失敗', err)));
+      }
+      if (!a.canView) { unsubs.forEach(u => u()); unsubs = []; }
+      render();
+    });
+
+    const leadersOf = (field, id) => accounts.filter(x => Array.isArray(x[field]) && x[field].includes(id)).map(x => x.email);
+    const leaderLine = (label, list) => !access.isStaff ? '' : list.length
+      ? `<div class="lead-line" title="${SR.esc(list.join('、'))}">${label}：${SR.esc(list.join('、'))}</div>`
+      : `<div class="lead-none">${label}：未設定</div>`;
+
+    function render() {
+      if (!access.canView) return;
+      const dis = access.isAdmin ? '' : ' disabled';
+      const count = {};
+      groups.forEach(g => { if (g.districtId) count[g.districtId] = (count[g.districtId] || 0) + 1; });
+
+      $('districtList').innerHTML = districts.length ? districts.map((d, i) => `
+        <div class="sr-card px-3 py-2 flex items-center gap-2">
+          <div class="flex gap-1 shrink-0">
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-width:32px;padding:0" data-dmove="${d.id}" data-dir="-1" aria-label="${SR.esc(d.name)} 往上"${i === 0 ? ' disabled' : dis}>▲</button>
+            <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" style="min-width:32px;padding:0" data-dmove="${d.id}" data-dir="1" aria-label="${SR.esc(d.name)} 往下"${i === districts.length - 1 ? ' disabled' : dis}>▼</button>
+          </div>
+          <div class="flex-1 min-w-0">
+            <label><span class="sr-only">牧區名稱</span><input class="sr-field" data-drename="${d.id}" value="${SR.esc(d.name)}" maxlength="30"${dis}></label>
+            ${leaderLine('區長', leadersOf('leadDistricts', d.id))}
+          </div>
+          <span class="sr-chip shrink-0" style="white-space:nowrap">${count[d.id] || 0} 組</span>
+          ${access.isAdmin && !count[d.id] ? `<button type="button" class="sr-btn sr-btn-danger sr-btn-sm shrink-0" data-ddel="${d.id}">刪除</button>` : ''}
+        </div>`).join('')
+        : `<p class="sr-help sr-card p-4">還沒有牧區。${access.isAdmin ? '在上面輸入名稱新增。' : ''}</p>`;
+
+      $('groupList').innerHTML = groups.map(g => {
+        const staff = SR.isStaffGroup(g);
+        const opts = `<option value="">（未指定）</option>` + districts.map(d => `<option value="${d.id}"${d.id === g.districtId ? ' selected' : ''}>${SR.esc(d.name)}</option>`).join('')
+          + (g.districtId && !districts.some(d => d.id === g.districtId) ? `<option value="${SR.esc(g.districtId)}" selected>（已刪除的牧區）</option>` : '');
+        return `<div class="sr-card px-3 py-2 flex items-center gap-2 ${g.active === false ? 'opacity-60' : ''}">
+          <div class="flex-1 min-w-0">
+            <div class="font-bold whitespace-nowrap overflow-hidden text-ellipsis">${SR.esc(g.name)}${g.active === false ? '（停用）' : ''}</div>
+            ${staff ? '' : leaderLine('小組長', leadersOf('leadGroups', g.id))}
+          </div>
+          ${staff ? '<span class="sr-chip shrink-0" style="white-space:nowrap">不分牧區・管理員管理</span>'
+            : `<label class="shrink-0"><span class="sr-only">${SR.esc(g.name)} 屬於哪個牧區</span>
+              <select class="sr-field" style="width:auto;min-width:9rem" data-gdistrict="${g.id}"${dis}>${opts}</select></label>`}
+        </div>`;
+      }).join('') || '<p class="sr-help sr-card p-4">還沒有小組，請先到「名單後台」建立。</p>';
+    }
+
+    // 牧區或小組變動後，重算所有區長看得到的小組
+    async function syncScopes(nextGroups) {
+      try {
+        const n = await SR.recomputeAllScopes(nextGroups);
+        $('saveStatus').textContent = n ? `已更新 ${n} 位區長／小組長的範圍，對方重新整理後生效。` : '';
+      } catch (err) { fail('區長範圍更新失敗，請重新整理後再試', err); }
+    }
+
+    $('addDistrictForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!access.isAdmin) return;
+      const name = $('newDistrict').value.trim();
+      if (!name) return;
+      if (districts.some(d => d.name === name)) { SR.toast('已經有這個牧區了', 'error'); return; }
+      try {
+        await window.db.collection('districts').add({ name, order: districts.length, ...SR.stamp() });
+        $('newDistrict').value = '';
+        SR.toast('已新增：' + name);
+      } catch (err) { fail('新增失敗', err); }
+    });
+
+    $('districtList').addEventListener('change', async e => {
+      const id = e.target.dataset.drename;
+      if (!id || !access.isAdmin) return;
+      const d = districts.find(x => x.id === id), name = e.target.value.trim();
+      if (!name) { e.target.value = d.name; SR.toast('牧區名稱不能空白', 'error'); return; }
+      if (name === d.name) return;
+      try { await window.db.collection('districts').doc(id).update({ name, ...SR.stamp() }); SR.toast('已改名：' + name); }
+      catch (err) { e.target.value = d.name; fail('改名失敗', err); }
+    });
+    $('districtList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.drename) e.target.blur(); });
+
+    $('districtList').addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b || !access.isAdmin) return;
+      try {
+        if (b.dataset.dmove) {
+          const i = districts.findIndex(d => d.id === b.dataset.dmove), j = i + Number(b.dataset.dir);
+          if (j < 0 || j >= districts.length) return;
+          const order = districts.slice();
+          [order[i], order[j]] = [order[j], order[i]];
+          const batch = window.db.batch();
+          order.forEach((d, k) => { if (d.order !== k) batch.update(window.db.collection('districts').doc(d.id), { order: k, ...SR.stamp() }); });
+          await batch.commit();
+        } else if (b.dataset.ddel) {
+          const d = districts.find(x => x.id === b.dataset.ddel);
+          const heads = leadersOf('leadDistricts', d.id);
+          if (!confirm(`確定刪除「${d.name}」嗎？` + (heads.length ? `\n\n${heads.join('、')} 是這個牧區的區長，刪除後他們就不再是區長。` : ''))) return;
+          await window.db.collection('districts').doc(d.id).delete();
+          SR.toast('已刪除：' + d.name);
+        }
+      } catch (err) { fail('操作失敗', err); }
+    });
+
+    $('groupList').addEventListener('change', async e => {
+      const id = e.target.dataset.gdistrict;
+      if (!id || !access.isAdmin) return;
+      const g = groups.find(x => x.id === id), districtId = e.target.value;
+      if ((g.districtId || '') === districtId) return;
+      e.target.disabled = true;
+      try {
+        await window.db.collection('groups').doc(id).update({ districtId, ...SR.stamp() });
+        const d = districts.find(x => x.id === districtId);
+        SR.toast(`${g.name} → ${d ? d.name : '未指定'}`);
+        await syncScopes(groups.map(x => x.id === id ? { ...x, districtId } : x));
+      } catch (err) { e.target.value = g.districtId || ''; fail('儲存失敗', err); }
+      finally { e.target.disabled = !access.isAdmin; }
+    });
+  })();
+  </script>
+</body>
+</html>

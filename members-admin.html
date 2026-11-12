@@ -39,6 +39,11 @@
       <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
     </section>
 
+    <section id="gateStaff" class="hidden sr-card p-8 text-center space-y-2">
+      <p class="text-base font-bold">名單後台只有管理員和檢視者可以使用。</p>
+      <p class="sr-help">牧區長、小組長請從齒輪選單打開「組員通訊錄」。</p>
+    </section>
+
     <section id="app" class="hidden space-y-5">
       <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-sm">👁️ 目前是唯讀權限，可以查看設定，不能修改或匯入。</div>
 
@@ -50,7 +55,7 @@
 
       <!-- 小組 -->
       <section data-panel="groups" class="space-y-4">
-        <p class="sr-help">這裡的小組會出現在通訊錄和新朋友登記表單。停用的小組不會出現在表單，但舊資料保留。牧區與小組長之後在「牧區與小組」設定。</p>
+        <p class="sr-help">這裡的小組會出現在通訊錄和新朋友登記表單。停用的小組不會出現在表單，但舊資料保留。小組屬於哪個牧區在「牧區與小組」設定；區長、小組長在「權限管理」設定。</p>
         <form id="addGroupForm" class="sr-card p-4 flex gap-2 admin-only">
           <label class="flex-1"><span class="sr-only">新小組名稱</span><input id="newGroup" class="sr-field" maxlength="30" placeholder="新小組名稱，例如：惠玲小組"></label>
           <button class="sr-btn sr-btn-primary" type="submit">＋ 新增</button>
@@ -100,8 +105,8 @@
     </section>
   </main>
 
-  <script src="header.js?v=20261112-fonts"></script>
-  <script src="js/sr-data.js?v=20261112b"></script>
+  <script src="header.js?v=20261112-leaders"></script>
+  <script src="js/sr-data.js?v=20261112-leaders"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -112,9 +117,12 @@
 
     // ---------- 權限 ----------
     SR.onAccess(a => {
+      // 牧區／小組長登入也看不到這頁（裡面有所有人的通知信箱與名單工具）
+      a = { ...a, canView: a.canView && a.isStaff, leaderOnly: a.canView && !a.isStaff };
       access = a;
       $('gateChecking').classList.add('hidden');
-      $('gateLogin').classList.toggle('hidden', a.canView);
+      $('gateLogin').classList.toggle('hidden', a.canView || a.leaderOnly);
+      $('gateStaff').classList.toggle('hidden', !a.leaderOnly);
       $('app').classList.toggle('hidden', !a.canView);
       $('viewerNote').classList.toggle('hidden', !a.isViewer);
       document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !a.isAdmin));

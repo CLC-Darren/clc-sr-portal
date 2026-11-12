@@ -4,7 +4,8 @@
  * Firestore 結構：
  *   persons/{id}   組員：name, gender('女'|'男'|''), birthday('YYYY-MM-DD'|''), phone, mobile,
  *                  address, marital, living, groupId, status, note, source, createdAt, updatedAt, updatedBy
- *   groups/{id}    小組：name, order, active
+ *   groups/{id}    小組：name, order, active, gender, districtId（所屬牧區）
+ *   districts/{id} 牧區：name, order
  *   options/lists  選項：statuses[], marital[], living[]（字串陣列，依序顯示）
  */
 (function () {
@@ -195,6 +196,39 @@
     return groups.filter(g => g.id === keepId || (g.active !== false && (!gender || !SR.groupGender(g) || SR.groupGender(g) === gender)));
   };
 
+  // ---------- 牧區 ----------
+  SR.watchDistricts = function (onData, onError) {
+    return window.db.collection('districts').onSnapshot(snap => {
+      onData(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || String(a.name).localeCompare(String(b.name), 'zh-Hant')));
+    }, onError);
+  };
+  /** 加樂同工這類「同工」組不屬於任何牧區，只有管理員管。 */
+  SR.isStaffGroup = g => !!g && /同工/.test(g.name || '');
+  /** 區長的牧區＋小組長的小組 → 可看可改的所有小組（存成 admin_users.scopeGroups 給資料庫規則用） */
+  SR.computeScope = function (leadDistricts, leadGroups, groups) {
+    const ds = new Set(leadDistricts || []), out = new Set((leadGroups || []).filter(Boolean));
+    (groups || []).forEach(g => { if (g.districtId && ds.has(g.districtId) && !SR.isStaffGroup(g)) out.add(g.id); });
+    return [...out].sort();
+  };
+  /** 牧區或小組變動後，重算所有有範圍的帳號（只有管理員可以寫）。回傳更新筆數。 */
+  SR.recomputeAllScopes = async function (groups) {
+    const snap = await window.db.collection('admin_users').get();
+    const batch = window.db.batch();
+    let n = 0;
+    snap.docs.forEach(d => {
+      const v = d.data() || {};
+      if (!Array.isArray(v.leadDistricts) && !Array.isArray(v.leadGroups)) return;
+      const next = SR.computeScope(v.leadDistricts, v.leadGroups, groups);
+      const prev = Array.isArray(v.scopeGroups) ? v.scopeGroups.slice().sort() : [];
+      if (next.join('|') === prev.join('|')) return;
+      batch.update(d.ref, { scopeGroups: next, updatedAt: SR.serverTime() });
+      n++;
+    });
+    if (n) await batch.commit();
+    return n;
+  };
+
   // ---------- 排序：姓名依筆畫 ----------
   // zh-Hant 的預設排序就是筆畫（同筆畫再比部首），與台灣通訊錄習慣一致。
   SR.collator = new Intl.Collator('zh-Hant-TW-u-co-stroke');
@@ -294,7 +328,12 @@
   /** 等 header.js 的登入狀態確定後回呼；之後狀態改變也會再呼叫。 */
   SR.onAccess = function (callback) {
     let settled = false;
-    const fire = () => callback({ canView: !!window.canViewAdmin, isAdmin: !!window.isAdmin, isViewer: !!window.isViewer });
+    const fire = () => {
+      const lead = window.leaderScope || { groups: [], districts: [], scopeGroups: [] };
+      callback({ canView: !!window.canViewAdmin, isAdmin: !!window.isAdmin, isViewer: !!window.isViewer,
+        isLeader: !!window.isLeader, isStaff: !!(window.isAdmin || window.isViewer),
+        scopeGroups: lead.scopeGroups.slice(), leadGroups: lead.groups.slice(), leadDistricts: lead.districts.slice() });
+    };
     window.addEventListener('clc-admin-changed', () => { settled = true; fire(); });
     if (window.auth) {
       window.auth.onAuthStateChanged(user => {
