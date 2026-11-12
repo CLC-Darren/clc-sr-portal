@@ -293,7 +293,7 @@
       const g1 = row('手機', p.mobile, ' style="color:#007E8A"') + row('市話', p.phone, ' style="color:#007E8A"');
       const g2 = row('生日', birth) + row('地址', p.address) + row('婚姻・居住', mar);
       const g3 = IS_INTAKE
-        ? row('想加入的小組', g ? g.name : (p.groupName || '暫不安排')) + row('新朋友狀態', statusOf(p) || '未處理') + row('通訊錄', p.personId ? '已加入' : '尚未加入') + row('填表日期', fmtDate(createdMs(p)))
+        ? row('想加入的小組', g ? g.name : (p.groupName || '暫不安排')) + row('新朋友狀態', statusOf(p) || '未處理') + row('通訊錄', p.personId ? '已加入' : '尚未加入') + row('填表日期', fmtDate(createdMs(p))) + row('Email 通知', ({ pending: '排隊中（約 5 分鐘內寄出）', sent: '已寄給小組長、區長', 'no-recipient': '沒有寄：還沒設定通知信箱', failed: '寄送失敗：' + (p.notifyError || '') })[p.notify] || '')
         : row('小組', g ? g.name : '未分組') + row('聚會狀態', statusOf(p)) + row('編號', p.memberNo);
       const g4 = IS_INTAKE ? row('介紹人', [p.refName, p.refRelation && `（${p.refRelation}）`, p.refPhone].filter(Boolean).join(' ')) + row('信仰', (p.faith || []).join('、')) + row('希望', (p.intent || []).join('、')) : '';
       return `

@@ -72,7 +72,8 @@
       <img class="j-banner" src="images/join-banner.jpg" alt="加樂團契・長輩是教會的寶！" width="691" height="171">
       <div class="j-title mt-4 relative">
         <div class="absolute right-3 top-3"><button id="pageMenuGear" data-menu="newfriends" type="button" onclick="togglePageMenu()" title="同工後台" aria-label="同工後台選單" style="width:34px;height:34px;border-radius:10px;border:0;background:#F6EEE2;color:#9A7B57;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
-        <h1 class="text-[28px] font-extrabold leading-tight pr-10">江翠加樂　新朋友留名單</h1>
+        <p class="text-[17px] font-extrabold" style="color:var(--warm)">江翠加樂</p>
+        <h1 class="text-[30px] font-extrabold leading-tight pr-10">新朋友留名單</h1>
         <p class="text-[18px] mt-2 leading-relaxed" style="color:var(--muted)">歡迎您來到加樂團契！請留下您的資料，讓我們可以認識您、關心您。</p>
       </div>
 
@@ -83,11 +84,17 @@
             <label class="j-lab" for="fName">姓名<span class="j-req">＊</span></label>
             <input class="j-in" id="fName" autocomplete="name" maxlength="30" placeholder="請輸入姓名">
           </div>
-          <div class="j-row" data-field="gender">
-            <span class="j-lab" id="lGender">性別<span class="j-req">＊</span></span>
-            <div class="j-choices grid-cols-2" role="group" aria-labelledby="lGender" data-choice="gender">
-              <button type="button" class="j-choice" data-value="女">女</button>
-              <button type="button" class="j-choice" data-value="男">男</button>
+          <div class="j-row grid grid-cols-2 gap-3">
+            <div data-field="gender" class="min-w-0">
+              <span class="j-lab" id="lGender">身分<span class="j-req">＊</span></span>
+              <div class="j-choices grid-cols-2" style="gap:6px" role="group" aria-labelledby="lGender" data-choice="gender">
+                <button type="button" class="j-choice" style="padding:8px 4px" data-value="女">姊妹</button>
+                <button type="button" class="j-choice" style="padding:8px 4px" data-value="男">弟兄</button>
+              </div>
+            </div>
+            <div class="min-w-0">
+              <label class="j-lab" for="fMarital">婚姻</label>
+              <select class="j-in j-empty" id="fMarital"></select>
             </div>
           </div>
           <div class="j-row" data-field="birthday">
@@ -99,17 +106,13 @@
             </div>
             <p id="birthHint" class="j-help">年份填民國或西元都可以，例如「45」或「1956」。</p>
           </div>
-          <div class="j-row">
-            <label class="j-lab" for="fMarital">婚姻</label>
-            <select class="j-in j-empty" id="fMarital"></select>
-          </div>
         </div>
 
         <p class="j-sec">聯絡方式</p>
         <div class="j-group">
           <div class="j-row" data-field="mobile">
             <label class="j-lab" for="fMobile">手機<span class="j-req">＊</span></label>
-            <input class="j-in" id="fMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0910-000-000">
+            <input class="j-in" id="fMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="0900-000000">
           </div>
           <div class="j-row">
             <label class="j-lab" for="fPhone">聯繫電話（市話）</label>
@@ -125,15 +128,6 @@
           </div>
         </div>
 
-        <p class="j-sec">關懷小組</p>
-        <div class="j-group">
-          <div class="j-row" data-field="group">
-            <label class="j-lab" for="fGroup">想加入的關懷小組<span class="j-req">＊</span></label>
-            <select class="j-in j-empty" id="fGroup"></select>
-            <p id="groupHint" class="j-help"></p>
-          </div>
-        </div>
-
         <p class="j-sec">介紹人</p>
         <div class="j-group">
           <div class="j-row">
@@ -144,12 +138,13 @@
             <label class="j-lab" for="fRefRel">與介紹人的關係</label>
             <select class="j-in j-empty" id="fRefRel">
               <option value="">請選擇</option>
-              <option>朋友</option><option>鄰居</option><option>同事</option><option>家人</option><option>女兒</option><option>兒子</option><option>媳婦</option><option>其他</option>
+              <option>朋友</option><option>鄰居</option><option>同事</option><option>家人</option><option>女兒</option><option>兒子</option><option>媳婦</option><option value="__other">其他（自己填寫）</option>
             </select>
+            <label class="block mt-2 hidden" id="refOtherWrap"><span class="sr-only">其他關係</span><input class="j-in" id="fRefRelOther" maxlength="20" placeholder="請填寫關係，例如：教會姊妹"></label>
           </div>
           <div class="j-row">
             <label class="j-lab" for="fRefPhone">介紹人電話</label>
-            <input class="j-in" id="fRefPhone" type="tel" inputmode="tel" placeholder="0910-000-000">
+            <input class="j-in" id="fRefPhone" type="tel" inputmode="tel" placeholder="0900-000000">
           </div>
         </div>
 
@@ -180,17 +175,26 @@
           </div>
         </div>
 
-        <p class="j-sec">最後一步</p>
-        <div class="j-photo-card">
+        <p class="j-sec">關懷小組與合照</p>
+        <div class="j-group">
+          <div class="j-row" data-field="group">
+            <label class="j-lab" for="fGroup">關懷小組<span class="j-req">＊</span></label>
+            <select class="j-in j-empty" id="fGroup"></select>
+            <p id="groupHint" class="j-help"></p>
+          </div>
+          <div class="j-row" style="text-align:center;padding-top:22px;padding-bottom:22px">
           <div id="shotPreview" class="j-shot hidden"><img id="shotImg" alt="剛剛拍的照片"></div>
           <p id="camTitle" class="text-[22px] font-extrabold mb-1">📸 我們一起來拍張照吧！</p>
           <p id="camSub" class="j-help mt-0 mb-4">拍好就可以了，送出時會一起上傳。</p>
-          <label class="j-cam">
+          <button type="button" class="j-cam" id="camBtn">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h3.5l2-3h7l2 3H21v12H3z"/><circle cx="12" cy="13.5" r="4"/></svg>
             <span id="camLabel">打開相機</span>
-            <input id="fPhoto" type="file" accept="image/*" capture="user" class="sr-only">
-          </label>
+          </button>
+          <input id="fPhoto" type="file" accept="image/*" capture="user" class="sr-only" tabindex="-1" aria-hidden="true">
+          <input id="fPhotoPick" type="file" accept="image/*" class="sr-only" tabindex="-1" aria-hidden="true">
           <div class="mt-3"><button type="button" id="photoRemove" class="hidden text-[16px] font-bold" style="color:#D9480F;background:none;border:0;cursor:pointer">不要這張</button></div>
+          <p class="j-help" id="camNoPhoto">不拍照也可以直接送出。</p>
+          </div>
         </div>
 
         <div class="mt-7">
@@ -204,16 +208,50 @@
       <h1 class="text-[28px] font-extrabold text-center mb-1">謝謝您，歡迎您！</h1>
       <p class="text-center text-[18px] mb-4" style="color:var(--muted)">送您一張紀念照和一句祝福 🌿</p>
       <img id="cardImg" class="j-card-img" alt="">
-      <div class="grid gap-3 mt-5">
-        <button type="button" id="shareBtn" class="j-btn" style="background:#06C755;color:#fff">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6.1C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg>
-          分享到 LINE 或其他 App</button>
-        <button type="button" id="saveBtn" class="j-btn" style="background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(122,86,40,.1)">⬇️ 存到手機</button>
+      <p id="notifyLine" class="text-center text-[16px] mt-4" style="color:var(--muted)">✉️ 這張卡片也會寄給您的關懷小組長，他們會再跟您聯絡。</p>
+      <div class="grid gap-3 mt-4">
+        <button type="button" id="shareBtn" class="j-btn" style="background:var(--teal);color:#fff">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+          分享這張卡片</button>
+        <div class="grid grid-cols-3 gap-3">
+          <button type="button" id="lineBtn" class="j-btn" style="background:#06C755;color:#fff;flex-direction:column;gap:2px;min-height:70px;font-size:16px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6.1C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg>LINE</button>
+          <button type="button" id="fbBtn" class="j-btn" style="background:#1877F2;color:#fff;flex-direction:column;gap:2px;min-height:70px;font-size:16px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>Facebook</button>
+          <button type="button" id="saveBtn" class="j-btn" style="background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(122,86,40,.1);flex-direction:column;gap:2px;min-height:70px;font-size:16px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>存到手機</button>
+        </div>
         <button type="button" id="verseBtn" class="j-btn" style="background:transparent;color:var(--warm)">🔄 換一句祝福</button>
       </div>
       <div class="mt-4"><button type="button" id="againBtn" class="j-btn" style="background:var(--teal);color:#fff">再登記一位</button></div>
     </section>
   </main>
+
+  <!-- 電腦版相機 -->
+  <div id="camModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4" style="background:rgba(40,28,12,.6)" role="dialog" aria-modal="true" aria-labelledby="camModalTitle">
+    <div class="w-full max-w-lg rounded-[22px] p-5" style="background:var(--cream)">
+      <h2 id="camModalTitle" class="text-[22px] font-extrabold text-center mb-3">📸 看鏡頭，笑一個！</h2>
+      <div class="relative rounded-[16px] overflow-hidden bg-black" style="aspect-ratio:1">
+        <video id="camVideo" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
+        <div id="camCount" class="hidden absolute inset-0 flex items-center justify-center text-white text-[96px] font-black" style="text-shadow:0 4px 20px rgba(0,0,0,.5)"></div>
+      </div>
+      <div class="grid grid-cols-[1fr_2fr] gap-3 mt-4">
+        <button type="button" id="camCancel" class="j-btn" style="background:#fff;color:var(--ink)">取消</button>
+        <button type="button" id="camShoot" class="j-btn" style="background:var(--sun);color:#3B2A10;box-shadow:0 4px 0 #D3962A">📸 拍照（3 秒後）</button>
+      </div>
+    </div>
+  </div>
+  <div id="camMissing" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4" style="background:rgba(40,28,12,.6)" role="alertdialog" aria-modal="true" aria-labelledby="camMissingTitle">
+    <div class="w-full max-w-md rounded-[22px] p-6 text-center" style="background:var(--cream)">
+      <div class="text-[44px]" aria-hidden="true">📷</div>
+      <h2 id="camMissingTitle" class="text-[22px] font-extrabold mt-1">找不到可以用的相機</h2>
+      <p id="camMissingText" class="text-[17px] mt-2" style="color:var(--muted)">這台電腦沒有相機，或沒有允許網站使用相機。</p>
+      <div class="grid gap-3 mt-5">
+        <button type="button" id="camPickFile" class="j-btn" style="background:var(--teal);color:#fff">改選一張照片</button>
+        <button type="button" id="camSkip" class="j-btn" style="background:#fff;color:var(--ink)">不拍了，直接送出也可以</button>
+      </div>
+    </div>
+  </div>
 
   <script src="header.js?v=20261112-intakes"></script>
   <script src="js/sr-data.js?v=20261112"></script>
@@ -253,7 +291,7 @@
       el.classList.toggle('j-empty', !el.value);
     }
     function renderSelects() {
-      fillSelect($('fMarital'), '請選擇（可不填）', options.marital);
+      fillSelect($('fMarital'), '請選擇', options.marital);
       fillSelect($('fLiving'), '請選擇（可不填）', options.living);
       // 選了性別才列出對應小組（培榮、文泉是弟兄小組）
       const shown = groups.filter(g => !state.gender || !SR.groupGender(g) || SR.groupGender(g) === state.gender).map(g => g.name);
@@ -318,7 +356,9 @@
     $('fMobile').addEventListener('input', () => clearError('mobile'));
     $('fName').addEventListener('input', () => clearError('name'));
 
-    // ---------- 一起拍張照 ----------
+    // ---------- 一起拍張照：手機開手機相機、電腦開電腦相機 ----------
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+    let stream = null;
     function showPhoto() {
       $('shotPreview').classList.toggle('hidden', !photo);
       if (photo) $('shotImg').src = photo.full;
@@ -326,13 +366,60 @@
       $('camSub').textContent = photo ? '按下面的「送出資料」就會一起上傳。想重拍可以再按一次。' : '拍好就可以了，送出時會一起上傳。';
       $('camLabel').textContent = photo ? '重拍一張' : '打開相機';
       $('photoRemove').classList.toggle('hidden', !photo);
+      $('camNoPhoto').classList.toggle('hidden', !!photo);
     }
-    $('fPhoto').addEventListener('change', async e => {
-      const file = e.target.files[0]; e.target.value = '';
+    async function usePhotoFile(file) {
       if (!file) return;
-      try { photo = await SR.makePhoto(file); showPhoto(); } catch (err) { SR.toast(err.message, 'error'); }
-    });
+      try { photo = await SR.makePhoto(file); showPhoto(); $('shotPreview').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      catch (err) { SR.toast(err.message, 'error'); }
+    }
+    ['fPhoto', 'fPhotoPick'].forEach(id => $(id).addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; usePhotoFile(f); }));
     $('photoRemove').addEventListener('click', () => { photo = null; showPhoto(); });
+
+    function stopCam() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; $('camVideo').srcObject = null; }
+    function closeCam() { stopCam(); $('camModal').classList.add('hidden'); $('camCount').classList.add('hidden'); $('camShoot').disabled = false; }
+    function showMissing(text) { $('camMissingText').textContent = text; $('camMissing').classList.remove('hidden'); $('camPickFile').focus(); }
+    $('camBtn').addEventListener('click', async () => {
+      if (isMobile) { $('fPhoto').click(); return; }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showMissing('這個瀏覽器不能使用相機，可以改選一張照片。'); return; }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false });
+        $('camVideo').srcObject = stream;
+        $('camModal').classList.remove('hidden');
+        $('camShoot').focus();
+      } catch (err) {
+        stopCam();
+        const name = err && err.name;
+        showMissing(name === 'NotAllowedError' || name === 'SecurityError'
+          ? '沒有允許網站使用相機。可以按網址列旁邊的相機圖示改成「允許」，或改選一張照片。'
+          : name === 'NotReadableError' ? '相機正在被其他程式使用，請先關掉視訊軟體，或改選一張照片。'
+          : '這台電腦找不到相機，可以改選一張照片。');
+      }
+    });
+    $('camCancel').addEventListener('click', closeCam);
+    $('camShoot').addEventListener('click', async () => {
+      const v = $('camVideo');
+      if (!v.videoWidth) { SR.toast('相機還在準備，請稍等一下', 'error'); return; }
+      $('camShoot').disabled = true;
+      const cnt = $('camCount'); cnt.classList.remove('hidden');
+      for (const n of [3, 2, 1]) { cnt.textContent = n; await new Promise(r => setTimeout(r, 800)); }
+      cnt.textContent = '';
+      const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+      const g = c.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(v, 0, 0);   // 和預覽一樣左右翻轉，看起來像照鏡子
+      const blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.92));
+      closeCam();
+      usePhotoFile(new File([blob], 'camera.jpg', { type: 'image/jpeg' }));
+    });
+    $('camPickFile').addEventListener('click', () => { $('camMissing').classList.add('hidden'); $('fPhotoPick').click(); });
+    $('camSkip').addEventListener('click', () => $('camMissing').classList.add('hidden'));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('camModal').classList.contains('hidden')) closeCam(); $('camMissing').classList.add('hidden'); } });
+
+    // 介紹人關係選「其他」可以自己填
+    $('fRefRel').addEventListener('change', e => {
+      const other = e.target.value === '__other';
+      $('refOtherWrap').classList.toggle('hidden', !other);
+      if (other) $('fRefRelOther').focus();
+    });
 
     // ---------- 檢查與送出 ----------
     function setError(field, message) {
@@ -351,12 +438,14 @@
     $('joinForm').addEventListener('submit', async e => {
       e.preventDefault();
       const gv = $('fGroup').value;
+      const rel = $('fRefRel').value;
       const data = {
         name: $('fName').value.trim(), gender: state.gender,
         mobile: SR.formatPhone($('fMobile').value), phone: SR.formatPhone($('fPhone').value),
         address: $('fAddress').value.trim(), marital: $('fMarital').value, living: $('fLiving').value,
         group: gv === '__none' ? '' : (gv || null),
-        refName: $('fRefName').value.trim(), refRelation: $('fRefRel').value, refPhone: SR.formatPhone($('fRefPhone').value),
+        refName: $('fRefName').value.trim(), refRelation: rel === '__other' ? ($('fRefRelOther').value.trim() || '其他') : rel,
+        refPhone: SR.formatPhone($('fRefPhone').value),
         faith: [...state.faith, $('fFaithOther').value.trim()].filter(Boolean),
         intent: [...state.intent, $('fIntentOther').value.trim()].filter(Boolean),
         note: $('fNote').value.trim()
@@ -365,11 +454,12 @@
       data.birthday = fYear.value && fMonth.value && fDay.value ? SR.parseBirthday(`${y}-${fMonth.value}-${fDay.value}`) : '';
       const errors = [];
       if (!data.name) errors.push(['name', '請填寫姓名']);
-      if (!data.gender) errors.push(['gender', '請選擇性別']);
+      if (!data.gender) errors.push(['gender', '請選擇姊妹或弟兄']);
       if (!data.birthday) errors.push(['birthday', fYear.value ? '生日不完整或日期不正確' : '請填寫生日']);
+      // 手機：不管怎麼寫（空格、橫線、+886），只要是 09 開頭的 10 碼就接受
       const digits = SR.phoneDigits(data.mobile);
       if (!digits) errors.push(['mobile', '請填寫手機號碼']);
-      else if (!/^09\d{8}$/.test(digits)) errors.push(['mobile', '手機號碼應為 09 開頭的 10 碼數字']);
+      else if (!/^09\d{8}$/.test(digits)) errors.push(['mobile', '手機號碼是 09 開頭的 10 個數字，例如 0912-345678']);
       if (data.group === null) errors.push(['group', '請選擇關懷小組，或選「暫不安排小組」']);
       errors.forEach(([f, m]) => setError(f, m));
       if (errors.length) {
@@ -380,24 +470,29 @@
         SR.toast(`還有 ${errors.length} 個地方需要填寫`, 'error');
         return;
       }
-      // 寫入資料庫：新朋友名單（intakes）＋照片大圖（intakePhotos），同一次送出
       const btn = $('joinForm').querySelector('.j-submit');
       btn.disabled = true; btn.textContent = '送出中…';
+      lastName = data.name;
+      verseIdx = Math.floor(Math.random() * VERSES.length);
       try {
+        await drawCard();
+        // 寫入資料庫：留名單（intakes）＋照片大圖（intakePhotos）＋紀念卡（intakeCards，寄給小組長用），同一次送出
         const g = groups.find(x => x.name === data.group);
         const rec = {
           name: data.name, gender: data.gender, birthday: data.birthday, mobile: data.mobile, phone: data.phone,
           address: data.address.slice(0, 200), marital: data.marital, living: data.living,
           groupName: data.group || '', groupId: (g && g.id) || '',
-          refName: data.refName, refRelation: data.refRelation, refPhone: data.refPhone,
+          refName: data.refName, refRelation: data.refRelation.slice(0, 30), refPhone: data.refPhone,
           faith: data.faith.slice(0, 10), intent: data.intent.slice(0, 10), note: data.note.slice(0, 2000),
-          status: '', source: 'form', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          status: '', source: 'form', notify: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (photo) rec.photoThumb = photo.thumb;
         const ref = window.db.collection('intakes').doc();
         const batch = window.db.batch();
         batch.set(ref, rec);
         if (photo) batch.set(window.db.collection('intakePhotos').doc(ref.id), { data: photo.full });
+        const card = cardDataUrl();
+        if (card) batch.set(window.db.collection('intakeCards').doc(ref.id), { data: card });
         await Promise.race([batch.commit(), new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), 30000))]);
       } catch (err) {
         console.error(err);
@@ -407,117 +502,166 @@
       }
       btn.disabled = false; btn.textContent = '送出資料';
       document.getElementById('srToast')?.classList.remove('show');
-      lastName = data.name;
-      verseIdx = Math.floor(Math.random() * VERSES.length);
-      await drawCard();
+      $('notifyLine').textContent = data.group ? `✉️ 這張卡片也會寄給「${data.group}」的小組長和區長，他們會再跟您聯絡。` : '✉️ 這張卡片也會寄給加樂團契的同工，他們會再跟您聯絡。';
       $('formView').classList.add('hidden');
       $('doneView').classList.remove('hidden');
       window.scrollTo(0, 0);
       $('doneView').focus();
     });
 
-    // ---------- 拍立得紀念卡 ----------
+    // ---------- 紀念卡：有照片＝拍立得＋經文；沒照片＝經文卡 ----------
     const CW = 1080;
     const SANS = '"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
     const SERIF = '"Noto Serif TC", "Songti TC", "PMingLiU", serif';
     let cardCanvas = null;
+    // TODO（之後）：後台上傳節日邊框（例如聖誕節），拍照預覽與紀念卡都套用。
+    //   做法：options/frames 存邊框圖片，這裡載入成 Image 後放進 activeFrame，drawCard 最後會疊上去。
+    let activeFrame = null;
     const loadImg = src => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; });
     function wrapLines(ctx, text, maxW) {
       const lines = []; let line = '';
       for (const ch of text) {
         if (ctx.measureText(line + ch).width > maxW && line) {
-          // 標點不要放在行首
-          if (/[，。、；：？！」』）]/.test(ch)) { line += ch; lines.push(line); line = ''; continue; }
+          if (/[，。、；：？！」』）]/.test(ch)) { line += ch; lines.push(line); line = ''; continue; }  // 標點不放行首
           lines.push(line); line = ch;
         } else line += ch;
       }
       if (line) lines.push(line);
       return lines;
     }
+    function leaf(ctx, x, y, s, rot, color) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = color;
+      ctx.beginPath(); ctx.ellipse(0, 0, 46 * s, 20 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     async function drawCard() {
       try { await document.fonts.load(`700 40px ${SERIF}`); await document.fonts.ready; } catch (e) { /* 照常畫 */ }
-      // 先量經文要幾行，卡片高度跟著調整
       const [verse, ref] = VERSES[verseIdx];
+      const d = new Date(), dateText = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
       const m = document.createElement('canvas').getContext('2d');
-      m.font = `700 46px ${SERIF}`;
-      const lines = wrapLines(m, '「' + verse + '」', 880);
-      const PW = 700, PH = 830, px = (CW - PW) / 2, py = 160;
-      const CH = py + PH + 110 + lines.length * 68 + 150;
-      const c = document.createElement('canvas'); c.width = CW; c.height = CH;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
-      // 角落的溫暖色塊
-      ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 40, -40, 300, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-60, CH + 20, 320, 0, Math.PI * 2); ctx.fill();
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#B9783A'; ctx.font = `800 40px ${SANS}`;
-      ctx.fillText('歡迎來到江翠加樂', CW / 2, 110);
-      // 拍立得
-      ctx.save();
-      ctx.translate(CW / 2, py + PH / 2); ctx.rotate(-2.2 * Math.PI / 180); ctx.translate(-CW / 2, -(py + PH / 2));
-      ctx.shadowColor = 'rgba(80,55,20,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
-      ctx.fillStyle = '#fff'; ctx.fillRect(px, py, PW, PH);
-      ctx.shadowColor = 'transparent';
-      const ix = px + 36, iy = py + 36, IS = PW - 72;
+      let c, ctx;
       if (photo) {
+        m.font = `700 46px ${SERIF}`;
+        const lines = wrapLines(m, '「' + verse + '」', 880);
+        const PW = 700, PH = 830, px = (CW - PW) / 2, py = 160;
+        const CH = py + PH + 110 + lines.length * 68 + 150;
+        c = document.createElement('canvas'); c.width = CW; c.height = CH; ctx = c.getContext('2d');
+        ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
+        ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 40, -40, 300, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-60, CH + 20, 320, 0, Math.PI * 2); ctx.fill();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#B9783A'; ctx.font = `800 40px ${SANS}`;
+        ctx.fillText('歡迎來到江翠加樂', CW / 2, 110);
+        ctx.save();
+        ctx.translate(CW / 2, py + PH / 2); ctx.rotate(-2.2 * Math.PI / 180); ctx.translate(-CW / 2, -(py + PH / 2));
+        ctx.shadowColor = 'rgba(80,55,20,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = '#fff'; ctx.fillRect(px, py, PW, PH);
+        ctx.shadowColor = 'transparent';
+        const ix = px + 36, iy = py + 36, IS = PW - 72;
         const img = await loadImg(photo.full);
         const s = Math.min(img.naturalWidth, img.naturalHeight);
         ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, ix, iy, IS, IS);
+        ctx.fillStyle = '#3B342C'; ctx.font = `800 54px ${SANS}`;
+        ctx.fillText(lastName, CW / 2, iy + IS + 78);
+        ctx.fillStyle = '#8A7D6E'; ctx.font = `500 30px ${SANS}`;
+        ctx.fillText(dateText, CW / 2, iy + IS + 124);
+        ctx.restore();
+        ctx.font = `700 46px ${SERIF}`; ctx.fillStyle = '#4A3B2C';
+        let vy = py + PH + 110;
+        lines.forEach(l => { ctx.fillText(l, CW / 2, vy); vy += 68; });
+        ctx.font = `600 32px ${SANS}`; ctx.fillStyle = '#B9783A';
+        ctx.fillText('— ' + ref, CW / 2, vy + 6);
       } else {
-        ctx.fillStyle = '#F3E6D2'; ctx.fillRect(ix, iy, IS, IS);
-        ctx.strokeStyle = '#3F8F5A'; ctx.lineWidth = 16; ctx.lineCap = 'round';
-        const cx = ix + IS / 2, cy = iy + IS / 2 + 40;
-        ctx.beginPath(); ctx.moveTo(cx, cy + 110); ctx.lineTo(cx, cy - 20); ctx.stroke();
-        ctx.fillStyle = '#5DAA6F';
-        ctx.beginPath(); ctx.ellipse(cx - 70, cy - 60, 80, 42, -0.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(cx + 70, cy - 90, 80, 42, 0.5, 0, Math.PI * 2); ctx.fill();
+        // 經文卡：大大的經文在中間
+        m.font = `700 64px ${SERIF}`;
+        const lines = wrapLines(m, '「' + verse + '」', 820);
+        const CH = 1350;
+        c = document.createElement('canvas'); c.width = CW; c.height = CH; ctx = c.getContext('2d');
+        ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
+        ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 60, -60, 360, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-80, CH + 40, 380, 0, Math.PI * 2); ctx.fill();
+        // 內框
+        ctx.strokeStyle = '#E6D3B8'; ctx.lineWidth = 3;
+        ctx.strokeRect(70, 70, CW - 140, CH - 140);
+        leaf(ctx, 150, 150, 1.2, -0.6, '#5DAA6F'); leaf(ctx, 210, 128, 0.9, 0.4, '#8CC49A');
+        leaf(ctx, CW - 150, CH - 150, 1.2, -0.6, '#5DAA6F'); leaf(ctx, CW - 210, CH - 128, 0.9, 0.4, '#8CC49A');
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#B9783A'; ctx.font = `800 40px ${SANS}`;
+        ctx.fillText('歡迎來到江翠加樂', CW / 2, 230);
+        ctx.fillStyle = '#3B342C'; ctx.font = `800 64px ${SANS}`;
+        ctx.fillText(lastName, CW / 2, 320);
+        ctx.fillStyle = '#F2B33D'; ctx.fillRect(CW / 2 - 40, 360, 80, 6);
+        ctx.font = `700 64px ${SERIF}`; ctx.fillStyle = '#4A3B2C';
+        const blockH = lines.length * 96;
+        let vy = Math.max(470, (CH - blockH) / 2 + 60);
+        lines.forEach(l => { ctx.fillText(l, CW / 2, vy); vy += 96; });
+        ctx.font = `600 38px ${SANS}`; ctx.fillStyle = '#B9783A';
+        ctx.fillText('— ' + ref, CW / 2, vy + 20);
+        ctx.fillStyle = '#8A7D6E'; ctx.font = `500 30px ${SANS}`;
+        ctx.fillText(dateText, CW / 2, CH - 190);
       }
-      ctx.fillStyle = '#3B342C'; ctx.font = `800 54px ${SANS}`;
-      ctx.fillText(lastName, CW / 2, iy + IS + 78);
-      const d = new Date();
-      ctx.fillStyle = '#8A7D6E'; ctx.font = `500 30px ${SANS}`;
-      ctx.fillText(`${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`, CW / 2, iy + IS + 124);
-      ctx.restore();
-      // 祝福經文
-      ctx.font = `700 46px ${SERIF}`; ctx.fillStyle = '#4A3B2C';
-      let vy = py + PH + 110;
-      lines.forEach(l => { ctx.fillText(l, CW / 2, vy); vy += 68; });
-      ctx.font = `600 32px ${SANS}`; ctx.fillStyle = '#B9783A';
-      ctx.fillText('— ' + ref, CW / 2, vy + 6);
-      ctx.font = `600 28px ${SANS}`; ctx.fillStyle = '#A99B89';
-      ctx.fillText('CLC 加樂團契・長輩是教會的寶', CW / 2, CH - 50);
+      if (activeFrame) ctx.drawImage(activeFrame, 0, 0, c.width, c.height);
+      ctx.font = `600 28px ${SANS}`; ctx.fillStyle = '#A99B89'; ctx.textAlign = 'center';
+      ctx.fillText('CLC 加樂團契・長輩是教會的寶', CW / 2, c.height - (photo ? 50 : 120));
       cardCanvas = c;
       $('cardImg').src = c.toDataURL('image/jpeg', 0.92);
       $('cardImg').alt = `${lastName} 的歡迎紀念卡：${verse}（${ref}）`;
     }
+    // 寄給小組長的版本：控制在資料庫可存的大小內
+    function cardDataUrl() {
+      if (!cardCanvas) return '';
+      for (const [scale, q] of [[1, .82], [.8, .78], [.6, .72]]) {
+        let src = cardCanvas;
+        if (scale < 1) { src = document.createElement('canvas'); src.width = Math.round(cardCanvas.width * scale); src.height = Math.round(cardCanvas.height * scale); src.getContext('2d').drawImage(cardCanvas, 0, 0, src.width, src.height); }
+        const url = src.toDataURL('image/jpeg', q);
+        if (url.length < 880000) return url;
+      }
+      return '';
+    }
     $('verseBtn').addEventListener('click', async () => { verseIdx = (verseIdx + 1 + Math.floor(Math.random() * (VERSES.length - 1))) % VERSES.length; await drawCard(); });
 
+    // ---------- 分享 ----------
+    const SITE = location.origin + location.pathname.replace(/[^/]*$/, '') + 'join.html';
     const cardBlob = () => new Promise(ok => cardCanvas.toBlob(ok, 'image/jpeg', 0.92));
     const fileName = () => `加樂歡迎卡_${lastName || '新朋友'}.jpg`;
+    const shareText = () => { const [verse, ref] = VERSES[verseIdx]; return `我今天來到江翠加樂團契！\n「${verse}」— ${ref}`; };
     async function saveCard() {
       const blob = await cardBlob();
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName();
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 30000);
     }
-    $('saveBtn').addEventListener('click', saveCard);
-    $('shareBtn').addEventListener('click', async () => {
-      const [verse, ref] = VERSES[verseIdx];
-      const text = `歡迎來到江翠加樂！\n「${verse}」— ${ref}`;
+    // 手機：直接把卡片圖片分享出去（選單裡會有 LINE、Facebook…）；回傳是否成功開啟
+    async function shareImage() {
       try {
         const file = new File([await cardBlob()], fileName(), { type: 'image/jpeg' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
-      } catch (err) { if (err && err.name === 'AbortError') return; }
-      // 電腦或不支援分享圖片：先存圖，再開 LINE 分享文字
+        if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: shareText() }); return true; }
+      } catch (err) { if (err && err.name === 'AbortError') return true; }
+      return false;
+    }
+    $('saveBtn').addEventListener('click', saveCard);
+    $('shareBtn').addEventListener('click', async () => {
+      if (await shareImage()) return;
       await saveCard();
-      window.open('https://line.me/R/share?text=' + encodeURIComponent(text), '_blank', 'noopener');
-      SR.toast('圖片已存好，可以在 LINE 裡附上這張圖');
+      SR.toast('卡片已存好，可以傳到 LINE 或 Facebook');
+    });
+    $('lineBtn').addEventListener('click', async () => {
+      if (isMobile && await shareImage()) return;   // 手機：在選單裡選 LINE，連圖片一起傳
+      await saveCard();
+      window.open('https://line.me/R/share?text=' + encodeURIComponent(shareText()), '_blank', 'noopener');
+      SR.toast('卡片已存好，可以在 LINE 裡附上這張圖');
+    });
+    $('fbBtn').addEventListener('click', async () => {
+      if (isMobile && await shareImage()) return;   // 手機：在選單裡選 Facebook，連圖片一起傳
+      await saveCard();
+      window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(SITE) + '&quote=' + encodeURIComponent(shareText()), '_blank', 'noopener');
+      SR.toast('卡片已存好，可以在 Facebook 貼文裡附上這張圖');
     });
 
     $('againBtn').addEventListener('click', () => {
       $('joinForm').reset();
       Object.assign(state, { gender: '', faith: [], intent: [] });
       photo = null; showPhoto(); syncPressed(); renderSelects(); fillDays(); updateBirthHint();
+      $('refOtherWrap').classList.add('hidden');
       document.querySelectorAll('select.j-in').forEach(s => s.classList.toggle('j-empty', !s.value));
       $('doneView').classList.add('hidden'); $('formView').classList.remove('hidden');
       window.scrollTo(0, 0);

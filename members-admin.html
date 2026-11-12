@@ -59,6 +59,11 @@
           <p class="font-bold">還沒有任何小組。</p>
           <button type="button" id="seedGroupsBtn" class="sr-btn sr-btn-primary w-full">建立點名表上的 18 個小組（含加樂同工）</button>
         </div>
+        <div class="sr-card p-4 space-y-2">
+          <label class="sr-label" for="notifyAll">✉️ 每一位新朋友都要通知的信箱</label>
+          <input id="notifyAll" class="sr-field" data-contact="_all" placeholder="例如區長、同工的 Email，多個用逗號隔開">
+          <p class="sr-help">新朋友送出留名單後，會把紀念卡和資料寄給「這裡的信箱」＋「他選的小組的通知信箱」。信箱只有同工看得到。</p>
+        </div>
         <div id="groupList" class="space-y-2"></div>
       </section>
 
@@ -95,6 +100,7 @@
   (function () {
     const SR = window.SR;
     const $ = id => document.getElementById(id);
+    let contacts = {};   // groupContacts：小組長、區長的通知信箱（只有同工讀得到）
     let access = {}, groups = [], options = SR.DEFAULT_OPTIONS, optionsExist = false, persons = [];
     let unsubs = [];
 
@@ -109,6 +115,11 @@
       if (a.canView && !unsubs.length) {
         const fail = err => SR.toast('讀取失敗：' + (err.code || err.message), 'error');
         unsubs.push(SR.watchGroups(list => { groups = list; renderGroups(); }, fail));
+        unsubs.push(window.db.collection('groupContacts').onSnapshot(s => {
+          contacts = Object.fromEntries(s.docs.map(d => [d.id, (d.data().emails || []).join(', ')]));
+          if (document.activeElement !== $('notifyAll')) $('notifyAll').value = contacts._all || '';
+          renderGroups();
+        }, fail));
         unsubs.push(SR.watchOptions((o, exists) => { options = o; optionsExist = exists; renderOptions(); }, fail));
         unsubs.push(window.db.collection('persons').onSnapshot(s => { persons = s.docs.map(d => ({ id: d.id, ...d.data() })); renderGroups(); }, fail));
       }
@@ -146,6 +157,8 @@
           <span class="sr-chip" style="white-space:nowrap">${used[g.id] || 0} 人</span>
           <button type="button" class="sr-btn sr-btn-ghost sr-btn-sm" data-toggle="${g.id}"${dis}>${g.active === false ? '🔁 重新啟用' : '⏸ 停用'}</button>
           ${!used[g.id] ? `<button type="button" class="sr-btn sr-btn-danger sr-btn-sm" data-del="${g.id}"${dis}>刪除</button>` : ''}
+          <label class="w-full flex items-center gap-2"><span class="text-sm whitespace-nowrap" aria-hidden="true">✉️</span><span class="sr-only">${SR.esc(g.name)} 的通知信箱</span>
+            <input class="sr-field" style="min-height:34px" data-contact="${g.id}" value="${SR.esc(contacts[g.id] || '')}" placeholder="小組長、區長的 Email（新朋友選這組時通知），多個用逗號隔開"${dis}></label>
         </div>`).join('');
     }
 
@@ -166,6 +179,22 @@
       SR.DEFAULT_GROUPS.forEach((name, i) => batch.set(window.db.collection('groups').doc(), { name, order: i, active: true, ...SR.stamp() }));
       try { await batch.commit(); SR.toast(`已建立 ${SR.DEFAULT_GROUPS.length} 個小組`); } catch (err) { fail('建立失敗', err); }
     });
+
+    // 通知信箱：離開欄位就儲存
+    async function saveContact(el) {
+      const id = el.dataset.contact;
+      const list = el.value.split(/[,，;；\s]+/).map(x => x.trim().toLowerCase()).filter(Boolean);
+      const bad = list.filter(x => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+      if (bad.length) { SR.toast('Email 格式不對：' + bad.join('、'), 'error'); el.classList.add('sr-invalid'); return; }
+      el.classList.remove('sr-invalid');
+      if (list.join(', ') === (contacts[id] || '')) return;
+      try {
+        await window.db.collection('groupContacts').doc(id).set({ emails: list.slice(0, 10), ...SR.stamp() });
+        SR.toast(list.length ? '已儲存通知信箱' : '已清除通知信箱');
+      } catch (err) { fail('儲存失敗', err); }
+    }
+    document.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.contact && access.isAdmin) saveContact(e.target); });
+    $('notifyAll').disabled = false;
 
     $('groupList').addEventListener('change', async e => {
       if (e.target.dataset.ggender !== undefined) {

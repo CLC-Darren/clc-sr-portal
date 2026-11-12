@@ -110,7 +110,7 @@ service cloud.firestore {
     function validIntake(d) {
       return d.keys().hasOnly(['name', 'gender', 'birthday', 'mobile', 'phone', 'address', 'marital', 'living',
           'groupId', 'groupName', 'refName', 'refRelation', 'refPhone', 'faith', 'intent', 'note', 'photoThumb',
-          'status', 'personId', 'joinedAt', 'source', 'createdAt', 'updatedAt', 'updatedBy'])
+          'status', 'personId', 'joinedAt', 'source', 'notify', 'notifiedAt', 'notifyError', 'createdAt', 'updatedAt', 'updatedBy'])
         && d.name is string && d.name.size() > 0 && d.name.size() <= 60
         && (!('gender' in d) || d.gender in ['女', '男', ''])
         && (!('birthday' in d) || d.birthday == '' || d.birthday.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
@@ -127,7 +127,8 @@ service cloud.firestore {
         request.resource.data.source == 'form'
         && request.resource.data.createdAt == request.time
         && !('personId' in request.resource.data) && !('joinedAt' in request.resource.data)
-        && (!('status' in request.resource.data) || request.resource.data.status == '')));
+        && (!('status' in request.resource.data) || request.resource.data.status == '')
+        && (!('notify' in request.resource.data) || request.resource.data.notify == 'pending')));
       allow read: if isAdmin() || isViewer();
       allow update: if isAdmin() && validIntake(request.resource.data);
       allow delete: if isAdmin();
@@ -143,6 +144,25 @@ service cloud.firestore {
       allow read: if isAdmin() || isViewer();
       allow update: if isAdmin();
       allow delete: if isAdmin();
+    }
+
+    // 寄給小組長的紀念卡圖片：同樣只能跟著留名單一起新增
+    match /intakeCards/{docId} {
+      allow create: if request.resource.data.keys().hasOnly(['data'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 900000
+        && request.resource.data.data.matches('^data:image/jpeg;base64,.*')
+        && (isAdmin() || (existsAfter(/databases/$(database)/documents/intakes/$(docId))
+                          && !exists(/databases/$(database)/documents/intakes/$(docId))));
+      allow read: if isAdmin() || isViewer();
+      allow update, delete: if isAdmin();
+    }
+    // 小組長、區長的通知信箱：不公開，只有同工看得到（寄信程式用專案擁有者身分讀取）
+    match /groupContacts/{docId} {
+      allow read: if isAdmin() || isViewer();
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['emails', 'updatedAt', 'updatedBy'])
+        && request.resource.data.emails is list && request.resource.data.emails.size() <= 10;
     }
 
     // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
