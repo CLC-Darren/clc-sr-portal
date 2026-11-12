@@ -63,6 +63,9 @@
 
     // 新朋友表單只存小組名稱：對到小組清單補上 groupId
     function normalizeRec(p) {
+      // 舊資料的電話（0912-345-678、沒有 0 開頭…）顯示時統一成 0920-710404
+      if (p.mobile) p.mobile = SR.formatPhone(p.mobile);
+      if (p.phone) p.phone = SR.formatPhone(p.phone);
       if (IS_INTAKE && !p.groupId && p.groupName) { const g = groups.find(x => x.name === p.groupName); if (g) p.groupId = g.id; }
       return p;
     }

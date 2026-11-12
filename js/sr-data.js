@@ -95,14 +95,14 @@
     return a;
   };
 
-  /** 電話整理：手機 0912-345-678；市話 02-2345-6789；其他保留原文字。 */
+  /** 電話整理：手機 0920-710404；市話 02-2345-6789；其他保留原文字。 */
   SR.formatPhone = function (value) {
     const raw = String(value ?? '').trim();
     if (!raw) return '';
     let digits = raw.replace(/[^\d]/g, '');
     if (/^886\d{8,9}$/.test(digits)) digits = '0' + digits.slice(3); // +886
     if (/^9\d{8}$/.test(digits)) digits = '0' + digits; // Excel 吃掉開頭 0
-    if (/^09\d{8}$/.test(digits)) return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+    if (/^09\d{8}$/.test(digits)) return `${digits.slice(0, 4)}-${digits.slice(4)}`;   // 手機統一 0920-710404
     if (/^02\d{8}$/.test(digits)) return `02-${digits.slice(2, 6)}-${digits.slice(6)}`;
     if (/^[2-8]\d{7}$/.test(digits)) return `02-${digits.slice(0, 4)}-${digits.slice(4)}`; // 沒寫區碼的台北市話
     if (/^0[3-8]\d{7,8}$/.test(digits)) return `${digits.slice(0, 2)}-${digits.slice(2)}`;

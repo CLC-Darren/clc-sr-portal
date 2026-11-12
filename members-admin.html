@@ -88,6 +88,12 @@
           </label>
           <p id="fileName" class="sr-help"></p>
         </div>
+        <div class="sr-card p-5 space-y-3 admin-only">
+          <h2 class="text-base font-extrabold">整理電話格式</h2>
+          <p class="sr-help">把通訊錄和新朋友名單裡的手機統一成 0920-710404、市話統一成 02-2252-6301。只改格式，不改號碼。</p>
+          <button type="button" id="fixPhonesBtn" class="sr-btn sr-btn-primary">統一電話格式</button>
+          <p id="fixPhonesStatus" class="sr-help" role="status" aria-live="polite"></p>
+        </div>
         <div id="sheetPanel" class="hidden space-y-3"></div>
         <div id="previewPanel" class="hidden space-y-3"></div>
       </section>
@@ -95,7 +101,7 @@
   </main>
 
   <script src="header.js?v=20261112-intakes"></script>
-  <script src="js/sr-data.js?v=20261112"></script>
+  <script src="js/sr-data.js?v=20261112b"></script>
   <script>
   (function () {
     const SR = window.SR;
@@ -283,6 +289,35 @@
       if (!v) return;
       if (options[key].includes(v)) { SR.toast('已經有這個選項了', 'error'); return; }
       saveList(key, [...options[key], v]);
+    });
+
+    // ---------- 統一電話格式 ----------
+    $('fixPhonesBtn').addEventListener('click', async () => {
+      if (!access.isAdmin) return;
+      const btn = $('fixPhonesBtn'), status = $('fixPhonesStatus');
+      btn.disabled = true; status.textContent = '檢查中…';
+      try {
+        let changed = 0;
+        for (const col of ['persons', 'intakes']) {
+          const snap = await window.db.collection(col).get();
+          const todo = [];
+          snap.docs.forEach(d => {
+            const v = d.data(), upd = {};
+            ['mobile', 'phone', 'refPhone'].forEach(k => { if (typeof v[k] === 'string' && v[k] && SR.formatPhone(v[k]) !== v[k]) upd[k] = SR.formatPhone(v[k]); });
+            if (Object.keys(upd).length) todo.push([d.ref, upd]);
+          });
+          for (let i = 0; i < todo.length; i += 400) {
+            const batch = window.db.batch();
+            todo.slice(i, i + 400).forEach(([ref, upd]) => batch.update(ref, { ...upd, ...SR.stamp() }));
+            await batch.commit();
+            changed += Math.min(400, todo.length - i);
+            status.textContent = `整理中… 已更新 ${changed} 筆`;
+          }
+        }
+        status.textContent = changed ? `✅ 完成，更新了 ${changed} 筆。` : '✅ 電話格式都已經一致，不用改。';
+        SR.toast('電話格式整理完成');
+      } catch (err) { status.textContent = '❌ 失敗：' + (err.code || err.message); fail('整理失敗', err); }
+      finally { btn.disabled = false; }
     });
 
     // ---------- 匯入 ----------
