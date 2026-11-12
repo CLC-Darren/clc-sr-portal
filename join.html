@@ -253,7 +253,7 @@
     </div>
   </div>
 
-  <script src="header.js?v=20261112-leaders"></script>
+  <script src="header.js?v=20261112-joinadmin"></script>
   <script src="js/sr-data.js?v=20261112-leaders"></script>
   <script>
   (function () {
@@ -266,7 +266,7 @@
     let options = { marital: SR.DEFAULT_OPTIONS.marital, living: SR.DEFAULT_OPTIONS.living };
 
     // 和合本經文，挑選溫暖、祝福、適合長輩的句子
-    const VERSES = [
+    let VERSES = [
       ['耶和華是我的牧者，我必不致缺乏。', '詩篇 23:1'],
       ['願耶和華賜福給你，保護你。', '民數記 6:24'],
       ['耶和華必賜力量給他的百姓；耶和華必賜平安的福給他的百姓。', '詩篇 29:11'],
@@ -329,6 +329,16 @@
     try {
       SR.watchGroups(list => { const a = list.filter(forNewcomer); if (a.length) { groups = a; renderSelects(); } }, () => {});
       SR.watchOptions(o => { options = { marital: o.marital, living: o.living }; renderSelects(); }, () => {});
+      window.db.collection('options').doc('verses').get().then(d => {
+        const list = ((d.exists && d.data().list) || []).filter(v => v.on !== false && v.t && v.r);
+        if (list.length) VERSES = list.map(v => [v.t, v.r]);
+      }).catch(() => {});
+      window.db.collection('cardThemes').where('on', '==', true).get().then(snap => {
+        const today = new Date().toLocaleDateString('sv-SE');
+        const pick = snap.docs.map(d => d.data()).filter(t => t.data && (!t.from || t.from <= today) && (!t.to || t.to >= today))
+          .sort((x, y) => (y.from ? 1 : 0) - (x.from ? 1 : 0))[0];
+        if (pick) loadImg(pick.data).then(img => { activeBg = img; }).catch(() => {});
+      }).catch(() => {});
     } catch (e) { /* 使用預設選項 */ }
 
     // ---------- 生日 ----------
@@ -514,8 +524,14 @@
     const SANS = '"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
     const SERIF = '"Noto Serif TC", "Songti TC", "PMingLiU", serif';
     let cardCanvas = null;
-    // TODO（之後）：後台上傳節日邊框（例如聖誕節），拍照預覽與紀念卡都套用。
-    //   做法：options/frames 存邊框圖片，這裡載入成 Image 後放進 activeFrame，drawCard 最後會疊上去。
+    // 背卡：後台「表單後台 → 背卡」上傳，依日期自動套用（cardThemes）
+    let activeBg = null;
+    function paintBg(ctx, w, h, fallback) {
+      if (!activeBg) { fallback(); return; }
+      const r = Math.max(w / activeBg.naturalWidth, h / activeBg.naturalHeight);
+      const iw = activeBg.naturalWidth * r, ih = activeBg.naturalHeight * r;
+      ctx.drawImage(activeBg, (w - iw) / 2, (h - ih) / 2, iw, ih);
+    }
     let activeFrame = null;
     const loadImg = src => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; });
     function wrapLines(ctx, text, maxW) {
@@ -545,9 +561,11 @@
         const PW = 700, PH = 830, px = (CW - PW) / 2, py = 160;
         const CH = py + PH + 110 + lines.length * 68 + 150;
         c = document.createElement('canvas'); c.width = CW; c.height = CH; ctx = c.getContext('2d');
+        paintBg(ctx, CW, CH, () => {
         ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
         ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 40, -40, 300, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-60, CH + 20, 320, 0, Math.PI * 2); ctx.fill();
+        });
         ctx.textAlign = 'center';
         ctx.fillStyle = '#B9783A'; ctx.font = `800 40px ${SANS}`;
         ctx.fillText('歡迎來到江翠加樂', CW / 2, 110);
@@ -576,9 +594,11 @@
         const lines = wrapLines(m, '「' + verse + '」', 820);
         const CH = 1350;
         c = document.createElement('canvas'); c.width = CW; c.height = CH; ctx = c.getContext('2d');
+        paintBg(ctx, CW, CH, () => {
         ctx.fillStyle = '#FBF4EA'; ctx.fillRect(0, 0, CW, CH);
         ctx.fillStyle = '#F7E3C3'; ctx.beginPath(); ctx.arc(CW + 60, -60, 360, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#E3EFE0'; ctx.beginPath(); ctx.arc(-80, CH + 40, 380, 0, Math.PI * 2); ctx.fill();
+        });
         // 內框
         ctx.strokeStyle = '#E6D3B8'; ctx.lineWidth = 3;
         ctx.strokeRect(70, 70, CW - 140, CH - 140);

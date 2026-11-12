@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark sr-compact">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>CLC SR | 表單後台</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=sr-icon-20261109-v2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"CLC Arial"','Arial','"Microsoft JhengHei"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <link rel="stylesheet" href="css/sr-ui.css?v=20261111c">
+  <style>
+    .tab[aria-selected="true"] { background: #007E8A; color: #fff; border-color: #007E8A; }
+    .mini-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .mini-table th, .mini-table td { padding: .5rem .55rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    .mini-table th { color: #a3acbe; font-weight: 800; white-space: nowrap; position: sticky; top: 0; background: #161924; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#090A0F] text-slate-100">
+  <header id="clc-header"></header>
+
+  <main class="max-w-3xl mx-auto px-4 py-7">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h1 class="text-xl font-extrabold">🎨 表單後台</h1>
+      <div class="relative shrink-0"><button id="pageMenuGear" data-menu="newfriends" type="button" onclick="togglePageMenu()" title="表單選單" aria-label="表單選單" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center text-[13px] transition active:scale-95">⚙️</button></div>
+    </div>
+    <section id="gateChecking" class="sr-card p-6 text-center" role="status">正在確認登入身分…</section>
+    <section id="gateLogin" class="hidden sr-card p-8 text-center space-y-4">
+      <p class="text-base font-bold">請先用管理員 Google 帳號登入。</p>
+      <button type="button" class="sr-btn sr-btn-primary" onclick="triggerAdminLogin()">用 Google 帳號登入</button>
+    </section>
+    <section id="app" class="hidden space-y-5">
+      <div id="viewerNote" class="hidden rounded-2xl border border-sky-400/30 bg-sky-400/10 text-sky-200 px-4 py-3 font-bold text-sm">👁️ 唯讀權限，只能查看。</div>
+      <div class="grid grid-cols-2 gap-2" role="tablist">
+        <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="verses" aria-selected="true">📖 經文</button>
+        <button class="tab sr-btn sr-btn-ghost" role="tab" data-tab="themes" aria-selected="false">🖼️ 背卡</button>
+      </div>
+
+      <div data-panel="verses" class="sr-card p-4 space-y-3">
+        <p class="sr-help">打勾的經文才會隨機出現在新朋友的紀念卡上。改完按「儲存」。</p>
+        <div id="verseList" class="space-y-1.5"></div>
+        <div class="admin-only grid gap-2 sm:grid-cols-[1fr_9rem_auto]">
+          <input id="vText" class="sr-input" placeholder="經文（和合本）"><input id="vRef" class="sr-input" placeholder="出處，如 詩篇 23:1">
+          <button id="vAdd" type="button" class="sr-btn sr-btn-ghost">＋ 加入</button>
+        </div>
+        <div class="admin-only flex gap-2 justify-end"><button id="vReset" type="button" class="sr-btn sr-btn-ghost">恢復預設</button><button id="vSave" type="button" class="sr-btn sr-btn-primary">儲存</button></div>
+      </div>
+
+      <div data-panel="themes" class="hidden sr-card p-4 space-y-3">
+        <p class="sr-help">背卡會鋪滿整張紀念卡（文字在上面），建議用淺色、直式（約 1080×1350）的圖。可以設定期間，例如聖誕節 12/1–12/31；有設日期的優先，沒設日期的當平常背卡。</p>
+        <div id="themeList" class="grid gap-3 sm:grid-cols-2"></div>
+        <div class="admin-only grid gap-2 sm:grid-cols-[1fr_auto]">
+          <input id="tName" class="sr-input" placeholder="背卡名稱，如 聖誕節">
+          <label class="sr-btn sr-btn-primary cursor-pointer">⬆️ 上傳圖片<input id="tFile" type="file" accept="image/*" class="hidden"></label>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="header.js?v=20261112-joinadmin"></script>
+  <script src="js/sr-data.js?v=20261112-leaders"></script>
+  <script>
+  (function () {
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const DEF = [
+      ['耶和華是我的牧者，我必不致缺乏。', '詩篇 23:1'],
+      ['願耶和華賜福給你，保護你。', '民數記 6:24'],
+      ['耶和華必賜力量給他的百姓；耶和華必賜平安的福給他的百姓。', '詩篇 29:11'],
+      ['你們要將一切的憂慮卸給神，因為他顧念你們。', '彼得前書 5:7'],
+      ['直到你們年老，我仍這樣；直到你們髮白，我仍懷搋。', '以賽亞書 46:4'],
+      ['他們年老的時候仍要結果子，要滿了汁漿而常發青。', '詩篇 92:14'],
+      ['白髮是榮耀的冠冕，在公義的道上必能得著。', '箴言 16:31'],
+      ['喜樂的心乃是良藥。', '箴言 17:22'],
+      ['我靠著那加給我力量的，凡事都能做。', '腓立比書 4:13'],
+      ['要常常喜樂，不住地禱告，凡事謝恩。', '帖撒羅尼迦前書 5:16-18'],
+      ['耶和華是我的亮光，是我的拯救，我還怕誰呢？', '詩篇 27:1'],
+      ['你要專心仰賴耶和華，不可倚靠自己的聰明。', '箴言 3:5'],
+      ['神愛世人，甚至將他的獨生子賜給他們，叫一切信他的，不至滅亡，反得永生。', '約翰福音 3:16']
+    ].map(([t, r]) => ({ t, r, on: true }))
+      .concat([
+      ['但那等候耶和華的必從新得力。他們必如鷹展翅上騰；他們奔跑卻不困倦，行走卻不疲乏。', '以賽亞書 40:31'],
+      ['耶和華說：我知道我向你們所懷的意念是賜平安的意念，不是降災禍的意念，要叫你們末後有指望。', '耶利米書 29:11'],
+      ['凡勞苦擔重擔的人可以到我這裡來，我就使你們得安息。', '馬太福音 11:28'],
+      ['我留下平安給你們；我將我的平安賜給你們。', '約翰福音 14:27'],
+      ['我們曉得萬事都互相效力，叫愛神的人得益處，就是按他旨意被召的人。', '羅馬書 8:28'],
+      ['你出你入，耶和華要保護你，從今時直到永遠。', '詩篇 121:8'],
+      ['神是我們的避難所，是我們的力量，是我們在患難中隨時的幫助。', '詩篇 46:1'],
+      ['我的心哪，你要稱頌耶和華！不可忘記他的一切恩惠！', '詩篇 103:2'],
+      ['我們不至消滅，是出於耶和華諸般的慈愛；是因他的憐憫不至斷絕。每早晨這都是新的；你的誠實極其廣大！', '耶利米哀歌 3:22-23'],
+      ['你不要害怕，因為我與你同在；不要驚惶，因為我是你的神。我必堅固你，我必幫助你；我必用我公義的右手扶持你。', '以賽亞書 41:10'],
+      ['這是耶和華所定的日子，我們在其中要高興歡喜！', '詩篇 118:24'],
+      ['看哪，弟兄和睦同居是何等地善，何等地美！', '詩篇 133:1'],
+      ['神就是愛；住在愛裡面的，就是住在神裡面，神也住在他裡面。', '約翰一書 4:16'],
+      ['當將你的事交託耶和華，並倚靠他，他就必成全。', '詩篇 37:5']
+    ].map(([t, r]) => ({ t, r, on: false })));
+    let verses = DEF.map(v => ({ ...v })), admin = false, started = false;
+    const fail = (m, e) => { console.error(e); SR.toast(m + '（' + (e.code || e.message) + '）', 'error'); };
+
+    document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+      document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== b.dataset.tab));
+    }));
+
+    // ---------- 經文 ----------
+    function renderVerses() {
+      $('verseList').innerHTML = verses.map((v, i) => `<div class="flex items-start gap-2 text-sm py-1 border-b border-white/5">
+        <input type="checkbox" data-on="${i}" ${v.on ? 'checked' : ''} ${admin ? '' : 'disabled'} class="mt-1" aria-label="使用 ${esc(v.r)}">
+        <div class="flex-1"><div>${esc(v.t)}</div><div class="text-xs text-slate-400">${esc(v.r)}</div></div>
+        ${admin ? `<button type="button" data-del="${i}" class="text-xs text-slate-400 hover:text-red-300" aria-label="刪除 ${esc(v.r)}">刪除</button>` : ''}</div>`).join('');
+    }
+    $('verseList').addEventListener('change', e => { const i = e.target.dataset.on; if (i != null) verses[i].on = e.target.checked; });
+    $('verseList').addEventListener('click', e => { const i = e.target.dataset.del; if (i != null) { verses.splice(i, 1); renderVerses(); } });
+    $('vAdd').addEventListener('click', () => {
+      const t = $('vText').value.trim(), r = $('vRef').value.trim();
+      if (!t || !r) { SR.toast('經文和出處都要填', 'error'); return; }
+      verses.push({ t, r, on: true }); $('vText').value = $('vRef').value = ''; renderVerses();
+    });
+    $('vReset').addEventListener('click', () => { verses = DEF.map(v => ({ ...v })); renderVerses(); SR.toast('已恢復預設，按儲存才會生效'); });
+    $('vSave').addEventListener('click', async () => {
+      if (!verses.some(v => v.on)) { SR.toast('至少要勾一節', 'error'); return; }
+      try { await window.db.collection('options').doc('verses').set({ list: verses, ...SR.stamp() }); SR.toast(`已儲存，使用中 ${verses.filter(v => v.on).length} 節`); }
+      catch (e) { fail('儲存失敗', e); }
+    });
+
+    // ---------- 背卡 ----------
+    let themes = [];
+    function renderThemes() {
+      $('themeList').innerHTML = themes.length ? themes.map(t => `<div class="rounded-xl border border-white/10 p-2 space-y-2">
+        <img src="${t.data}" alt="${esc(t.name)}" class="w-full aspect-[4/5] object-cover rounded-lg">
+        <div class="font-bold text-sm">${esc(t.name)}</div>
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <label>開始<input type="date" data-k="from" data-id="${t.id}" value="${t.from || ''}" class="sr-input !py-1" ${admin ? '' : 'disabled'}></label>
+          <label>結束<input type="date" data-k="to" data-id="${t.id}" value="${t.to || ''}" class="sr-input !py-1" ${admin ? '' : 'disabled'}></label>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-1.5"><input type="checkbox" data-k="on" data-id="${t.id}" ${t.on ? 'checked' : ''} ${admin ? '' : 'disabled'}>啟用</label>
+          ${admin ? `<button type="button" data-del-t="${t.id}" class="text-xs text-slate-400 hover:text-red-300">刪除</button>` : ''}
+        </div></div>`).join('') : '<p class="sr-help">還沒有背卡，目前用預設的米色背卡。</p>';
+    }
+    $('themeList').addEventListener('change', async e => {
+      const { k, id } = e.target.dataset; if (!k) return;
+      try { await window.db.collection('cardThemes').doc(id).update({ [k]: k === 'on' ? e.target.checked : e.target.value, ...SR.stamp() }); SR.toast('已更新'); }
+      catch (err) { fail('更新失敗', err); }
+    });
+    $('themeList').addEventListener('click', async e => {
+      const id = e.target.dataset.delT; if (!id) return;
+      try { await window.db.collection('cardThemes').doc(id).delete(); SR.toast('已刪除'); } catch (err) { fail('刪除失敗', err); }
+    });
+    function compress(file) {
+      return new Promise((ok, bad) => {
+        const img = new Image(); img.onerror = bad;
+        img.onload = () => {
+          for (const [w, q] of [[1080, .85], [1080, .72], [900, .7], [720, .65]]) {
+            const r = Math.min(1, w / img.naturalWidth), c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            const url = c.toDataURL('image/jpeg', q);
+            if (url.length < 900000) { URL.revokeObjectURL(img.src); ok(url); return; }
+          }
+          bad(new Error('圖片太大'));
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+    $('tFile').addEventListener('change', async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const name = $('tName').value.trim() || f.name.replace(/\.[^.]+$/, '').slice(0, 40);
+      try {
+        const data = await compress(f);
+        await window.db.collection('cardThemes').add({ name, data, on: true, from: '', to: '', ...SR.stamp() });
+        $('tName').value = ''; SR.toast('已上傳：' + name);
+      } catch (err) { fail('上傳失敗', err); }
+    });
+
+    function start() {
+      if (started) return; started = true;
+      window.db.collection('options').doc('verses').get().then(d => {
+        const list = d.exists && d.data().list;
+        if (Array.isArray(list) && list.length) verses = list.map(v => ({ t: v.t, r: v.r, on: v.on !== false }));
+        renderVerses();
+      }).catch(e => { renderVerses(); fail('讀取經文失敗', e); });
+      window.db.collection('cardThemes').onSnapshot(s => { themes = s.docs.map(d => ({ id: d.id, ...d.data() })); renderThemes(); }, e => fail('讀取背卡失敗', e));
+    }
+    SR.onAccess(a => {
+      const ok = a.canView && a.isStaff;
+      admin = !!a.isAdmin;
+      $('gateChecking').classList.add('hidden');
+      $('gateLogin').classList.toggle('hidden', ok);
+      $('app').classList.toggle('hidden', !ok);
+      $('viewerNote').classList.toggle('hidden', !a.isViewer || admin);
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
+      if (ok) { start(); renderVerses(); renderThemes(); }
+    });
+  })();
+  </script>
+</body>
+</html>

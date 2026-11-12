@@ -89,6 +89,7 @@ function getCurrentPageType() {
   if (path.includes('admin-users')) return 'admin-users';
   if (path.includes('members-admin')) return 'members-admin';
   if (path.endsWith('/join')) return 'join';
+  if (path.endsWith('/join-admin') || path.endsWith('join-admin.html')) return 'join-admin';
   if (path.includes('members')) return 'members';
   if (path.includes('intakes')) return 'intakes';
   if (path.includes('groups')) return 'groups';
@@ -237,6 +238,7 @@ window.CLC_PAGE_MENUS = {
   newfriends: [
     { page: 'join', href: 'join.html', label: '📝 新朋友留名單（表單）' },
     { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單（後台）' },
+    { page: 'join-admin', href: 'join-admin.html', label: '🎨 表單後台（經文・背卡）' },
     { page: 'members', href: 'members.html', label: '📖 組員通訊錄' }
   ]
 };

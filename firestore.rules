@@ -103,8 +103,20 @@ service cloud.firestore {
     }
     match /options/{docId} {
       allow read: if true;
-      allow write: if isAdmin() && docId == 'lists'
-        && request.resource.data.keys().hasOnly(['statuses', 'marital', 'living', 'updatedAt', 'updatedBy']);
+      allow write: if isAdmin() && (
+        (docId == 'lists' && request.resource.data.keys().hasOnly(['statuses', 'marital', 'living', 'updatedAt', 'updatedBy']))
+        || (docId == 'verses' && request.resource.data.keys().hasOnly(['list', 'updatedAt', 'updatedBy'])
+            && request.resource.data.list is list && request.resource.data.list.size() <= 300));
+    }
+    // 新朋友紀念卡背卡（表單後台上傳，公開讀取）
+    match /cardThemes/{id} {
+      allow read: if true;
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'data', 'on', 'from', 'to', 'updatedAt', 'updatedBy'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 40
+        && request.resource.data.data is string && request.resource.data.data.size() < 1000000
+        && request.resource.data.on is bool;
     }
 
     // 組員通訊錄：含地址、生日等個資，只有登入的 Admin / Viewer 可讀，Admin 可寫。
