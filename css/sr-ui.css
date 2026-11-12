@@ -1,6 +1,6 @@
 /* CLC SR｜長輩友善共用樣式（通訊錄、名單後台、新朋友登記）
    原則：內文 18px 起、可點區域至少 52px 高、高對比、不靠滑鼠移過才出現的功能。 */
-html { font-size: 18px; font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; }
+html { font-size: 18px; font-family: Inter, 'Noto Sans TC', sans-serif; }
 @media (min-width: 1024px) { html { font-size: 19px; } }
 body { margin: 0; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 

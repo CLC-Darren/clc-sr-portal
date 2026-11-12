@@ -20,21 +20,21 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: { extend: {
-        fontFamily: { sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'] },
+        fontFamily: { sans: ['Inter', '"Noto Sans TC"', 'sans-serif'] },
         colors: { brand: { teal: '#007E8A', tealHover: '#006C77', surface: '#11131B', card: '#161924', border: 'rgba(255, 255, 255, 0.1)', muted: '#8A92A6' } }
       } }
     }
   </script>
   <style>
     html { font-size: 15px; }
-    body { -webkit-font-smoothing: antialiased; transition: background-color .3s ease, color .3s ease; font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif; }
-    #clc-header { font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif !important; font-size: 16px; }
+    body { -webkit-font-smoothing: antialiased; transition: background-color .3s ease, color .3s ease; font-family: Inter, "Noto Sans TC", sans-serif; }
+    #clc-header { font-family: Inter, "Noto Sans TC", sans-serif !important; font-size: 16px; }
     /* 歌詞清單固定單行：不受 Tailwind CDN 載入狀態影響，手機可以橫向滑動。 */
     .hymn-admin-one-row { display:flex; align-items:center; flex-wrap:nowrap; gap:8px; min-width:600px; }
     .hymn-admin-one-row .hymn-row-title { flex:1; min-width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
