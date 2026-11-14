@@ -24,7 +24,7 @@
   const css = `
     #homeApps .ha-cell { position:relative; aspect-ratio:1; }
     #homeApps .slot-target { border-radius:1.5rem; }
-    .slot-floating .ha-tile { box-shadow:0 20px 45px rgba(0,0,0,.3); }
+    .slot-floating .ha-tile { box-shadow:0 24px 50px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.25); }
     #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
     #homeApps .ha-tile:hover { background:#006C77; }
     #homeApps .ha-tile:active { transform:scale(.95); }
