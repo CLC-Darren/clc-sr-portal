@@ -1,10 +1,10 @@
 /**
  * 首頁功能圖示（YA、SR 共用，做法同 DX04「分站入口」）
  * - 清單存在 Firestore system_config/home_apps（沿用既有規則：所有人可讀、Admin 可寫），本機另存快取讓畫面先出來。
- * - Admin：長按任一格進入編輯模式（晃動）→ 按「−」移除、按「＋」新增、點圖示改名稱／網址／圖示；
- *   手機長按後直接拖曳可排序，電腦直接拖曳排序。
+ * - 格子邏輯（長按晃動、拖到空格、互換、「−」移除、「＋」新增、點圖示修改）在 js/clc-slot-grid.js，三站共用。
+ * - 只有 Superuser 可以編輯；最少 6 格，中間可以留空格。
  * - 圖示可填 emoji（例如 🎵）或圖片網址。
- * 使用方式：<div id="homeApps" data-site="ya"></div>，並在 header.js、js/reorder.js 之後載入本檔。
+ * 使用方式：<nav id="homeApps" data-site="ya"></nav>，並在 header.js、js/clc-slot-grid.js 之後載入本檔。
  * 預設清單放在 window.CLC_HOME_APPS_DEFAULT（各站 index.html 內設定）。
  */
 (function () {
@@ -12,7 +12,7 @@
   if (!grid) return;
   const SITE = grid.dataset.site || 'site';
   const CACHE_KEY = 'clc_' + SITE + '_home_apps';
-  const MAX_APPS = 24, LONG_PRESS_MS = 550;
+  const MAX_APPS = 24, MIN_SLOTS = 6;
   const DEFAULT_APPS = Array.isArray(window.CLC_HOME_APPS_DEFAULT) ? window.CLC_HOME_APPS_DEFAULT : [];
   let apps = DEFAULT_APPS;
   let editing = false;
@@ -23,6 +23,8 @@
 
   const css = `
     #homeApps .ha-cell { position:relative; aspect-ratio:1; }
+    #homeApps .slot-target { border-radius:1.5rem; }
+    .slot-floating .ha-tile { box-shadow:0 20px 45px rgba(0,0,0,.3); }
     #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
     #homeApps .ha-tile:hover { background:#006C77; }
     #homeApps .ha-tile:active { transform:scale(.95); }
@@ -46,20 +48,10 @@
     .dark #homeApps .ha-menu a + a { border-top-color:rgba(255,255,255,.05); }
     #homeApps .ha-menu a:hover { background:#f8fafc; }
     .dark #homeApps .ha-menu a:hover { background:rgba(255,255,255,.05); }
-    #homeApps.is-editing .ha-tile { animation:haJiggle .32s ease-in-out infinite; animation-delay:var(--jiggle-delay,0s); }
-    @keyframes haJiggle { 0%,100% { transform:rotate(-2deg); } 50% { transform:rotate(2deg); } }
-    @media (prefers-reduced-motion: reduce) { #homeApps.is-editing .ha-tile { animation:none; } }
     #homeApps .ha-remove { position:absolute; top:-10px; left:-10px; width:36px; height:36px; display:grid; place-content:center; border:0; background:none; padding:0; cursor:pointer; z-index:2; }
     #homeApps .ha-remove span { width:22px; height:22px; border-radius:50%; background:#475569; box-shadow:0 1px 4px rgba(0,0,0,.35); display:grid; place-content:center; }
     #homeApps .ha-remove span::after { content:""; width:10px; height:2px; border-radius:2px; background:#fff; }
     #homeApps .ha-remove:hover span, #homeApps .ha-remove:focus-visible span { background:#e11d48; }
-    #homeApps .ha-pressing .ha-tile, #homeApps .ha-slot.ha-pressing { transform:scale(.92); transition:transform .5s; }
-    #homeApps .reorder-source { opacity:.3; }
-    #homeApps .reorder-target { outline:2px solid #00A3B4; outline-offset:3px; border-radius:1.5rem; }
-    .reorder-floating.ha-cell { border-radius:1.5rem; box-shadow:0 20px 45px rgba(0,0,0,.3); transform-origin:center; will-change:transform; }
-    .reorder-floating .ha-remove { visibility:hidden; }
-    #homeAppsDone { margin:14px auto 0; display:block; padding:8px 22px; border-radius:9999px; background:#007E8A; color:#fff; font-weight:700; font-size:14px; border:0; cursor:pointer; }
-    #homeAppsDone[hidden] { display:none; }
     .ha-dialog { width:min(92vw,400px); padding:0; border:0; border-radius:20px; background:#fff; color:#0f172a; text-align:left; }
     .dark .ha-dialog { background:#161924; color:#f1f5f9; }
     .ha-dialog::backdrop { background:rgba(0,0,0,.6); }
@@ -83,11 +75,7 @@
   style.textContent = css;
   document.head.appendChild(style);
 
-  const doneBtn = document.createElement('button');
-  doneBtn.type = 'button'; doneBtn.id = 'homeAppsDone'; doneBtn.textContent = '完成'; doneBtn.hidden = true;
-  grid.after(doneBtn);
-
-  const isAdmin = () => !!window.isAdmin;
+  const isAdmin = () => !!window.isSuperuser; // 只有 Superuser 可以編輯
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // 只接受 http(s)、站內相對路徑，避免 javascript: 之類的連結。
   function safeUrl(value) {
@@ -111,148 +99,62 @@
   const caret = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
 
   let openMenuId = null;
-  function render() {
-    const admin = isAdmin();
-    if (!admin) editing = false;
-    grid.classList.toggle('is-editing', editing);
-    grid.replaceChildren();
-    apps.forEach((app, i) => {
-      const cell = document.createElement('div');
-      cell.className = 'ha-cell';
-      cell.dataset.sortId = app.id;
-      cell.draggable = admin;
-      cell.style.setProperty('--jiggle-delay', (-(i % 3) * 0.11) + 's');
-      const hasMenu = Array.isArray(app.menu) && app.menu.length > 0;
-      const label = `<span class="ha-name">${esc(app.name)}${hasMenu ? caret : ''}</span>`;
-      if (hasMenu || editing) {
-        const b = document.createElement('button');
-        b.type = 'button'; b.className = 'ha-tile'; b.dataset.appId = app.id;
-        b.setAttribute('aria-label', editing ? '編輯 ' + app.name : app.name);
-        if (hasMenu && !editing) b.setAttribute('aria-expanded', openMenuId === app.id ? 'true' : 'false');
-        b.innerHTML = iconHtml(app) + label;
-        cell.append(b);
-      } else {
-        const a = document.createElement('a');
-        a.className = 'ha-tile'; a.dataset.appId = app.id;
-        const href = safeUrl(app.url) || '#';
-        a.href = href;
-        if (isExternal(href)) { a.target = '_blank'; a.rel = 'noopener'; }
-        a.draggable = admin;
-        a.setAttribute('aria-label', '開啟' + app.name);
-        a.innerHTML = iconHtml(app) + label;
-        cell.append(a);
-      }
-      if (hasMenu && !editing && openMenuId === app.id) {
-        const menu = document.createElement('div');
-        menu.className = 'ha-menu';
-        menu.innerHTML = app.menu.map(m => `<a href="${esc(safeUrl(m.url) || '#')}"><span>${esc(m.icon || '')}</span><span>${esc(m.name)}</span></a>`).join('');
-        cell.append(menu);
-      }
-      if (editing) {
-        const rm = document.createElement('button');
-        rm.type = 'button'; rm.className = 'ha-remove'; rm.dataset.removeId = app.id;
-        rm.setAttribute('aria-label', '移除 ' + app.name);
-        rm.innerHTML = '<span aria-hidden="true"></span>';
-        cell.append(rm);
-      }
-      grid.append(cell);
-    });
-    if (admin && apps.length < MAX_APPS) {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'ha-slot is-admin'; b.textContent = '+';
-      b.title = '新增'; b.setAttribute('aria-label', '新增功能圖示');
-      grid.append(b);
+  function renderTile(app, editing) {
+    const hasMenu = Array.isArray(app.menu) && app.menu.length > 0;
+    const label = `<span class="ha-name">${esc(app.name)}${hasMenu ? caret : ''}</span>`;
+    let tile;
+    if (hasMenu || editing) {
+      tile = document.createElement('button');
+      tile.type = 'button';
+      if (hasMenu && !editing) tile.setAttribute('aria-expanded', openMenuId === app.id ? 'true' : 'false');
+      tile.setAttribute('aria-label', app.name);
+    } else {
+      tile = document.createElement('a');
+      const href = safeUrl(app.url) || '#';
+      tile.href = href;
+      if (isExternal(href)) { tile.target = '_blank'; tile.rel = 'noopener'; }
+      tile.setAttribute('aria-label', '開啟' + app.name);
     }
-    fillRow();
-    doneBtn.hidden = !editing;
-  }
-  // 依目前欄數補虛線格，讓最後一排排滿（手機 2 欄、電腦 4～5 欄）。
-  function fillRow() {
-    grid.querySelectorAll('.ha-fill').forEach(el => el.remove());
-    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
-    const used = grid.children.length;
-    const missing = used % cols ? cols - (used % cols) : 0;
-    for (let i = 0; i < missing; i++) {
-      const d = document.createElement('div');
-      d.className = 'ha-slot ha-fill'; d.setAttribute('aria-hidden', 'true'); d.textContent = '+';
-      grid.append(d);
+    tile.className = 'ha-tile';
+    tile.dataset.appId = app.id;
+    tile.innerHTML = iconHtml(app) + label;
+    if (hasMenu && !editing && openMenuId === app.id) {
+      const menu = document.createElement('div');
+      menu.className = 'ha-menu';
+      menu.innerHTML = app.menu.map(m => `<a href="${esc(safeUrl(m.url) || '#')}"><span>${esc(m.icon || '')}</span><span>${esc(m.name)}</span></a>`).join('');
+      queueMicrotask(() => tile.parentElement && tile.parentElement.append(menu));
     }
+    return tile;
   }
-  let resizeTimer = null;
-  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(fillRow, 120); });
-
-  function setEditing(on) {
-    if (on && !isAdmin()) return;
-    if (editing === on) return;
-    editing = on; openMenuId = null;
-    if (on && navigator.vibrate) navigator.vibrate(15);
-    render();
-  }
-  doneBtn.addEventListener('click', () => setEditing(false));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing && !document.querySelector('dialog[open]')) setEditing(false); });
-  document.addEventListener('pointerdown', e => {
-    if (editing && !e.target.closest('#homeApps, #homeAppsDone, dialog')) setEditing(false);
+  let addPos = null;
+  const slots = window.clcSlotGrid(grid, {
+    minSlots: MIN_SLOTS, cellClass: 'ha-cell', emptyClass: 'ha-slot', removeClass: 'ha-remove',
+    canEdit: isAdmin,
+    getItems: () => apps,
+    renderTile,
+    save: persist,
+    error: err => alert('排列儲存失敗：' + errorText(err)),
+    onAdd: pos => { addPos = pos; openDialog(null); },
+    onEdit: id => openDialog(id),
+    onRemove: id => removeApp(id),
+    onEditingChange: () => { openMenuId = null; grid.querySelectorAll('.ha-menu').forEach(m => m.remove()); }
   });
-  document.addEventListener('click', e => {
-    if (openMenuId && !e.target.closest('#homeApps .ha-cell[data-sort-id="' + CSS.escape(openMenuId) + '"]')) { openMenuId = null; render(); }
-  });
+  const render = () => slots.render();
 
-  if (window.clcReorder) {
-    window.clcReorder(grid, {
-      item: '.ha-cell', grid: true, allowed: () => isAdmin(), start: () => cancelPress(), hold: () => setEditing(true),
-      async move(from, to, after) {
-        const moving = apps.find(a => a.id === from);
-        if (!moving || !apps.some(a => a.id === to)) return;
-        const next = apps.filter(a => a.id !== from);
-        next.splice(next.findIndex(a => a.id === to) + (after ? 1 : 0), 0, moving);
-        await persist(next);
-      },
-      error: err => alert('排序儲存失敗：' + errorText(err))
-    });
-  }
-
-  // ---------- 長按進入編輯模式 ----------
-  let press = null, suppressClick = false;
-  grid.addEventListener('pointerdown', e => {
-    if (!isAdmin() || editing || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    const target = e.target.closest('.ha-cell, .ha-slot.is-admin');
-    if (!target) return;
-    target.classList.add('ha-pressing');
-    press = {
-      target, x: e.clientX, y: e.clientY,
-      timer: setTimeout(() => {
-        target.classList.remove('ha-pressing');
-        suppressClick = true; press = null;
-        setEditing(true);
-      }, LONG_PRESS_MS)
-    };
-  });
-  function cancelPress() {
-    if (!press) return;
-    clearTimeout(press.timer);
-    press.target.classList.remove('ha-pressing');
-    press = null;
-  }
-  grid.addEventListener('pointermove', e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress(); });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => grid.addEventListener(t, cancelPress));
-  document.addEventListener('pointerup', () => { if (suppressClick) setTimeout(() => { suppressClick = false; }, 350); });
+  // 「週六小組場地」這種選單格：點一下展開、點旁邊收起。
   grid.addEventListener('click', e => {
-    if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; return; }
-    const rm = e.target.closest('.ha-remove');
-    if (rm) { e.preventDefault(); removeApp(rm.dataset.removeId); return; }
-    if (e.target.closest('.ha-slot.is-admin')) { e.preventDefault(); openDialog(null); return; }
-    if (e.target.closest('.ha-menu a')) return;
+    if (slots.isEditing() || e.target.closest('.ha-menu a')) return;
     const tile = e.target.closest('.ha-tile');
-    if (!tile) return;
-    if (editing) { e.preventDefault(); openDialog(tile.dataset.appId); return; }
-    const app = apps.find(a => a.id === tile.dataset.appId);
+    const app = tile && apps.find(a => a.id === tile.dataset.appId);
     if (app && Array.isArray(app.menu) && app.menu.length) {
       e.preventDefault(); e.stopPropagation();
       openMenuId = openMenuId === app.id ? null : app.id;
       render();
     }
-  }, true);
-  grid.addEventListener('contextmenu', e => { if (isAdmin() && e.target.closest('.ha-tile, .ha-slot')) e.preventDefault(); });
+  });
+  document.addEventListener('click', e => {
+    if (openMenuId && !e.target.closest('#homeApps .ha-cell[data-id="' + CSS.escape(openMenuId) + '"]')) { openMenuId = null; render(); }
+  });
 
   // ---------- 儲存 ----------
   const settingsRef = () => window.db.collection('system_config').doc('home_apps');
@@ -267,6 +169,7 @@
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(apps)); } catch (_) {}
     render();
   }
+  const withPos = () => window.clcSlotGridNormalize(apps);
   function errorText(err) {
     return err && err.code === 'permission-denied'
       ? '權限不足：請確認已用管理員登入。'
@@ -275,7 +178,7 @@
   async function removeApp(id) {
     const app = apps.find(a => a.id === id);
     if (!app || !confirm('從首頁移除「' + app.name + '」？')) return;
-    try { await persist(apps.filter(a => a.id !== id)); }
+    try { await persist(withPos().filter(a => a.id !== id)); }
     catch (err) { console.warn('圖示移除失敗', err); alert(errorText(err)); }
   }
   // 外部網址可自動抓名稱（經 DX04 的 /api/site-info；抓不到就用網域名稱）。
@@ -316,6 +219,7 @@
     const app = id ? apps.find(a => a.id === id) : null;
     if (id && !app) return;
     editingId = id;
+    if (id) addPos = null;
     const hasMenu = !!(app && Array.isArray(app.menu) && app.menu.length);
     $('title').textContent = app ? '編輯功能圖示' : '新增功能圖示';
     $('name').value = app ? app.name : '';
@@ -350,9 +254,11 @@
     }
     if (!name) { $('save').disabled = false; $('save').textContent = '儲存'; return showError('請輸入名稱。'); }
     const patch = { name, url, icon: icon || '🔗' };
+    const base = withPos();
     const next = old
-      ? apps.map(a => a.id === old.id ? Object.assign({}, old, patch) : a)
-      : apps.concat(Object.assign({ id: 'app_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, patch));
+      ? base.map(a => a.id === old.id ? Object.assign({}, a, patch) : a)
+      : base.concat(Object.assign({ id: 'app_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, patch,
+          Number.isInteger(addPos) && !base.some(a => a.pos === addPos) ? { pos: addPos } : {}));
     try {
       await persist(next);
       dialog.close();
@@ -371,7 +277,7 @@
       const items = snap.exists && Array.isArray(snap.data().items) ? snap.data().items : DEFAULT_APPS;
       apps = items.filter(a => a && a.id && a.name);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(apps)); } catch (_) {}
-      if (!document.querySelector('.reorder-floating')) render();
+      render();
     }, err => console.warn('首頁圖示讀取失敗（沿用快取或預設）', err));
   } catch (err) {
     console.warn('首頁圖示無法連線資料庫', err);
