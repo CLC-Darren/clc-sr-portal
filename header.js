@@ -38,7 +38,7 @@ window.ADMIN_WHITELIST = [
   "darren.lin@twclc.org"
 ];
 
-// ---------- 以未登入使用者身份檢視（DX04、YA、SR 共用同一個記號，同一個分頁內切站仍維持） ----------
+// ---------- 檢視模式：以未登入使用者身份檢視（DX04、YA、SR 共用同一個記號，同一個分頁內切站仍維持） ----------
 // 只改畫面：登入狀態保留，但各頁一律當作未登入顯示；點右上角 🔐 或畫面下方的提示即可結束。
 window.clcGuestView = (function () { try { return sessionStorage.getItem('clcGuestView') === '1'; } catch (_) { return false; } })();
 window.clcEnterGuestView = function () {
@@ -55,7 +55,7 @@ if (window.clcGuestView) {
     const bar = document.createElement('button');
     bar.type = 'button';
     bar.id = 'clcGuestViewBar';
-    bar.textContent = '👀 以未登入身份檢視中 · 點此結束';
+    bar.textContent = '👁️ 檢視模式中 · 點此結束';
     bar.style.cssText = 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2147483000;padding:10px 18px;border:0;border-radius:9999px;background:#007E8A;color:#fff;font:700 13.5px/1.2 Arial,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;white-space:nowrap;';
     bar.addEventListener('click', window.clcExitGuestView);
     document.body.appendChild(bar);
@@ -231,7 +231,7 @@ function renderHeaderComponent() {
             </a>
 
             <button type="button" onclick="clcEnterGuestView()" class="w-full text-left px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
-              🙈 以未登入使用者身份檢視
+              👁️ 檢視模式
             </button>
 
             <div class="border-t border-slate-100 dark:border-white/5 my-1.5"></div>
@@ -491,7 +491,7 @@ document.addEventListener('contextmenu', function(e) {
 });
 
 function toggleAdminDropdown() {
-  if (window.clcGuestView) { if (confirm('結束「以未登入使用者身份檢視」，回到原本的登入身分？')) window.clcExitGuestView(); return; }
+  if (window.clcGuestView) { if (confirm('結束檢視模式，回到原本的登入身分？')) window.clcExitGuestView(); return; }
   if (window.canViewAdmin) {
     const dropdown = document.getElementById('adminDropdown');
     if (dropdown) dropdown.classList.toggle('hidden');
