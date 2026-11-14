@@ -25,17 +25,17 @@
     #homeApps .ha-cell { position:relative; aspect-ratio:1; }
     #homeApps .slot-target { border-radius:1.5rem; }
     .slot-floating .ha-tile { box-shadow:0 20px 45px rgba(0,0,0,.3); }
-    #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
+    #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
     #homeApps .ha-tile:hover { background:#006C77; }
     #homeApps .ha-tile:active { transform:scale(.95); }
     #homeApps .ha-tile:focus-visible { outline:4px solid #2dd4bf; outline-offset:2px; }
     #homeApps .ha-icon { font-size:1.875rem; line-height:1; margin-bottom:.5rem; transition:transform .2s; }
     #homeApps .ha-tile:hover .ha-icon { transform:scale(1.1); }
     #homeApps .ha-icon img { width:2.25rem; height:2.25rem; border-radius:22%; object-fit:cover; display:block; pointer-events:none; }
-    #homeApps .ha-name { font-size:.875rem; font-weight:800; letter-spacing:-.01em; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; }
+    #homeApps .ha-name { font-size:.875rem; font-weight:800; line-height:1.25; letter-spacing:-.01em; max-width:100%; text-align:center; word-break:keep-all; overflow-wrap:anywhere; display:flex; align-items:center; justify-content:center; }
     #homeApps .ha-name svg { width:14px; height:14px; margin-left:4px; opacity:.8; flex:none; }
     @media (min-width:640px) { #homeApps .ha-icon { font-size:2.25rem; margin-bottom:.75rem; } #homeApps .ha-icon img { width:2.75rem; height:2.75rem; } }
-    @media (min-width:1024px) { #homeApps .ha-name { font-size:1rem; } }
+    @media (min-width:1024px) { #homeApps .ha-name { font-size:1rem; } #homeApps .ha-icon { font-size:2.5rem; } #homeApps .ha-icon img { width:3rem; height:3rem; } }
     #homeApps .ha-slot { aspect-ratio:1; border-radius:1.5rem; border:2px dashed #cbd5e1; color:#94a3b8; display:grid; place-content:center; font-size:2.25rem; font-weight:300; line-height:1; background:rgba(248,250,252,.5); user-select:none; -webkit-user-select:none; }
     .dark #homeApps .ha-slot { border-color:#334155; color:#64748b; background:rgba(255,255,255,.02); }
     #homeApps .ha-slot.is-admin { cursor:pointer; -webkit-touch-callout:none; font:inherit; font-size:2.25rem; font-weight:300; }
