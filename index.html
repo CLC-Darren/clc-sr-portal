@@ -95,29 +95,9 @@
         <p class="text-sm lg:text-base text-slate-600 dark:text-[#8A92A6] font-normal leading-relaxed max-w-lg mx-auto">加樂服事管理系統，相關功能將陸續整合。</p>
       </div>
 
-      <!-- 手機首頁與 YA 一致：2×2 方卡；sm 以上保留 SR 四個功能一排；md（電腦版）以上最右多一個虛線預留位置。 -->
-      <nav aria-label="功能選單" class="pt-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4 w-full max-w-[300px] sm:max-w-[700px] md:max-w-[880px] mx-auto">
-        <a href="hymn-lyrics.html" class="w-full aspect-square flex flex-col items-center justify-center p-3 rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟詩歌歌詞下載">
-          <span class="text-3xl sm:text-4xl mb-2 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">🎵</span>
-          <span class="text-sm lg:text-base font-extrabold tracking-tight text-center whitespace-nowrap">詩歌歌詞下載</span>
-        </a>
-        <a href="join.html" class="w-full aspect-square flex flex-col items-center justify-center p-3 rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟新朋友留名單">
-          <span class="text-3xl sm:text-4xl mb-2 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">🌱</span>
-          <span class="text-sm lg:text-base font-extrabold tracking-tight text-center whitespace-nowrap">新朋友留名單</span>
-        </a>
-        <a href="members.html" class="w-full aspect-square flex flex-col items-center justify-center p-3 rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟組員通訊錄">
-          <span class="text-3xl sm:text-4xl mb-2 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">📖</span>
-          <span class="text-sm lg:text-base font-extrabold tracking-tight text-center whitespace-nowrap">組員通訊錄</span>
-        </a>
-        <a href="groups.html" class="w-full aspect-square flex flex-col items-center justify-center p-3 rounded-3xl bg-[#007E8A] hover:bg-[#006C77] text-white shadow-lg shadow-[#007E8A]/20 transition-all duration-300 active:scale-95 group focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-teal-400" aria-label="開啟牧區與小組">
-          <span class="text-3xl sm:text-4xl mb-2 sm:mb-3 transform group-hover:scale-110 transition" aria-hidden="true">👥</span>
-          <span class="text-sm lg:text-base font-extrabold tracking-tight text-center whitespace-nowrap">牧區與小組</span>
-        </a>
-        <!-- 電腦版專用：虛線 + 號預留位置（手機不顯示，維持 2×2） -->
-        <div aria-hidden="true" class="w-full aspect-square hidden md:flex flex-col items-center justify-center p-3 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#007E8A] dark:hover:border-teal-500/50 bg-slate-50/50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 hover:text-[#007E8A] dark:hover:text-teal-400 transition-all duration-300 cursor-default select-none">
-          <span class="text-4xl lg:text-5xl font-light leading-none">+</span>
-        </div>
-      </nav>
+      <!-- 功能圖示：清單存在 Firestore system_config/home_apps（js/home-apps.js）。
+           Admin 長按進入編輯模式：可拖曳排序、「−」移除、「＋」新增、點圖示修改。 -->
+      <nav id="homeApps" data-site="sr" aria-label="功能選單" class="pt-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4 w-full max-w-[300px] sm:max-w-[700px] md:max-w-[880px] mx-auto"></nav>
       <div class="pt-3 flex items-center justify-center space-x-6 text-xs text-slate-500 dark:text-[#8A92A6]">
         <span>• 家有一老，如有一寶！</span><span>• 長輩是教會的寶！</span>
       </div>
@@ -127,8 +107,19 @@
   <footer class="border-t border-slate-200 dark:border-white/10 py-3.5 text-center text-[10px] md:text-xs text-slate-500 dark:text-brand-muted">
     <p>© 2026 CLC Senior Ministry. Powered by Cloudflare & GitHub.</p>
   </footer>
-  <script src="header.js?v=20261112-leaders"></script>
+  <script src="header.js?v=20261115-guest"></script>
   <script src="portal-pwa.js?v=20261109-install-state"></script>
   <script defer src="js/home-appearance.js"></script>
+  <script>
+    // 首頁圖示預設值（Firestore 尚未存過時使用）
+    window.CLC_HOME_APPS_DEFAULT = [
+      { id: 'hymns', name: '詩歌歌詞下載', icon: '🎵', url: 'hymn-lyrics.html' },
+      { id: 'join', name: '新朋友留名單', icon: '🌱', url: 'join.html' },
+      { id: 'members', name: '組員通訊錄', icon: '📖', url: 'members.html' },
+      { id: 'groups', name: '牧區與小組', icon: '👥', url: 'groups.html' }
+    ];
+  </script>
+  <script src="js/reorder.js?v=20261115"></script>
+  <script src="js/home-apps.js?v=20261115"></script>
 </body>
 </html>

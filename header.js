@@ -38,6 +38,30 @@ window.ADMIN_WHITELIST = [
   "darren.lin@twclc.org"
 ];
 
+// ---------- 以未登入使用者身份檢視（DX04、YA、SR 共用同一個記號，同一個分頁內切站仍維持） ----------
+// 只改畫面：登入狀態保留，但各頁一律當作未登入顯示；點右上角 🔐 或畫面下方的提示即可結束。
+window.clcGuestView = (function () { try { return sessionStorage.getItem('clcGuestView') === '1'; } catch (_) { return false; } })();
+window.clcEnterGuestView = function () {
+  try { sessionStorage.setItem('clcGuestView', '1'); } catch (_) { alert('此瀏覽器無法切換檢視模式。'); return; }
+  window.location.reload();
+};
+window.clcExitGuestView = function () {
+  try { sessionStorage.removeItem('clcGuestView'); } catch (_) {}
+  window.location.reload();
+};
+if (window.clcGuestView) {
+  document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('clcGuestViewBar')) return;
+    const bar = document.createElement('button');
+    bar.type = 'button';
+    bar.id = 'clcGuestViewBar';
+    bar.textContent = '👀 以未登入身份檢視中 · 點此結束';
+    bar.style.cssText = 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2147483000;padding:10px 18px;border:0;border-radius:9999px;background:#007E8A;color:#fff;font:700 13.5px/1.2 Arial,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;white-space:nowrap;';
+    bar.addEventListener('click', window.clcExitGuestView);
+    document.body.appendChild(bar);
+  });
+}
+
 // 站台切換（僅 Superuser）：Logo 單擊回首頁，雙擊開啟其他站台選單。
 // 三站（DX04、YA、SR）使用同一份 CLC_SITES，只有 CLC_SITE_KEY 不同；新增站台時三站都要加同一筆。
 // 連結一律指向 DX04 底下的網址（同一個網域），在同一個視窗內切換。
@@ -206,6 +230,10 @@ function renderHeaderComponent() {
               👤 權限管理
             </a>
 
+            <button type="button" onclick="clcEnterGuestView()" class="w-full text-left px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
+              🙈 以未登入使用者身份檢視
+            </button>
+
             <div class="border-t border-slate-100 dark:border-white/5 my-1.5"></div>
 
             <button onclick="handleAdminLogout()" class="w-full text-left px-4 py-2.5 text-sm sm:text-[15px] text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold transition">
@@ -302,6 +330,7 @@ function clcLeadLabel(lead) {
 }
 
 function applyAdminState(active, email, notify = true, viewer = false, lead = null) {
+  if (window.clcGuestView && active) { active = false; email = ''; viewer = false; lead = null; }
   // active = 已授權可進入後台；viewer = 唯讀檢視者（可看後台、不可編輯）
   // lead = 牧區／小組長範圍（role 為 leader，或檢視者兼任）
   const leaderRole = !!(active && lead && lead.role === 'leader');
@@ -462,6 +491,7 @@ document.addEventListener('contextmenu', function(e) {
 });
 
 function toggleAdminDropdown() {
+  if (window.clcGuestView) { if (confirm('結束「以未登入使用者身份檢視」，回到原本的登入身分？')) window.clcExitGuestView(); return; }
   if (window.canViewAdmin) {
     const dropdown = document.getElementById('adminDropdown');
     if (dropdown) dropdown.classList.toggle('hidden');
@@ -471,6 +501,7 @@ function toggleAdminDropdown() {
 }
 
 async function triggerAdminLogin() {
+  if (window.clcGuestView) { window.clcExitGuestView(); return; }
   if (!window.auth) {
     alert('Firebase 初始化失敗，請重新整理頁面或檢查 header.js 的 Firebase 設定。');
     return;
