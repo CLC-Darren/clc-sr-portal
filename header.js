@@ -111,9 +111,9 @@ if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode:
 function getCurrentPageType() {
   const path = window.location.pathname.toLowerCase().replace(/\/+$/, '').replace(/\.html$/, '');
   if (path.includes('admin-users')) return 'admin-users';
-  if (path.includes('members-admin')) return 'members-admin';
+  if (path.includes('admin-members')) return 'members-admin';
   if (path.endsWith('/join')) return 'join';
-  if (path.endsWith('/join-admin') || path.endsWith('join-admin.html')) return 'join-admin';
+  if (path.endsWith('/admin-join')) return 'join-admin';
   if (path.includes('members')) return 'members';
   if (path.includes('intakes')) return 'intakes';
   if (path.includes('groups')) return 'groups';
@@ -261,12 +261,12 @@ window.CLC_PAGE_MENUS = {
     { page: 'members', href: 'members.html', label: '📖 組員通訊錄' },
     { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單' },
     { page: 'groups', href: 'groups.html', label: '🗺️ 牧區與小組' },
-    { page: 'members-admin', href: 'members-admin.html', label: '📋 名單後台', staff: true }
+    { page: 'members-admin', href: 'admin-members.html', label: '📋 名單後台', staff: true }
   ],
   newfriends: [
     { page: 'join', href: 'join.html', label: '📝 新朋友留名單（表單）' },
     { page: 'intakes', href: 'intakes.html', label: '🌱 新朋友名單（後台）' },
-    { page: 'join-admin', href: 'join-admin.html', label: '🎨 表單後台（經文・背卡）' },
+    { page: 'join-admin', href: 'admin-join.html', label: '🎨 表單後台（經文・背卡）' },
     { page: 'members', href: 'members.html', label: '📖 組員通訊錄' }
   ]
 };
