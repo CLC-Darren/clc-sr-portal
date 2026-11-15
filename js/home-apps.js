@@ -204,7 +204,7 @@
   }
   async function removeApp(id) {
     const app = apps.find(a => a.id === id);
-    if (!app || !confirm('從首頁移除「' + app.name + '」？')) return;
+    if (!app) return; // 編輯模式下按「−」直接移除，不再二次確認（下方有「完成」）
     try { await persist(withPos().filter(a => a.id !== id)); }
     catch (err) { console.warn('圖示移除失敗', err); alert(errorText(err)); }
   }
