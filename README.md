@@ -3,17 +3,17 @@
 每個活動一個資料夾，活動自己的圖示、圖片、manifest 都放在裡面；SR 共用檔（`header.js`、`js/`、`css/`、根目錄圖示）不動。
 
 ```
-events/christmas-2026/
-├─ index.html        網址：clc-dx04.pages.dev/sr/events/christmas-2026/
+events/sr-christmas-2026/
+├─ index.html        網址：clc-dx04.pages.dev/sr/events/sr-christmas-2026/
 ├─ manifest.json     加到主畫面時用活動自己的名稱與圖示
 ├─ icons/            apple-touch-icon 180、favicon 32/48、icon 192/512、maskable 192/512
 └─ images/           主視覺等
 ```
 
-新增活動：複製整個資料夾、改資料夾名稱，換掉 `icons/`、`images/`、`manifest.json` 的名稱，
+新增活動：複製整個資料夾、改資料夾名稱（命名：站名-活動-年份，例如 sr-christmas-2026），換掉 `icons/`、`images/`、`manifest.json` 的名稱，
 並把頁面裡的 Firestore 文件 ID（例如 `events/christmas2026`）改成新的。
 頁面引用共用檔時用 `../../`，並在引用 `header.js` 前設定 `window.CLC_PAGE_ROOT = '../../'`。
-舊網址 `christmas.html` 保留轉址。
+舊網址 `christmas.html`、`events/christmas-2026/` 保留轉址。
 
 ---
 
