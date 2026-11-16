@@ -26,11 +26,10 @@
     #homeApps .slot-target { border-radius:1.5rem; }
     .slot-floating .ha-tile { box-shadow:0 24px 50px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.25); }
     #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
-    #homeApps .ha-tile:hover { background:#006C77; }
+    #homeApps .ha-tile:hover { transform:scale(1.05); } /* 全站統一：滑鼠移上去整個 App 放大 1.05（跟 DX、LF 一樣），按下 0.95 */
     #homeApps .ha-tile:active { transform:scale(.95); }
     #homeApps .ha-tile:focus-visible { outline:4px solid #2dd4bf; outline-offset:2px; }
     #homeApps .ha-icon { font-size:1.875rem; line-height:1; margin-bottom:.5rem; transition:transform .2s; }
-    #homeApps .ha-tile:hover .ha-icon { transform:scale(1.1); }
     .ha-mono { width:2.25rem; height:2.25rem; border-radius:22%; display:grid; place-content:center; color:#fff; font-weight:800; font-size:1.1rem; line-height:1; box-shadow:inset 0 0 0 1px rgba(255,255,255,.25); }
     @media (min-width:640px) { #homeApps .ha-mono { width:2.75rem; height:2.75rem; font-size:1.3rem; } }
     @media (min-width:1024px) { #homeApps .ha-mono { width:3rem; height:3rem; } }
