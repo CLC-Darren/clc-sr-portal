@@ -66,6 +66,9 @@ if (window.clcGuestView) {
 // 三站（DX04、YA、SR）使用同一份 CLC_SITES，只有 CLC_SITE_KEY 不同；新增站台時三站都要加同一筆。
 // 連結一律指向 DX04 底下的網址（同一個網域），在同一個視窗內切換。
 window.CLC_SITE_KEY = 'sr';
+// 放在子資料夾的頁面（例如 events/christmas-2026/）在引用 header.js 前設定 window.CLC_PAGE_ROOT = '../../'，
+// Header 裡回首頁、後台的連結才會指回 SR 根目錄。
+window.CLC_PAGE_ROOT = window.CLC_PAGE_ROOT || '';
 window.CLC_SITES = [
   { key: 'dx04', label: 'CLC DX04', url: 'https://clc-dx04.pages.dev/' },
   { key: 'ya', label: 'CLC YA', url: 'https://clc-dx04.pages.dev/ya/' },
@@ -200,7 +203,7 @@ function renderHeaderComponent() {
 
       <!-- Logo 區塊 -->
       <div id="clcLogoWrap" class="relative">
-        <a id="clcLogoLink" href="index.html" onclick="handleLogoClick(event)" class="flex items-center" aria-label="CLC SR 首頁">
+        <a id="clcLogoLink" href="${window.CLC_PAGE_ROOT}index.html" onclick="handleLogoClick(event)" class="flex items-center" aria-label="CLC SR 首頁">
           <div class="logo-badge shadow-sm">CLC SR</div>
         </a>
         <div id="siteSwitcher" class="hidden absolute left-0 bg-white dark:bg-[#161924] shadow-2xl border border-slate-200 dark:border-brand-border text-left">
@@ -226,7 +229,7 @@ function renderHeaderComponent() {
               管理員已登入
             </div>
 
-            <a id="adminUsersLink" href="admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
+            <a id="adminUsersLink" href="${window.CLC_PAGE_ROOT}admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👤 權限管理
             </a>
 
@@ -278,7 +281,7 @@ function renderPageMenu() {
   const items = (window.CLC_PAGE_MENUS[gear.dataset.menu] || []).filter(i => !i.staff || staff);
   const page = getCurrentPageType();
   const link = 'block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition';
-  const html = items.map(i => `<a href="${i.href}" class="${link}${i.page === page ? ' bg-slate-100 dark:bg-white/5' : ''}"${i.page === page ? ' aria-current="page"' : ''}>${i.label}</a>`).join('');
+  const html = items.map(i => `<a href="${window.CLC_PAGE_ROOT}${i.href}" class="${link}${i.page === page ? ' bg-slate-100 dark:bg-white/5' : ''}"${i.page === page ? ' aria-current="page"' : ''}>${i.label}</a>`).join('');
   const existing = document.getElementById('pageMenuDropdown');
   if (existing) { existing.innerHTML = html; return; }
   gear.parentElement.classList.add('relative');
