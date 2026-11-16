@@ -238,6 +238,11 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 30;
       allow delete: if isAdmin();
     }
+    // ---------- 活動專案頁（christmas.html 等）：目前只有 Superuser 可讀寫，之後再開放 ----------
+    match /events/{docId} {
+      allow read, write: if bootstrapAdmin();
+    }
+
     // ---------- 尚未開放（先以 Admin 可寫、Viewer 唯讀保護）----------
     match /careRecords/{docId} {
       allow read: if isAdmin() || isViewer();

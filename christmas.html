@@ -7,6 +7,8 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#000000">
   <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Noto+Sans+TC:wght@400;500&display=swap">
   <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=sr-icon-20261109-v2">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,18 +20,18 @@
     /* ===== 聖誕主視覺色系（取自主視覺：紅、松綠、雪白、香檳金、深藍字） =====
        背景：上方一條紅色帶，往下漸層到底色；底色跟著裝置的淺色／深色模式。 */
     :root{
-      --red:#C8232C; --red-d:#8E1620;
-      --pine:#1E6B45; --pine-l:#2E8B5C;
-      --gold:#D8B97A; --gold-d:#A9864A;
-      --snow:#FFFFFF; --ink:#1D2540; --ink-2:#5A6178; --line:#ECE4D8;
-      --bg:#F4F0EA; --panel:#FFFFFF; --panel-ink:#1D2540; --panel-ink-2:#6B7186; --panel-line:rgba(29,37,64,.09);
+      --red:#9E2A31; --red-d:#741E24; --burgundy:#7B2329;
+      --pine:#4F6B48; --pine-l:#6B8A62;
+      --gold:#D3B07E; --gold-d:#A9864A; --brown:#713A2D;
+      --snow:#FFFDF9; --ink:#2E2623; --ink-2:#6E625C; --line:#EDE4D8;
+      --bg:#F5EFE6; --panel:#FFFFFF; --panel-ink:#1D2540; --panel-ink-2:#6B7186; --panel-line:rgba(29,37,64,.09);
       --hover:rgba(29,37,64,.05); --shadow:0 6px 24px rgba(60,20,20,.08);
       --tab-bg:rgba(255,255,255,.86);
       --tab-h:64px;
     }
     @media (prefers-color-scheme:dark){:root{
-      --snow:#FFFCF7;
-      --bg:#0E0C10; --panel:#16131A; --panel-ink:#F2F1F5; --panel-ink-2:#9C98A6; --panel-line:rgba(255,255,255,.08);
+      --snow:#FBF6EE;
+      --bg:#100C0D; --panel:#16131A; --panel-ink:#F2F1F5; --panel-ink-2:#9C98A6; --panel-line:rgba(255,255,255,.08);
       --hover:rgba(255,255,255,.06); --shadow:0 10px 30px rgba(0,0,0,.35);
       --tab-bg:rgba(22,19,26,.86);
     }}
@@ -42,7 +44,7 @@
     .xm-shell{min-height:calc(100vh - 46px)}
     .xm-main{position:relative;isolation:isolate;min-width:0;padding:18px 14px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom))}
     .xm-main::before{content:"";position:absolute;left:0;right:0;top:0;height:340px;z-index:-1;pointer-events:none;
-      background:linear-gradient(180deg,#A31B24 0%,#B9232C 28%,color-mix(in srgb,#B9232C 35%,var(--bg)) 62%,var(--bg) 100%)}
+      background:linear-gradient(180deg,#6E1D23 0%,#7E242A 30%,color-mix(in srgb,#7E242A 35%,var(--bg)) 64%,var(--bg) 100%)}
     .xm-main::after{content:"";position:absolute;left:0;right:0;top:0;height:300px;z-index:-1;pointer-events:none;opacity:.5;
       background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff 50%,transparent 51%),
       radial-gradient(1.2px 1.2px at 42% 52%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 88% 38%,#fff 50%,transparent 51%),
@@ -92,13 +94,13 @@
     .sub{font-size:.85rem;color:rgba(255,255,255,.82);margin-top:6px;line-height:1.55}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:800;white-space:nowrap}
     .pill-red{background:#FCE8E9;color:var(--red-d)}
-    .pill-pine{background:#E3F2EA;color:#17553A}
+    .pill-pine{background:#E7EEE3;color:#3E5838}
     .pill-gold{background:#F7EEDB;color:#7B5E2A}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border-radius:12px;border:0;
       font:inherit;font-size:.92rem;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .1s,background .15s}
     .btn:active{transform:scale(.97)}
     .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red-d)}
-    .btn-pine{background:var(--pine);color:#fff}.btn-pine:hover{background:#17553A}
+    .btn-pine{background:var(--pine);color:#fff}.btn-pine:hover{background:#3E5838}
     .btn-soft{background:#F3ECE1;color:var(--ink)}.btn-soft:hover{background:#EAE0D0}
     .grid2{display:grid;gap:14px}
     @media (min-width:700px){.grid2{grid-template-columns:1fr 1fr}}
@@ -114,8 +116,17 @@
     @media (min-width:1024px){.seg{max-width:720px}}
 
     /* 總覽 */
-    .hero{position:relative;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35);background:#9b1b24}
-    .hero img{display:block;width:100%;aspect-ratio:2004/1231;object-fit:cover}
+    .hero{position:relative;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);background:#7B2329;container-type:inline-size}
+    .hero img{display:block;width:100%;aspect-ratio:1672/941;object-fit:cover}
+    /* 主視覺上的文字：疊在白色圓框上，Superuser 可直接修改 */
+    .hx{position:absolute;left:49.9%;transform:translate(-50%,-50%);white-space:nowrap;text-align:center;line-height:1}
+    .hx-year{top:31.7%;display:flex;align-items:center;gap:2.6cqw;color:#B08A5E;font-size:6.2cqw;font-weight:400;font-family:"Noto Sans TC","CLC Arial",Arial,sans-serif;letter-spacing:.02em}
+    .hx-year::before,.hx-year::after{content:"";width:6cqw;height:1px;background:#C9A57A}
+    .hx-title{top:45.6%;color:#713A2D;font-size:6.6cqw;font-weight:500;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;letter-spacing:.04em}
+    .hx-top{top:56.8%;color:#5D4A42;font-size:1.25cqw;letter-spacing:.32em;font-weight:600}
+    .hx-script{top:64.6%;color:#4F6B48;font-size:6.4cqw;font-family:"Great Vibes",cursive;line-height:1.1}
+    .hx-script::after{content:"";position:absolute;left:30%;right:-2%;bottom:-.02em;height:.045em;border-radius:99px;background:#C9A57A;transform:rotate(-2deg)}
+    .hx-bottom{top:74.6%;color:#5D4A42;font-size:1.2cqw;letter-spacing:.34em;font-weight:600}
     .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .fact{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;min-width:0}
     .fact .k{font-size:.72rem;font-weight:800;color:var(--ink-2)}
@@ -198,6 +209,22 @@
     .toast.on{opacity:1;transform:translate(-50%,0)}
     @media (min-width:1024px){.toast{bottom:32px}}
     a{color:inherit}
+    /* ===== 編輯模式（Superuser） ===== */
+    .edit-bar{position:fixed;right:16px;bottom:calc(var(--tab-h) + 16px + env(safe-area-inset-bottom));z-index:45;display:flex;align-items:center;gap:8px}
+    @media (min-width:1024px){.edit-bar{bottom:24px;right:28px}}
+    .edit-bar .btn{box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .edit-status{font-size:.75rem;font-weight:800;color:var(--panel-ink-2);background:var(--panel);padding:6px 10px;border-radius:999px;box-shadow:var(--shadow);white-space:nowrap}
+    .edit-status:empty{display:none}
+    body.editing [data-k]{outline:1.5px dashed #C9A57A;outline-offset:2px;border-radius:4px;cursor:text;min-width:1.2em}
+    body.editing [data-k]:focus{outline:2px solid var(--red);background:rgba(211,176,126,.12)}
+    body.editing [data-k]:empty::before{content:"（空白）";color:#B7AAA0;font-weight:500}
+    body.editing .hero [data-k]{outline-color:rgba(158,42,49,.6)}
+    .ed{display:none}
+    body.editing .ed{display:inline-flex}
+    .rt-del{border:0;background:#F6E3E4;color:var(--red-d);width:26px;height:26px;border-radius:8px;font-weight:900;cursor:pointer;align-items:center;justify-content:center;flex:none;font-size:.8rem}
+    .rt-add{border:1.5px dashed #CDBFA9;background:transparent;color:var(--ink-2);border-radius:10px;padding:8px 12px;font:inherit;font-size:.82rem;font-weight:800;cursor:pointer;margin-top:10px}
+    .ed-row{align-items:center;gap:10px;margin-top:12px;font-size:.85rem;font-weight:800;color:var(--ink-2)}
+    .ed-row input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
     @media print{.xm-tabbar,.xm-side,#clc-header{display:none!important}.view{display:block!important}body{background:#fff}}
   </style>
 </head>
@@ -216,9 +243,10 @@
 
   <div id="app" class="xm-shell" hidden>
     <aside class="xm-side" aria-label="頁面導覽">
-      <div class="xm-side-title"><small>CHRISTMAS 2026</small><b>江翠加樂<br>聖誕感恩餐會</b></div>
+      <div class="xm-side-title"><small data-k="t.sideKicker">CHRISTMAS 2026</small><b data-k="t.sideTitle" style="white-space:pre-line">江翠加樂
+聖誕感恩餐會</b></div>
       <nav id="sideNav"></nav>
-      <div class="xm-side-foot">🔒 目前只有 SR Superuser 看得到這一頁。<br>資料來源：彭園菜單（11/14）、場地圖、2025 餐會流程表。</div>
+      <div class="xm-side-foot">🔒 目前只有 SR Superuser 看得到這一頁。<br><span data-k="t.sideFoot">資料來源：彭園菜單（11/14）、場地圖、2025 餐會流程表。</span></div>
     </aside>
 
     <main class="xm-main">
@@ -227,22 +255,29 @@
         <div class="ov-grid ov-home">
           <div class="stack ov-a">
             <div style="padding:2px 4px">
-              <div class="kicker" style="color:var(--gold)">2026 CLC SENIOR CHRISTMAS</div>
-              <h1 class="h1" id="t-overview">加樂聖誕感恩餐會</h1>
-              <p class="sub">江子翠行道會・加樂團契｜與長輩一同歡慶救主降生 🎁</p>
+              <div class="kicker" style="color:var(--gold)" data-k="t.ovKicker">2026 CLC SENIOR CHRISTMAS</div>
+              <h1 class="h1" id="t-overview" data-k="t.ovTitle">加樂聖誕感恩餐會</h1>
+              <p class="sub" data-k="t.ovSub">江子翠行道會・加樂團契｜與長輩一同歡慶救主降生 🎁</p>
             </div>
-            <div class="hero"><img src="images/christmas/hero.jpg" alt="Merry Christmas 主視覺：松枝、拐杖糖與冬青圍繞的白色圓框" fetchpriority="high"></div>
+            <div class="hero" id="hero"><img src="images/christmas/hero-2026.jpg" alt="加樂聖誕餐會主視覺：酒紅底、松枝、拐杖糖與冬青圍繞的白色圓框" fetchpriority="high">
+              <div class="hx hx-year"><span data-k="hero.year"></span></div>
+              <div class="hx hx-title" data-k="hero.title"></div>
+              <div class="hx hx-top" data-k="hero.top"></div>
+              <div class="hx hx-script" data-k="hero.script"></div>
+              <div class="hx hx-bottom" data-k="hero.bottom"></div>
+            </div>
           </div>
           <div class="stack ov-b">
             <div class="card">
               <div class="kicker">COUNTDOWN</div>
-              <div class="h2">距離開席還有</div>
+              <div class="h2" data-k="t.cdTitle">距離開席還有</div>
               <div class="count" style="margin-top:12px" id="countdown" aria-live="off">
                 <div><b id="cdD">--</b><span>天</span></div><div><b id="cdH">--</b><span>時</span></div><div><b id="cdM">--</b><span>分</span></div>
               </div>
+              <label class="ed ed-row">開席時間 <input type="datetime-local" id="startInput"></label>
             </div>
             <div class="card">
-              <div class="facts" id="facts"></div>
+              <div class="facts" id="facts"></div><button type="button" class="ed rt-add" data-add="facts">＋ 新增資訊格</button>
               <div style="display:flex;gap:8px;margin-top:12px">
                 <a class="btn btn-red" style="flex:1" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">📍 導航</a>
                 <a class="btn btn-soft" style="flex:1" href="tel:+886222507568">📞 訂席專線</a>
@@ -251,8 +286,8 @@
           </div>
           <div class="card ov-c">
             <div class="kicker">TO CONFIRM</div>
-            <div class="h2">待確認事項</div>
-            <div style="margin-top:10px" id="confirmList"></div>
+            <div class="h2" data-k="t.confirmTitle">待確認事項</div>
+            <div style="margin-top:10px" id="confirmList"></div><button type="button" class="ed rt-add" data-add="confirm">＋ 新增待確認事項</button>
           </div>
         </div>
       </section>
@@ -262,8 +297,8 @@
         <div class="stack">
           <div>
             <div class="kicker" style="color:var(--gold)">PROGRAM</div>
-            <h1 class="h1" id="t-program">當天流程</h1>
-            <p class="sub">以 2025/12/18 餐會流程為範本，人名與獎項請依今年分工更新。</p>
+            <h1 class="h1" id="t-program" data-k="t.pgTitle">當天流程</h1>
+            <p class="sub" data-k="t.pgSub">以 2025/12/18 餐會流程為範本，人名與獎項請依今年分工更新。</p>
           </div>
           <div class="seg" role="group" aria-label="流程篩選" id="progSeg"></div>
           <div id="programList" class="pgrid"></div>
@@ -275,26 +310,26 @@
         <div class="stack">
           <div>
             <div class="kicker" style="color:var(--gold)">MENU</div>
-            <h1 class="h1" id="t-menu">宴客菜單</h1>
-            <p class="sub">彭園會館（板橋）湘菜・尚雅廳｜11 道・以 10 人一桌計</p>
+            <h1 class="h1" id="t-menu" data-k="t.mnTitle">宴客菜單</h1>
+            <p class="sub" data-k="t.mnSub">彭園會館（板橋）湘菜・尚雅廳｜11 道・以 10 人一桌計</p>
           </div>
           <div class="ov-grid">
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                <div class="h2">🍽️ 今年菜色</div>
-                <span class="pill pill-red">NT$ 8,000／桌＋10%</span>
+                <div class="h2" data-k="t.mnCard">🍽️ 今年菜色</div>
+                <span class="pill pill-red" data-k="t.mnPrice">NT$ 8,000／桌＋10%</span>
               </div>
-              <ol class="menu-list" id="menuList" style="margin-top:8px"></ol>
+              <ol class="menu-list" id="menuList" style="margin-top:8px"></ol><button type="button" class="ed rt-add" data-add="menu">＋ 新增菜色</button>
             </div>
             <div class="stack">
               <div class="card">
                 <div class="h2">📄 彭園原始菜單</div>
-                <p class="muted" style="font-size:.82rem;margin:4px 0 10px">點圖放大。製單：彭園副總 11/14</p>
+                <p class="muted" style="font-size:.82rem;margin:4px 0 10px" data-k="t.mnImgNote">點圖放大。製單：彭園副總 11/14</p>
                 <img class="thumb" src="images/christmas/menu.jpg" alt="彭園宴客菜單原稿" data-lb loading="lazy">
               </div>
               <div class="card">
-                <div class="h2">🥬 素食與特殊需求</div>
-                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0">彭園註明「素套餐人數未定」，請各小組長回報素食人數（去年報名表有標註「素食」「素菜」的長輩）。</p>
+                <div class="h2" data-k="t.vegTitle">🥬 素食與特殊需求</div>
+                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.vegText">彭園註明「素套餐人數未定」，請各小組長回報素食人數（去年報名表有標註「素食」「素菜」的長輩）。</p>
               </div>
             </div>
           </div>
@@ -306,22 +341,22 @@
         <div class="stack">
           <div>
             <div class="kicker" style="color:var(--gold)">VENUE</div>
-            <h1 class="h1" id="t-venue">場地與交通</h1>
-            <p class="sub">彭園會館 4 樓・捷運江子翠站 3 號出口</p>
+            <h1 class="h1" id="t-venue" data-k="t.vnTitle">場地與交通</h1>
+            <p class="sub" data-k="t.vnSub">彭園會館 4 樓・捷運江子翠站 3 號出口</p>
           </div>
           <div class="ov-grid">
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                <div class="h2">🗺️ 場地圖</div><span class="pill pill-gold">28–30 桌配置</span>
+                <div class="h2">🗺️ 場地圖</div><span class="pill pill-gold" data-k="t.vnPill">28–30 桌配置</span>
               </div>
-              <p class="muted" style="font-size:.82rem;margin:4px 0 10px">舞台、主桌、小吃區、中控與休息室位置。點圖放大。</p>
+              <p class="muted" style="font-size:.82rem;margin:4px 0 10px" data-k="t.vnImgNote">舞台、主桌、小吃區、中控與休息室位置。點圖放大。</p>
               <img class="thumb" src="images/christmas/floor-plan.jpg" alt="彭園場地圖：舞台與主桌在上方，中控在右側" data-lb loading="lazy">
             </div>
             <div class="stack">
               <div class="card">
                 <div class="h2">📍 地址</div>
-                <p style="font-size:.95rem;font-weight:700;line-height:1.6;margin:6px 0 0">新北市板橋區雙十路二段 239 號 4 樓</p>
-                <p class="muted" style="font-size:.85rem;margin:2px 0 12px">文化路與雙十路口・捷運江子翠站 3 號出口</p>
+                <p style="font-size:.95rem;font-weight:700;line-height:1.6;margin:6px 0 0" data-k="t.vnAddr">新北市板橋區雙十路二段 239 號 4 樓</p>
+                <p class="muted" style="font-size:.85rem;margin:2px 0 12px" data-k="t.vnAddr2">文化路與雙十路口・捷運江子翠站 3 號出口</p>
                 <div style="display:flex;gap:8px">
                   <a class="btn btn-red" style="flex:1" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">Google 地圖</a>
                   <button class="btn btn-soft" style="flex:1" type="button" data-copy="新北市板橋區雙十路二段239號4樓（彭園會館）">複製地址</button>
@@ -329,11 +364,11 @@
               </div>
               <div class="card">
                 <div class="h2">🎤 場地備註（彭園）</div>
-                <ul id="venueNotes" style="margin:8px 0 0;padding:0;list-style:none"></ul>
+                <ul id="venueNotes" style="margin:8px 0 0;padding:0;list-style:none"></ul><button type="button" class="ed rt-add" data-add="venue">＋ 新增備註</button>
               </div>
               <div class="card">
-                <div class="h2">🚶 動線</div>
-                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0">上午聚會結束後由牧師帶隊步行前往，小組長協助引導、傳道壓後；行動不便長輩搭接駁車，彭園 1 樓有同工協助上下車、引導上樓。</p>
+                <div class="h2" data-k="t.flowTitle">🚶 動線</div>
+                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.flowText">上午聚會結束後由牧師帶隊步行前往，小組長協助引導、傳道壓後；行動不便長輩搭接駁車，彭園 1 樓有同工協助上下車、引導上樓。</p>
               </div>
             </div>
           </div>
@@ -345,8 +380,8 @@
         <div class="stack">
           <div>
             <div class="kicker" style="color:var(--gold)">PLANNING</div>
-            <h1 class="h1" id="t-prep">籌備</h1>
-            <p class="sub">時程、預算、獎項與通知範本。勾選只存在這台裝置。</p>
+            <h1 class="h1" id="t-prep" data-k="t.ppTitle">籌備</h1>
+            <p class="sub">時程、預算、獎項與通知範本。勾選只存在這台裝置。<span class="ed">　按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
           </div>
           <div class="seg" role="group" aria-label="籌備分類" id="prepSeg"></div>
 
@@ -356,7 +391,7 @@
                 <div class="h2">✅ 籌備清單</div><span class="pill pill-pine" id="todoCount">0／0</span>
               </div>
               <div class="progress" style="margin:10px 0 6px"><i id="todoBar" style="width:0"></i></div>
-              <div id="todoList"></div>
+              <div id="todoList"></div><button type="button" class="ed rt-add" data-add="todo">＋ 新增事項</button>
             </div>
           </div>
 
@@ -366,7 +401,7 @@
                 <div class="h2">💰 餐費試算</div>
                 <div class="seg" role="group" aria-label="每桌價格" id="priceSeg" style="margin-top:10px"></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
-                  <div><div style="font-weight:900">桌數</div><div class="muted" style="font-size:.78rem">菜單 30–32／場地圖 28–30</div></div>
+                  <div><div style="font-weight:900">桌數</div><div class="muted" style="font-size:.78rem" data-k="t.tblNote">菜單 30–32／場地圖 28–30</div></div>
                   <div class="stepper"><button type="button" data-step="-1" aria-label="減少一桌">−</button><output id="tables">30</output><button type="button" data-step="1" aria-label="增加一桌">＋</button></div>
                 </div>
                 <div style="margin-top:14px;padding:14px;border-radius:16px;background:linear-gradient(135deg,var(--red),var(--red-d));color:#fff">
@@ -379,7 +414,7 @@
                 <div class="h2">📊 往年參考</div>
                 <table class="xt" style="margin-top:8px">
                   <tbody id="historyRows"></tbody>
-                </table>
+                </table><button type="button" class="ed rt-add" data-add="history">＋ 新增一列</button>
                 <p class="muted" style="font-size:.78rem;margin:8px 0 0">統一編號（開發票用）：<b class="money">72751135</b> <button type="button" class="btn btn-soft" style="min-height:30px;padding:0 10px;font-size:.75rem" data-copy="72751135">複製</button></p>
               </div>
             </div>
@@ -388,13 +423,13 @@
           <div data-prep="prize" class="stack" hidden>
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                <div class="h2">🎁 抽獎獎項（2025）</div><span class="pill pill-gold" id="prizeSum"></span>
+                <div class="h2" data-k="t.przTitle">🎁 抽獎獎項（2025）</div><span class="pill pill-gold" id="prizeSum"></span>
               </div>
               <div class="scroll-x"><table class="xt" style="margin-top:8px">
                 <thead><tr><th>獎項</th><th>內容</th><th class="r">名額</th><th class="r">小計</th><th>階段</th></tr></thead>
                 <tbody id="prizeRows"></tbody>
-              </table></div>
-              <p class="muted" style="font-size:.78rem;margin:8px 0 0">抽獎券：「2026 江翠加樂 聖誕感恩餐會｜桌號、姓名」，入場時發放。</p>
+              </table></div><button type="button" class="ed rt-add" data-add="prizes">＋ 新增獎項</button>
+              <p class="muted" style="font-size:.78rem;margin:8px 0 0" data-k="t.przNote">抽獎券：「2026 江翠加樂 聖誕感恩餐會｜桌號、姓名」，入場時發放。</p>
             </div>
           </div>
 
@@ -402,13 +437,13 @@
             <div class="seg" role="group" aria-label="通知範本" id="tplSeg"></div>
             <div class="card tpl">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
-                <div class="h2" id="tplTitle"></div>
+                <div class="h2" id="tplTitle" data-kdyn></div>
                 <button type="button" class="btn btn-red" id="tplCopy">複製</button>
               </div>
-              <p class="muted" style="font-size:.8rem;margin:-4px 0 8px" id="tplHint"></p>
+              <p class="muted" style="font-size:.8rem;margin:-4px 0 8px"><span id="tplHint"></span></p>
               <label class="sr-only" for="tplText">範本內容</label>
               <textarea id="tplText"></textarea>
-              <p class="muted" style="font-size:.76rem;margin:6px 0 0">可直接修改後再複製；修改只在這次畫面有效。【】內是要補的資料。</p>
+              <p class="muted" style="font-size:.76rem;margin:6px 0 0"><span id="tplNote">可直接修改後再複製；修改只在這次畫面有效。【】內是要補的資料。</span></p>
             </div>
           </div>
         </div>
@@ -419,17 +454,23 @@
   <nav class="xm-tabbar" id="tabbar" aria-label="頁面分頁" hidden></nav>
   <div class="lb" id="lb" role="dialog" aria-label="圖片放大"><img alt=""></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="edit-bar" id="editBar" hidden><span class="edit-status" id="editStatus"></span><button type="button" class="btn btn-pine" id="editToggle">✏️ 編輯內容</button></div>
 
   <script src="header.js?v=20261115-link"></script>
   <script src="js/sr-data.js?v=20261112-leaders"></script>
   <script>
   (function () {
     const $ = id => document.getElementById(id);
-    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const num = v => Number(String(v == null ? '' : v).replace(/[^\d.]/g, '')) || 0;
+    const clone = o => JSON.parse(JSON.stringify(o));
+    const DOC = () => window.db.collection('events').doc('christmas2026');
 
-    /* ================= 活動資料（改這裡即可） ================= */
-    const EVENT = {
-      start: new Date('2026-12-10T12:00:00+08:00'),
+    /* ================= 預設內容（Firestore 還沒存過時使用；Superuser 修改後以 Firestore 為準） ================= */
+    const DEFAULTS = {
+      hero: { year: '2026', title: '加樂聖誕餐會', top: 'MERRY', script: 'Christmas', bottom: 'HAPPY NEW YEAR' },
+      start: '2026-12-10T12:00',
+      t: {},
       facts: [
         ['日期', '12/10（四）', '午餐・12:00 開席'],
         ['地點', '彭園會館 尚雅廳', '板橋・4 樓'],
@@ -439,10 +480,10 @@
         ['集合', '11:00 彭園', '招待、節目、音控']
       ],
       confirm: [
-        '<b>日期：</b>菜單寫 2026/12/10（四），場地圖寫 115.12.18（午，為星期五）。請和彭園確認是哪一天。',
-        '<b>價格：</b>菜單是每桌 8,000＋10% 服務費（＝8,800），場地圖備註寫「8,500 含 10%」。',
-        '<b>桌數：</b>菜單 30–32 桌，場地圖 28–30 桌；請在報名截止後回覆彭園。',
-        '<b>素食：</b>素套餐人數未定，請小組長回報。'
+        ['日期', '菜單寫 2026/12/10（四），場地圖寫 115.12.18（午，為星期五）。請和彭園確認是哪一天。'],
+        ['價格', '菜單是每桌 8,000＋10% 服務費（＝8,800），場地圖備註寫「8,500 含 10%」。'],
+        ['桌數', '菜單 30–32 桌，場地圖 28–30 桌；請在報名截止後回覆彭園。'],
+        ['素食', '素套餐人數未定，請小組長回報。']
       ],
       menu: [
         ['御前五味花生', '冷盤'], ['美味四拼', '冷盤'], ['元盅三絲干貝', '湯品'], ['經典富貴烤雙方', '湘菜招牌'],
@@ -459,72 +500,65 @@
         ['2024 零用金預支', 'NT$ 220,000（7,000 × 31 桌）'],
         ['2024 實際支出', 'NT$ 209,800'],
         ['2024 奉獻收入', 'NT$ 258,086（教會不須墊款）']
-      ]
-    };
-
-    // 流程（2025 範本）
-    const PROGRAM = [
-      { phase: '預備', key: 'prep', items: [
-        { t: '10:30', end: '11:30', ttl: '上午聚會', desc: '聖誕佈道，彩媽聖誕戲劇演出（不需報名，可邀新朋友）。' },
-        { t: '11:00', ttl: '彭園集合', who: '招待組：翊婕（總召）、春梅、惠卿、方姊、熊大哥、佳珍', desc: '宗豫攝影。' },
-        { t: '11:00', ttl: '節目組、音控就位', who: '節目：夢凌、明玉｜音控投影：睿閎', desc: '帶摸彩箱、摸彩券、原子筆；可先支援招待。' },
-        { t: '11:30', ttl: '接駁車出發', who: '振隆、孝明', desc: '載行動不便長輩到彭園；不參加餐會的長輩到彭園後再載回家。' },
-        { t: '11:30', end: '12:00', ttl: '彭園 1 樓協助上下車', who: '淑珠、阿忠', desc: '並引導長輩上樓。' },
-        { t: '11:40', ttl: '路隊出發', who: '帶隊：永健牧師｜壓後：宋傳道、漢威傳道', desc: '小組長協助引導。' },
-        { t: '11:50', end: '12:00', ttl: '入場・發摸彩券', who: '夢凌、明玉' }
-      ]},
-      { phase: '開場', key: 'open', items: [
-        { t: '12:00', ttl: '開場・年度影片', who: 'Darren 主持、音控播放影片' },
-        { t: '12:10', ttl: '謝飯禱告', who: '振華牧師' }
-      ]},
-      { phase: '抽獎', key: 'draw', items: [
-        { t: '12:20', end: '12:40', ttl: '第一階段抽獎', who: '夢凌主持、明玉協助', prizes: ['三獎 全聯 $200 ×5（漢威傳道抽）', '金芳區長特別獎 $200 ×10'] },
-        { t: '12:40', end: '13:00', ttl: '第二階段・江翠大明星', who: '夢凌主持、尹遴姊獻唱、音控播放詩歌',
-          desc: '歌曲：<a href="https://www.youtube.com/watch?v=oXzAkRY3myE" target="_blank" rel="noopener">一翦梅</a>、<a href="https://youtu.be/S7-BB3M2oZw" target="_blank" rel="noopener">流水年華</a>',
-          prizes: ['二獎 全聯 $500 ×4（麗娟師母抽）', '金芳區長特別獎 $500 ×4', '菡翎區長特別獎 新光三越 $1,000 ×3'] },
-        { t: '13:00', end: '13:20', ttl: '第三階段・雪人出場', who: '夢凌主持；健誠著雪人裝、榮中協助', desc: '邀請新朋友上台領小禮物、和雪人拍照。',
-          prizes: ['菡翎區長特別獎 陶板屋雙人餐券 ×3（菡翎區長抽）', '金芳區長特別獎 $1,000 ×2', '一獎 全聯 $1,000 ×3（振華牧師抽）'] }
-      ]},
-      { phase: '結束', key: 'end', items: [
-        { t: '13:30', ttl: '用餐結束・撤收', desc: '背景音樂：<a href="https://www.youtube.com/watch?v=WqKBnAON4zk" target="_blank" rel="noopener">聖誕音樂清單</a>' }
-      ]}
-    ];
-
-    const PRIZES = [
-      ['一獎', '全聯禮券 $1,000', 3, 3000, '第三階段'],
-      ['二獎', '全聯禮券 $500', 4, 2000, '第二階段'],
-      ['三獎', '全聯禮券 $200', 5, 1000, '第一階段'],
-      ['金芳區長獎', '$1,000', 2, 2000, '第三階段'],
-      ['金芳區長獎', '$500', 4, 2000, '第二階段'],
-      ['金芳區長獎', '$200', 10, 2000, '第一階段'],
-      ['菡翎區長獎', '新光三越禮券 $1,000', 3, 3000, '第二階段'],
-      ['菡翎區長獎', '陶板屋雙人餐券', 3, null, '第三階段']
-    ];
-
-    // 籌備時程（以 12/10 開席倒推的建議）
-    const TODO = [
-      ['11/19', '發報名通知給加樂弟兄姊妹', '請長輩向小組長報名；沒報名的無法臨時參加'],
-      ['11/19', '發同工報名表單', '有參加加樂小組的同工直接跟小組長登記'],
-      ['11/19', '邀請牧師、師母'],
-      ['11/23', '向彭園確認日期、每桌價格、桌數'],
-      ['11/26', '申請零用金', '去年 22 萬'],
-      ['11/26', '彩媽：確認彩排時間、人數與小禮物', '預備小點心、幼主休息室；有小朋友請兒主同工協助'],
-      ['11/30', '報名截止，統計各小組人數'],
-      ['12/03', '回覆彭園桌數與素食人數'],
-      ['12/03', '準備獎品（禮券、餐券）與抽獎紅包'],
-      ['12/05', '桌次分配表定稿', '主桌：牧師師母、同工代表、貴賓'],
-      ['12/07', '印抽獎券、桌卡；準備簽到表'],
-      ['12/07', '年度影片、詩歌、背景音樂交給音控'],
-      ['12/07', '新朋友小禮物、雪人裝'],
-      ['12/07', '安排接駁車與彭園 1 樓協助同工'],
-      ['12/09', '前一天提醒小組長', '座位表更新在記事本'],
-      ['12/10', '彩媽演出者便當', '中午要預備便當'],
-      ['12/10', '帶摸彩箱、摸彩券、原子筆'],
-      ['12 月中', '核銷（明細表＋奉獻收入）']
-    ];
-
-    const TEMPLATES = [
-      { id: 'notice', name: '報名通知', hint: '約三週前，發給加樂弟兄姊妹', text:
+      ],
+      program: [
+        { phase: '預備', key: 'prep', items: [
+          { t: '10:30', end: '11:30', ttl: '上午聚會', who: '', desc: '聖誕佈道，彩媽聖誕戲劇演出（不需報名，可邀新朋友）。' },
+          { t: '11:00', end: '', ttl: '彭園集合', who: '招待組：翊婕（總召）、春梅、惠卿、方姊、熊大哥、佳珍', desc: '宗豫攝影。' },
+          { t: '11:00', end: '', ttl: '節目組、音控就位', who: '節目：夢凌、明玉｜音控投影：睿閎', desc: '帶摸彩箱、摸彩券、原子筆；可先支援招待。' },
+          { t: '11:30', end: '', ttl: '接駁車出發', who: '振隆、孝明', desc: '載行動不便長輩到彭園；不參加餐會的長輩到彭園後再載回家。' },
+          { t: '11:30', end: '12:00', ttl: '彭園 1 樓協助上下車', who: '淑珠、阿忠', desc: '並引導長輩上樓。' },
+          { t: '11:40', end: '', ttl: '路隊出發', who: '帶隊：永健牧師｜壓後：宋傳道、漢威傳道', desc: '小組長協助引導。' },
+          { t: '11:50', end: '12:00', ttl: '入場・發摸彩券', who: '夢凌、明玉', desc: '' }
+        ]},
+        { phase: '開場', key: 'open', items: [
+          { t: '12:00', end: '', ttl: '開場・年度影片', who: 'Darren 主持、音控播放影片', desc: '' },
+          { t: '12:10', end: '', ttl: '謝飯禱告', who: '振華牧師', desc: '' }
+        ]},
+        { phase: '抽獎', key: 'draw', items: [
+          { t: '12:20', end: '12:40', ttl: '第一階段抽獎', who: '夢凌主持、明玉協助', desc: '', prizes: ['三獎 全聯 $200 ×5（漢威傳道抽）', '金芳區長特別獎 $200 ×10'] },
+          { t: '12:40', end: '13:00', ttl: '第二階段・江翠大明星', who: '夢凌主持、尹遴姊獻唱、音控播放詩歌', desc: '歌曲：一翦梅、流水年華',
+            links: [['一翦梅', 'https://www.youtube.com/watch?v=oXzAkRY3myE'], ['流水年華', 'https://youtu.be/S7-BB3M2oZw']],
+            prizes: ['二獎 全聯 $500 ×4（麗娟師母抽）', '金芳區長特別獎 $500 ×4', '菡翎區長特別獎 新光三越 $1,000 ×3'] },
+          { t: '13:00', end: '13:20', ttl: '第三階段・雪人出場', who: '夢凌主持；健誠著雪人裝、榮中協助', desc: '邀請新朋友上台領小禮物、和雪人拍照。',
+            prizes: ['菡翎區長特別獎 陶板屋雙人餐券 ×3（菡翎區長抽）', '金芳區長特別獎 $1,000 ×2', '一獎 全聯 $1,000 ×3（振華牧師抽）'] }
+        ]},
+        { phase: '結束', key: 'end', items: [
+          { t: '13:30', end: '', ttl: '用餐結束・撤收', who: '', desc: '背景音樂播放聖誕音樂清單。', links: [['聖誕音樂清單', 'https://www.youtube.com/watch?v=WqKBnAON4zk']] }
+        ]}
+      ],
+      prizes: [
+        ['一獎', '全聯禮券 $1,000', '3', '3000', '第三階段'],
+        ['二獎', '全聯禮券 $500', '4', '2000', '第二階段'],
+        ['三獎', '全聯禮券 $200', '5', '1000', '第一階段'],
+        ['金芳區長獎', '$1,000', '2', '2000', '第三階段'],
+        ['金芳區長獎', '$500', '4', '2000', '第二階段'],
+        ['金芳區長獎', '$200', '10', '2000', '第一階段'],
+        ['菡翎區長獎', '新光三越禮券 $1,000', '3', '3000', '第二階段'],
+        ['菡翎區長獎', '陶板屋雙人餐券', '3', '', '第三階段']
+      ],
+      todo: [
+        ['11/19', '發報名通知給加樂弟兄姊妹', '請長輩向小組長報名；沒報名的無法臨時參加'],
+        ['11/19', '發同工報名表單', '有參加加樂小組的同工直接跟小組長登記'],
+        ['11/19', '邀請牧師、師母', ''],
+        ['11/23', '向彭園確認日期、每桌價格、桌數', ''],
+        ['11/26', '申請零用金', '去年 22 萬'],
+        ['11/26', '彩媽：確認彩排時間、人數與小禮物', '預備小點心、幼主休息室；有小朋友請兒主同工協助'],
+        ['11/30', '報名截止，統計各小組人數', ''],
+        ['12/03', '回覆彭園桌數與素食人數', ''],
+        ['12/03', '準備獎品（禮券、餐券）與抽獎紅包', ''],
+        ['12/05', '桌次分配表定稿', '主桌：牧師師母、同工代表、貴賓'],
+        ['12/07', '印抽獎券、桌卡；準備簽到表', ''],
+        ['12/07', '年度影片、詩歌、背景音樂交給音控', ''],
+        ['12/07', '新朋友小禮物、雪人裝', ''],
+        ['12/07', '安排接駁車與彭園 1 樓協助同工', ''],
+        ['12/09', '前一天提醒小組長', '座位表更新在記事本'],
+        ['12/10', '彩媽演出者便當', '中午要預備便當'],
+        ['12/10', '帶摸彩箱、摸彩券、原子筆', ''],
+        ['12 月中', '核銷（明細表＋奉獻收入）', '']
+      ],
+      templates: [
+        { id: 'notice', name: '報名通知', hint: '約三週前，發給加樂弟兄姊妹', text:
 `【12/10(四) 江翠加樂聖誕感恩餐會】
 哈利路亞～聖誕季到囉！
 
@@ -533,7 +567,7 @@
 要參加的弟兄姊妹請跟小組長報名。因為要預備桌數，沒有報名的就沒辦法臨時參加喔！報名從即日起到【11/30】截止。
 
 ❤️ 當天上午聚會 10:30–11:30 有彩媽的聖誕戲劇表演【劇名】（不用報名），歡迎邀請新朋友來參加！` },
-      { id: 'staff', name: '同工報名', hint: '發給各服事同工', text:
+        { id: 'staff', name: '同工報名', hint: '發給各服事同工', text:
 `【12/10(四) 江翠加樂：聖誕感恩餐會】
 各位同工平安！謝謝大家這一年來對加樂長輩的服事，誠摯邀請大家一同參加今年江翠加樂的聖誕感恩餐會，一起歡慶聖誕！
 
@@ -546,14 +580,14 @@
 ＊有參加加樂小組的同工不必填寫，直接跟小組長登記即可喔！
 
 ❤️ 當天上午聚會 10:30–11:30 有彩媽的聖誕戲劇表演（不用報名），歡迎邀請新朋友來參加！` },
-      { id: 'pastor', name: '邀請牧師', hint: '邀請牧師、師母', text:
+        { id: 'pastor', name: '邀請牧師', hint: '邀請牧師、師母', text:
 `【江翠加樂】2026 聖誕感恩餐會
 
 Dear 牧師、師母：
 
 今年江翠加樂聖誕感恩餐會辦在 12/10(四)，上午聚會有彩媽演出【劇名】。
 聚餐時間是 12:00，在「板橋彭園會館」，想邀請牧師、師母一同參加，與長輩同樂！` },
-      { id: 'cash', name: '零用金', hint: '向行政申請零用金', text:
+        { id: 'cash', name: '零用金', hint: '向行政申請零用金', text:
 `【江翠加樂】2026 聖誕感恩餐會零用金預支：【金額】
 
 Dear 【行政同工】：
@@ -561,7 +595,7 @@ Dear 【行政同工】：
 12/10(四) 江翠加樂聖誕感恩餐會在彭園，零用金預抓【金額】。
 （彭園一桌 8,000＋10% 服務費 × 【桌數】桌）
 另外預計【日期】會收奉獻！` },
-      { id: 'remind', name: '前一天', hint: '12/9 發給小組長', text:
+        { id: 'remind', name: '前一天', hint: '12/9 發給小組長', text:
 `【12/10(四) 加樂聖誕感恩餐會】
 各位小組長平安，明天就是我們今年的聖誕餐會囉！
 
@@ -574,19 +608,42 @@ Dear 【行政同工】：
 3. 座位表已更新在記事本！
 
 祝大家聖誕快樂，謝謝大家！` }
-    ];
+      ]
+    };
+    // 頁面上固定文字（標題、說明）的預設值，從 HTML 讀進來
+    document.querySelectorAll('[data-k^="t."]').forEach(el => { DEFAULTS.t[el.dataset.k.slice(2)] = el.textContent; });
+
+    // 新增列時的空白樣板
+    const BLANK = {
+      facts: ['標題', '內容', ''], confirm: ['項目', '說明'], menu: ['新菜色', ''], venue: ['•', '新備註'],
+      history: ['項目', '內容'], prizes: ['獎項', '內容', '1', '', ''], todo: ['', '新事項', ''],
+      item: { t: '12:00', end: '', ttl: '新項目', who: '', desc: '' }
+    };
+
+    let DATA = clone(DEFAULTS);
+    const merge = remote => {
+      const d = clone(DEFAULTS);
+      Object.keys(remote || {}).forEach(k => {
+        if (k === 't' || k === 'hero') d[k] = Object.assign(d[k], remote[k] || {});
+        else if (k in d) d[k] = remote[k];
+      });
+      return d;
+    };
+    const getPath = p => p.split('.').reduce((o, k) => o == null ? o : o[k], DATA);
+    function setPath(p, v) {
+      const ks = p.split('.'); const last = ks.pop();
+      const o = ks.reduce((o, k) => o[k], DATA); o[last] = v;
+    }
+    // 可編輯文字：data-k 指向 DATA 裡的位置
+    const E = (path, tagName = 'span', cls = '') => `<${tagName}${cls ? ` class="${cls}"` : ''} data-k="${path}">${esc(getPath(path))}</${tagName}>`;
+    const DEL = path => `<button type="button" class="ed rt-del" data-del="${path}" aria-label="刪除這一列">✕</button>`;
 
     /* ================= 分頁 ================= */
     const VIEWS = [
-      { id: 'overview', ico: '🎄', label: '總覽' },
-      { id: 'program', ico: '⏱️', label: '流程' },
-      { id: 'menu', ico: '🍽️', label: '菜單' },
-      { id: 'venue', ico: '📍', label: '場地' },
-      { id: 'prep', ico: '📋', label: '籌備' }
+      { id: 'overview', ico: '🎄', label: '總覽' }, { id: 'program', ico: '⏱️', label: '流程' },
+      { id: 'menu', ico: '🍽️', label: '菜單' }, { id: 'venue', ico: '📍', label: '場地' }, { id: 'prep', ico: '📋', label: '籌備' }
     ];
-    function navHtml(cls) {
-      return VIEWS.map(v => `<button type="button" class="${cls}" data-view="${v.id}"><span class="ico" aria-hidden="true">${v.ico}</span><span>${v.label}</span></button>`).join('');
-    }
+    const navHtml = cls => VIEWS.map(v => `<button type="button" class="${cls}" data-view="${v.id}"><span class="ico" aria-hidden="true">${v.ico}</span><span>${v.label}</span></button>`).join('');
     $('sideNav').innerHTML = navHtml('xm-nav-btn');
     $('tabbar').innerHTML = navHtml('xm-tab');
     function show(id, push) {
@@ -598,101 +655,113 @@ Dear 【行政同工】：
     document.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) show(b.dataset.view, true); });
     window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 
-    /* ================= 總覽 ================= */
-    $('facts').innerHTML = EVENT.facts.map(([k, v, n]) => `<div class="fact"><div class="k">${k}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
-    $('confirmList').innerHTML = EVENT.confirm.map(x => `<div class="warn">${x}</div>`).join('');
+    /* ================= 繪製 ================= */
+    let progFilter = 'all', prepTab = 'todo', tpl = 0, price = 8800, tables = 30;
+    const fmt = n => 'NT$ ' + n.toLocaleString('en-US');
+
+    function renderStatic() {
+      document.querySelectorAll('[data-k]').forEach(el => {
+        if (el.closest('#facts,#confirmList,#programList,#menuList,#venueNotes,#todoList,#historyRows,#prizeRows')) return;
+        const v = getPath(el.dataset.k); if (v != null) el.textContent = v;
+      });
+      $('startInput').value = DATA.start;
+    }
+    function renderOverview() {
+      $('facts').innerHTML = DATA.facts.map((f, i) => `<div class="fact" style="position:relative">${E(`facts.${i}.0`, 'div', 'k')}${E(`facts.${i}.1`, 'div', 'v')}${E(`facts.${i}.2`, 'div', 'n')}<span style="position:absolute;top:8px;right:8px">${DEL('facts.' + i)}</span></div>`).join('');
+      $('confirmList').innerHTML = DATA.confirm.map((c, i) => `<div class="warn" style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1"><b>${E(`confirm.${i}.0`)}：</b>${E(`confirm.${i}.1`)}</div>${DEL('confirm.' + i)}</div>`).join('');
+      tick();
+    }
     function tick() {
-      let ms = Math.max(0, EVENT.start - Date.now());
+      let ms = Math.max(0, new Date(DATA.start + ':00+08:00') - Date.now()) || 0;
       const d = Math.floor(ms / 864e5); ms -= d * 864e5;
       const h = Math.floor(ms / 36e5); ms -= h * 36e5;
       const m = Math.floor(ms / 6e4);
       $('cdD').textContent = d; $('cdH').textContent = String(h).padStart(2, '0'); $('cdM').textContent = String(m).padStart(2, '0');
     }
-    tick(); setInterval(tick, 30000);
+    setInterval(tick, 30000);
 
-    /* ================= 流程 ================= */
-    let progFilter = 'all';
-    const progTabs = [['all', '全部'], ...PROGRAM.map(p => [p.key, p.phase])];
     function renderProgram() {
-      $('progSeg').innerHTML = progTabs.map(([k, l]) => `<button type="button" data-prog="${k}" aria-pressed="${k === progFilter}">${l}</button>`).join('');
-      $('programList').innerHTML = PROGRAM.filter(p => progFilter === 'all' || p.key === progFilter).map((p, i) => `
+      const tabs = [['all', '全部'], ...DATA.program.map(p => [p.key, p.phase])];
+      $('progSeg').innerHTML = tabs.map(([k, l]) => `<button type="button" data-prog="${esc(k)}" aria-pressed="${k === progFilter}">${esc(l)}</button>`).join('');
+      $('programList').innerHTML = DATA.program.map((p, pi) => (progFilter !== 'all' && p.key !== progFilter) ? '' : `
         <div class="card">
-          <div class="phase"><span class="num">${PROGRAM.indexOf(p) + 1}</span><div class="h2">${p.phase}</div></div>
-          <ul class="tl">${p.items.map(it => `<li>
-            <div class="t">${it.t}${it.end ? `<small>– ${it.end}</small>` : ''}</div>
-            <div><div class="ttl">${esc(it.ttl)}</div>
-              ${it.who ? `<div class="who">${esc(it.who)}</div>` : ''}
-              ${it.desc ? `<div class="desc">${it.desc}</div>` : ''}
-              ${it.prizes ? `<div class="prize">${it.prizes.map(x => `<span class="pill pill-gold">🎁 ${esc(x)}</span>`).join('')}</div>` : ''}
-            </div></li>`).join('')}</ul>
+          <div class="phase"><span class="num">${pi + 1}</span>${E(`program.${pi}.phase`, 'div', 'h2')}</div>
+          <ul class="tl">${p.items.map((it, ii) => {
+            const base = `program.${pi}.items.${ii}`;
+            const ed = document.body.classList.contains('editing');
+            const prizes = (it.prizes || []).map((x, xi) => (x || ed) ? `<span class="pill pill-gold">🎁 ${E(`${base}.prizes.${xi}`)}</span>` : '').join('');
+            return `<li>
+            <div class="t">${E(base + '.t')}${(it.end || ed) ? `<small>– ${E(base + '.end')}</small>` : ''}</div>
+            <div style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1;min-width:0">
+              ${E(base + '.ttl', 'div', 'ttl')}
+              ${(it.who || ed) ? E(base + '.who', 'div', 'who') : ''}
+              ${(it.desc || ed) ? E(base + '.desc', 'div', 'desc') : ''}
+              ${(it.links || []).length ? `<div class="desc">${it.links.map(([l, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">▶ ${esc(l)}</a>`).join('　')}</div>` : ''}
+              ${prizes ? `<div class="prize">${prizes}</div>` : ''}
+            </div>${DEL(base)}</div></li>`; }).join('')}</ul>
+          <button type="button" class="ed rt-add" data-add="program.${pi}.items">＋ 新增項目</button>
         </div>`).join('');
     }
-    $('progSeg').addEventListener('click', e => { const b = e.target.closest('[data-prog]'); if (b) { progFilter = b.dataset.prog; renderProgram(); } });
-    renderProgram();
-
-    /* ================= 菜單、場地 ================= */
-    $('menuList').innerHTML = EVENT.menu.map(([n, t]) => `<li><span class="nm">${esc(n)}</span>${t ? `<span class="tag pill pill-pine">${esc(t)}</span>` : ''}</li>`).join('');
-    $('venueNotes').innerHTML = EVENT.venue.map(([i, t]) => `<li style="display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem;font-weight:700"><span aria-hidden="true">${i}</span><span>${esc(t)}</span></li>`).join('');
-
-    /* ================= 籌備 ================= */
-    const PREP = [['todo', '清單'], ['budget', '預算'], ['prize', '獎項'], ['msg', '通知範本']];
-    let prepTab = 'todo';
-    function renderPrepSeg() {
-      $('prepSeg').innerHTML = PREP.map(([k, l]) => `<button type="button" data-ptab="${k}" aria-pressed="${k === prepTab}">${l}</button>`).join('');
-      document.querySelectorAll('[data-prep]').forEach(el => el.hidden = el.dataset.prep !== prepTab);
+    function renderMenu() {
+      $('menuList').innerHTML = DATA.menu.map((m, i) => `<li>${E(`menu.${i}.0`, 'span', 'nm')}<span class="tag" style="display:flex;gap:6px;align-items:center">${(m[1] || document.body.classList.contains('editing')) ? `<span class="pill pill-pine">${E(`menu.${i}.1`)}</span>` : ''}${DEL('menu.' + i)}</span></li>`).join('');
+      $('venueNotes').innerHTML = DATA.venue.map((v, i) => `<li style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem;font-weight:700">${E(`venue.${i}.0`)}<span style="flex:1">${E(`venue.${i}.1`)}</span>${DEL('venue.' + i)}</li>`).join('');
     }
-    $('prepSeg').addEventListener('click', e => { const b = e.target.closest('[data-ptab]'); if (b) { prepTab = b.dataset.ptab; renderPrepSeg(); } });
-    renderPrepSeg();
-
-    // 清單（勾選存在本機）
+    function renderPrep() {
+      $('prepSeg').innerHTML = [['todo', '清單'], ['budget', '預算'], ['prize', '獎項'], ['msg', '通知範本']].map(([k, l]) => `<button type="button" data-ptab="${k}" aria-pressed="${k === prepTab}">${l}</button>`).join('');
+      document.querySelectorAll('[data-prep]').forEach(el => el.hidden = el.dataset.prep !== prepTab);
+      renderTodo();
+      // 預算
+      $('priceSeg').innerHTML = [[8800, '菜單 8,000＋10%'], [8500, '場地圖 8,500 含']].map(([k, l]) => `<button type="button" data-price="${k}" aria-pressed="${k === price}">${l}</button>`).join('');
+      $('tables').textContent = tables;
+      $('total').textContent = fmt(price * tables);
+      $('totalNote').textContent = `${fmt(price)} × ${tables} 桌・約 ${tables * 10} 人`;
+      $('historyRows').innerHTML = DATA.history.map((h, i) => `<tr><td style="color:var(--ink-2);font-weight:700">${E(`history.${i}.0`)}</td><td class="r" style="font-weight:800;white-space:normal">${E(`history.${i}.1`)}</td><td style="width:1px">${DEL('history.' + i)}</td></tr>`).join('');
+      // 獎項
+      $('prizeRows').innerHTML = DATA.prizes.map((p, i) => `<tr><td style="font-weight:800">${E(`prizes.${i}.0`)}</td><td>${E(`prizes.${i}.1`)}</td><td class="r">${E(`prizes.${i}.2`)}</td><td class="r money">${E(`prizes.${i}.3`)}</td><td><span class="pill pill-red">${E(`prizes.${i}.4`)}</span></td><td style="width:1px">${DEL('prizes.' + i)}</td></tr>`).join('');
+      updatePrizeSum();
+      renderTpl();
+    }
+    function updatePrizeSum() {
+      $('prizeSum').textContent = `共 ${DATA.prizes.reduce((a, p) => a + num(p[2]), 0)} 份・禮券 ${fmt(DATA.prizes.reduce((a, p) => a + num(p[3]), 0))}`;
+    }
+    // 清單勾選存在本機
     const KEY = 'sr_xmas2026_todo';
     let done = {};
     try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { done = {}; }
     function renderTodo() {
-      $('todoList').innerHTML = TODO.map(([w, t, n], i) => `<label class="chk"><input type="checkbox" data-todo="${i}"${done[i] ? ' checked' : ''}><span class="tx">${esc(t)}${n ? `<small>${esc(n)}</small>` : ''}</span><span class="when">${w}</span></label>`).join('');
-      const c = TODO.filter((_, i) => done[i]).length;
-      $('todoCount').textContent = `${c}／${TODO.length}`;
-      $('todoBar').style.width = (c / TODO.length * 100) + '%';
+      $('todoList').innerHTML = DATA.todo.map(([w, t, n], i) => `<div class="chk"><input type="checkbox" data-todo="${esc(t)}" aria-label="${esc(t)}"${done[t] ? ' checked' : ''}><span class="tx">${E(`todo.${i}.1`)}${(n || document.body.classList.contains('editing')) ? `<small>${E(`todo.${i}.2`)}</small>` : ''}</span>${E(`todo.${i}.0`, 'span', 'when')}${DEL('todo.' + i)}</div>`).join('');
+      const c = DATA.todo.filter(r => done[r[1]]).length;
+      $('todoCount').textContent = `${c}／${DATA.todo.length}`;
+      $('todoBar').style.width = (DATA.todo.length ? c / DATA.todo.length * 100 : 0) + '%';
     }
-    $('todoList').addEventListener('change', e => {
-      const i = e.target.dataset.todo; if (i == null) return;
-      if (e.target.checked) done[i] = 1; else delete done[i];
-      try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (err) {}
-      renderTodo();
-    });
-    renderTodo();
-
-    // 預算
-    const PRICES = [{ k: 8800, l: '菜單 8,000＋10%' }, { k: 8500, l: '場地圖 8,500 含' }];
-    let price = 8800, tables = 30;
-    const fmt = n => 'NT$ ' + n.toLocaleString('en-US');
-    function renderBudget() {
-      $('priceSeg').innerHTML = PRICES.map(p => `<button type="button" data-price="${p.k}" aria-pressed="${p.k === price}">${p.l}</button>`).join('');
-      $('tables').textContent = tables;
-      $('total').textContent = fmt(price * tables);
-      $('totalNote').textContent = `${fmt(price)} × ${tables} 桌・約 ${tables * 10} 人`;
-    }
-    $('priceSeg').addEventListener('click', e => { const b = e.target.closest('[data-price]'); if (b) { price = +b.dataset.price; renderBudget(); } });
-    document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => { tables = Math.min(60, Math.max(1, tables + +b.dataset.step)); renderBudget(); }));
-    renderBudget();
-    $('historyRows').innerHTML = EVENT.history.map(([k, v]) => `<tr><td style="color:var(--ink-2);font-weight:700">${esc(k)}</td><td class="r" style="font-weight:800;white-space:normal">${esc(v)}</td></tr>`).join('');
-
-    // 獎項
-    $('prizeRows').innerHTML = PRIZES.map(([a, b, n, s, st]) => `<tr><td style="font-weight:800">${a}</td><td>${b}</td><td class="r">${n}</td><td class="r money">${s == null ? '—' : s.toLocaleString('en-US')}</td><td><span class="pill pill-red">${st}</span></td></tr>`).join('');
-    $('prizeSum').textContent = `共 ${PRIZES.reduce((a, p) => a + p[2], 0)} 份・禮券 ${fmt(PRIZES.reduce((a, p) => a + (p[3] || 0), 0))}`;
-
-    // 通知範本
-    let tpl = TEMPLATES[0].id;
     function renderTpl() {
-      const t = TEMPLATES.find(x => x.id === tpl);
-      $('tplSeg').innerHTML = TEMPLATES.map(x => `<button type="button" data-tpl="${x.id}" aria-pressed="${x.id === tpl}">${x.name}</button>`).join('');
-      $('tplTitle').textContent = t.name; $('tplHint').textContent = t.hint; $('tplText').value = t.text;
+      const t = DATA.templates[tpl] || DATA.templates[0];
+      $('tplSeg').innerHTML = DATA.templates.map((x, i) => `<button type="button" data-tpl="${i}" aria-pressed="${i === tpl}">${esc(x.name)}</button>`).join('');
+      $('tplTitle').innerHTML = E(`templates.${tpl}.name`);
+      $('tplHint').innerHTML = E(`templates.${tpl}.hint`);
+      $('tplText').value = t.text;
+      $('tplNote').textContent = editing ? '修改範本內容會自動儲存。【】內是要補的資料。' : '可直接修改後再複製；修改只在這次畫面有效。【】內是要補的資料。';
     }
-    $('tplSeg').addEventListener('click', e => { const b = e.target.closest('[data-tpl]'); if (b) { tpl = b.dataset.tpl; renderTpl(); } });
-    $('tplCopy').addEventListener('click', () => copy($('tplText').value));
-    renderTpl();
+    function renderAll() {
+      renderStatic(); renderOverview(); renderProgram(); renderMenu(); renderPrep();
+      applyEditable();
+    }
 
-    /* ================= 共用：複製、燈箱 ================= */
+    /* ================= 互動 ================= */
+    $('progSeg').addEventListener('click', e => { const b = e.target.closest('[data-prog]'); if (b) { progFilter = b.dataset.prog; renderProgram(); applyEditable(); } });
+    $('prepSeg').addEventListener('click', e => { const b = e.target.closest('[data-ptab]'); if (b) { prepTab = b.dataset.ptab; renderPrep(); applyEditable(); } });
+    $('priceSeg').addEventListener('click', e => { const b = e.target.closest('[data-price]'); if (b) { price = +b.dataset.price; renderPrep(); applyEditable(); } });
+    document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => { tables = Math.min(60, Math.max(1, tables + +b.dataset.step)); renderPrep(); applyEditable(); }));
+    $('tplSeg').addEventListener('click', e => { const b = e.target.closest('[data-tpl]'); if (b) { tpl = +b.dataset.tpl; renderTpl(); applyEditable(); } });
+    $('tplCopy').addEventListener('click', () => copy($('tplText').value));
+    $('tplText').addEventListener('input', () => { if (editing) { DATA.templates[tpl].text = $('tplText').value; queueSave(); } });
+    $('todoList').addEventListener('change', e => {
+      const k = e.target.dataset.todo; if (k == null) return;
+      if (e.target.checked) done[k] = 1; else delete done[k];
+      try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (err) {}
+      renderTodo(); applyEditable();
+    });
+
     function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 1800); }
     async function copy(text) {
       try { await navigator.clipboard.writeText(text); toast('已複製'); }
@@ -700,17 +769,96 @@ Dear 【行政同工】：
     }
     document.addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
     document.addEventListener('click', e => {
+      if (editing) return; // 編輯時點圖不放大
       const im = e.target.closest('img[data-lb]');
       if (im) { $('lb').querySelector('img').src = im.src; $('lb').querySelector('img').alt = im.alt; $('lb').classList.add('on'); return; }
       if (e.target.closest('#lb')) $('lb').classList.remove('on');
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') $('lb').classList.remove('on'); });
 
+    /* ================= 編輯（Superuser）：所有文字直接點選修改，自動存到 Firestore ================= */
+    let editing = false, saveTimer = null, pendingRemote = null, canSave = false;
+    const status = t => { $('editStatus').textContent = t; };
+    function applyEditable() {
+      document.querySelectorAll('[data-k]').forEach(el => {
+        if (editing) { el.setAttribute('contenteditable', 'plaintext-only'); if (el.contentEditable !== 'plaintext-only') el.setAttribute('contenteditable', 'true'); el.spellcheck = false; }
+        else el.removeAttribute('contenteditable');
+      });
+    }
+    $('editToggle').addEventListener('click', () => {
+      editing = !editing;
+      document.body.classList.toggle('editing', editing);
+      $('editToggle').textContent = editing ? '✓ 完成' : '✏️ 編輯內容';
+      if (!editing) { document.activeElement && document.activeElement.blur(); flushSave(); }
+      renderAll();
+      toast(editing ? '點任何有虛線的文字即可修改' : '已離開編輯');
+    });
+    // 編輯中：文字改了就寫回資料
+    document.addEventListener('input', e => {
+      const el = e.target.closest && e.target.closest('[data-k]');
+      if (!editing || !el) return;
+      setPath(el.dataset.k, el.innerText.replace(/\n+$/, ''));
+      if (el.dataset.k.startsWith('prizes.')) updatePrizeSum();
+      if (el.dataset.k.startsWith('hero.year')) {}
+      queueSave();
+    });
+    // 單行欄位按 Enter 不換行
+    document.addEventListener('keydown', e => {
+      const el = e.target.closest && e.target.closest('[data-k]');
+      if (editing && el && e.key === 'Enter' && !/^(t\.sideTitle|.*\.desc|confirm\.\d+\.1)$/.test(el.dataset.k)) { e.preventDefault(); el.blur(); }
+    });
+    document.addEventListener('focusout', e => {
+      if (e.target.closest && e.target.closest('[data-k]') && pendingRemote) setTimeout(applyRemote, 0);
+    });
+    // 編輯中避免點到連結、按鈕的原本功能
+    document.addEventListener('click', e => { if (editing && e.target.closest('[data-k]') && e.target.closest('a')) e.preventDefault(); }, true);
+    $('startInput').addEventListener('change', () => { if (!$('startInput').value) return; DATA.start = $('startInput').value; tick(); queueSave(); });
+    document.addEventListener('click', e => {
+      const add = e.target.closest('[data-add]'), del = e.target.closest('[data-del]');
+      if (!editing || (!add && !del)) return;
+      if (add) {
+        const p = add.dataset.add, list = getPath(p);
+        list.push(clone(p.indexOf('program.') === 0 ? BLANK.item : BLANK[p]));
+      } else {
+        const ks = del.dataset.del.split('.'); const i = +ks.pop(); const list = getPath(ks.join('.'));
+        if (!confirm('確定刪除這一列？')) return;
+        list.splice(i, 1);
+      }
+      renderAll(); queueSave();
+    });
+
+    function queueSave() { if (!canSave) return; status('儲存中…'); clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }
+    function flushSave() { if (saveTimer) { clearTimeout(saveTimer); save(); } }
+    async function save() {
+      saveTimer = null;
+      try {
+        await DOC().set({ json: JSON.stringify(DATA), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: window.currentAdminEmail || '' });
+        status('已儲存 ✓');
+      } catch (err) { console.error(err); status('儲存失敗'); toast('儲存失敗（' + (err.code || err.message) + '）'); }
+    }
+    function applyRemote() {
+      if (!pendingRemote) return;
+      const a = document.activeElement;
+      if (editing && a && a.closest && (a.closest('[data-k]') || a.id === 'tplText')) return; // 正在打字時先不覆蓋
+      DATA = merge(pendingRemote); pendingRemote = null; renderAll();
+    }
+    let unsub = null;
+    function startSync() {
+      if (unsub || !window.db) return;
+      unsub = DOC().onSnapshot(snap => {
+        canSave = true;
+        if (snap.metadata.hasPendingWrites || !snap.exists) return;
+        try { pendingRemote = JSON.parse(snap.data().json || '{}'); applyRemote(); } catch (e) { console.warn('讀取聖誕頁內容失敗', e); }
+      }, err => { console.warn('讀取聖誕頁內容失敗', err); canSave = true; status('雲端讀取失敗，修改可能無法儲存'); });
+    }
+
     /* ================= 權限：只有 SR Superuser ================= */
+    renderAll();
     function gate(a) {
       const ok = !!window.isSuperuser;
-      $('app').hidden = !ok; $('tabbar').hidden = !ok; $('gate').hidden = ok;
-      if (ok) { show(location.hash.slice(1)); return; }
+      $('app').hidden = !ok; $('tabbar').hidden = !ok; $('gate').hidden = ok; $('editBar').hidden = !ok;
+      if (ok) { show(location.hash.slice(1)); startSync(); return; }
+      if (editing) $('editToggle').click();
       const loggedIn = a && a.canView;
       $('gateTitle').textContent = loggedIn ? '這一頁目前只開放給 Superuser' : '請先登入';
       $('gateText').textContent = loggedIn ? '2026 加樂聖誕感恩餐會專案頁還在籌備中，開放後會再通知。' : '這是 2026 加樂聖誕感恩餐會的籌備頁，目前只有 SR Superuser 可以檢視。';
