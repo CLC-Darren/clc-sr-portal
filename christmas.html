@@ -172,6 +172,35 @@
     @media (min-width:1024px){.menu-list{columns:2;column-gap:36px}.menu-list li{break-inside:avoid}}
     .thumb{display:block;width:100%;border-radius:14px;border:1px solid var(--line);cursor:zoom-in;background:#fff}
 
+    /* 場地圖・桌次（向量圖） */
+    .fp-grid{display:grid;gap:14px}
+    @media (min-width:1024px){.fp-grid{grid-template-columns:minmax(0,2.3fr) minmax(300px,1fr);gap:20px;align-items:start}.fp-panel{position:sticky;top:72px}}
+    .grid3{display:grid;gap:14px}
+    @media (min-width:800px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}}
+    .fp-wrap{overflow:auto;border-radius:16px;background:#FBF7F0;border:1px solid var(--line);-webkit-overflow-scrolling:touch}
+    .fp-wrap svg{display:block;width:100%;min-width:720px;height:auto;user-select:none;-webkit-user-select:none}
+    body.editing .fp-wrap svg{touch-action:none}
+    .fp-tbl{cursor:pointer}
+    body.editing .fp-tbl{cursor:grab}
+    .fp-tbl.drag{cursor:grabbing}
+    .fp-tbl circle.t{fill:#fff;stroke:#9E2A31;stroke-width:1.6;transition:fill .15s}
+    .fp-tbl.main circle.t{fill:#F4E7CF;stroke:#A9864A}
+    .fp-tbl.full circle.t{fill:#E7EEE3;stroke:#4F6B48}
+    .fp-tbl:hover circle.t{fill:#FBEDEE}
+    .fp-tbl.sel circle.t{fill:#9E2A31;stroke:#741E24}
+    .fp-tbl.sel text.l{fill:#fff}
+    .fp-tbl text.l{font:800 11px Arial,"Microsoft JhengHei",sans-serif;fill:#713A2D;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+    .fp-tbl .bd circle{fill:#4F6B48}.fp-tbl .bd text{font:800 8px Arial;fill:#fff;text-anchor:middle;dominant-baseline:central}
+    .fp-static text{font:700 10px Arial,"Microsoft JhengHei",sans-serif;fill:#6E625C;text-anchor:middle;dominant-baseline:central}
+    .tchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+    .tchip{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 9px;font:inherit;font-size:.8rem;font-weight:800;color:var(--ink);cursor:pointer;white-space:nowrap}
+    .tchip small{color:var(--ink-2);font-weight:700;margin-left:4px}
+    .tchip.full{background:#E7EEE3;border-color:#C9D8C2}
+    .people{list-style:none;margin:10px 0 0;padding:0;columns:2;column-gap:16px}
+    .people li{padding:6px 0;border-top:1px solid var(--line);font-size:.92rem;font-weight:700;break-inside:avoid}
+    .fp-panel textarea{width:100%;box-sizing:border-box;min-height:220px;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:.92rem;line-height:1.7;color:var(--ink);background:#fff;resize:vertical}
+    .fp-panel input[type=text],.fp-panel input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:#fff;width:100%;box-sizing:border-box}
+
     /* 籌備 */
     .chk{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer}
     .chk:first-child{border-top:0}
@@ -344,15 +373,26 @@
             <h1 class="h1" id="t-venue" data-k="t.vnTitle">場地與交通</h1>
             <p class="sub" data-k="t.vnSub">彭園會館 4 樓・捷運江子翠站 3 號出口</p>
           </div>
-          <div class="ov-grid">
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                <div class="h2">🗺️ 場地圖</div><span class="pill pill-gold" data-k="t.vnPill">28–30 桌配置</span>
+          <div class="fp-grid">
+            <div class="card" style="min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+                <div class="h2" data-k="t.fpTitle">🗺️ 場地圖・桌次</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <span class="pill pill-gold" id="fpCount"></span>
+                  <button type="button" class="btn btn-soft" style="min-height:34px;padding:0 12px;font-size:.8rem" id="fpOrig">原始場地圖</button>
+                </div>
               </div>
-              <p class="muted" style="font-size:.82rem;margin:4px 0 10px" data-k="t.vnImgNote">舞台、主桌、小吃區、中控與休息室位置。點圖放大。</p>
-              <img class="thumb" src="images/christmas/floor-plan.jpg" alt="彭園場地圖：舞台與主桌在上方，中控在右側" data-lb loading="lazy">
+              <p class="muted" style="font-size:.82rem;margin:4px 0 10px"><span id="fpHint">點桌子看這一桌的名單。</span></p>
+              <div class="fp-wrap" id="fpWrap"></div>
+              <div class="ed ed-row" style="flex-wrap:wrap">
+                <button type="button" class="btn btn-pine" style="min-height:38px" id="fpAdd">＋ 新增桌子</button>
+                <button type="button" class="btn btn-soft" style="min-height:38px" id="fpRenumber">依位置重新編號</button>
+                <span>拖曳桌子可移動位置</span>
+              </div>
             </div>
-            <div class="stack">
+            <div class="card fp-panel" id="tablePanel"></div>
+          </div>
+          <div class="grid3">
               <div class="card">
                 <div class="h2">📍 地址</div>
                 <p style="font-size:.95rem;font-weight:700;line-height:1.6;margin:6px 0 0" data-k="t.vnAddr">新北市板橋區雙十路二段 239 號 4 樓</p>
@@ -370,7 +410,6 @@
                 <div class="h2" data-k="t.flowTitle">🚶 動線</div>
                 <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.flowText">上午聚會結束後由牧師帶隊步行前往，小組長協助引導、傳道壓後；行動不便長輩搭接駁車，彭園 1 樓有同工協助上下車、引導上樓。</p>
               </div>
-            </div>
           </div>
         </div>
       </section>
@@ -527,6 +566,39 @@
           { t: '13:30', end: '', ttl: '用餐結束・撤收', who: '', desc: '背景音樂播放聖誕音樂清單。', links: [['聖誕音樂清單', 'https://www.youtube.com/watch?v=WqKBnAON4zk']] }
         ]}
       ],
+      // 場地圖：座標以彭園原始場地圖（900×675）為準；people 為這一桌的名單，日後可和報名名單連動
+      floor: { tables: [
+        { id: 'm', label: '主桌', x: 409, y: 229, main: true, seats: 16, people: [] },
+        { id: 't1', label: '1', x: 504, y: 198, seats: 10, people: [] },
+        { id: 't2', label: '2', x: 541, y: 220, seats: 10, people: [] },
+        { id: 't3', label: '3', x: 473, y: 225, seats: 10, people: [] },
+        { id: 't4', label: '4', x: 279, y: 249, seats: 10, people: [] },
+        { id: 't5', label: '5', x: 329, y: 250, seats: 10, people: [] },
+        { id: 't6', label: '6', x: 387, y: 276, seats: 10, people: [] },
+        { id: 't7', label: '7', x: 437, y: 276, seats: 10, people: [] },
+        { id: 't8', label: '8', x: 280, y: 288, seats: 10, people: [] },
+        { id: 't9', label: '9', x: 329, y: 288, seats: 10, people: [] },
+        { id: 't10', label: '10', x: 482, y: 304, seats: 10, people: [] },
+        { id: 't11', label: '11', x: 523, y: 304, seats: 10, people: [] },
+        { id: 't12', label: '12', x: 388, y: 317, seats: 10, people: [] },
+        { id: 't13', label: '13', x: 438, y: 317, seats: 10, people: [] },
+        { id: 't14', label: '14', x: 281, y: 321, seats: 10, people: [] },
+        { id: 't15', label: '15', x: 329, y: 327, seats: 10, people: [] },
+        { id: 't16', label: '16', x: 500, y: 347, seats: 10, people: [] },
+        { id: 't17', label: '17', x: 387, y: 358, seats: 10, people: [] },
+        { id: 't18', label: '18', x: 435, y: 358, seats: 10, people: [] },
+        { id: 't19', label: '19', x: 280, y: 362, seats: 10, people: [] },
+        { id: 't20', label: '20', x: 412, y: 394, seats: 10, people: [] },
+        { id: 't21', label: '21', x: 363, y: 396, seats: 10, people: [] },
+        { id: 't22', label: '22', x: 456, y: 396, seats: 10, people: [] },
+        { id: 't23', label: '23', x: 436, y: 425, seats: 10, people: [] },
+        { id: 't24', label: '24', x: 389, y: 426, seats: 10, people: [] },
+        { id: 't25', label: '25', x: 483, y: 426, seats: 10, people: [] },
+        { id: 't26', label: '26', x: 343, y: 429, seats: 10, people: [] },
+        { id: 't27', label: '27', x: 414, y: 452, seats: 10, people: [] },
+        { id: 't28', label: '28', x: 460, y: 452, seats: 10, people: [] },
+        { id: 't29', label: '29', x: 370, y: 454, seats: 10, people: [] }
+      ]},
       prizes: [
         ['一獎', '全聯禮券 $1,000', '3', '3000', '第三階段'],
         ['二獎', '全聯禮券 $500', '4', '2000', '第二階段'],
@@ -651,6 +723,7 @@ Dear 【行政同工】：
       document.querySelectorAll('.view').forEach(el => el.classList.toggle('on', el.id === 'v-' + id));
       document.querySelectorAll('[data-view]').forEach(b => { if (b.dataset.view === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
       if (push) { history.replaceState(null, '', '#' + id); window.scrollTo(0, 0); }
+      if (id === 'venue') requestAnimationFrame(centerFloor);
     }
     document.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) show(b.dataset.view, true); });
     window.addEventListener('hashchange', () => show(location.hash.slice(1)));
@@ -743,9 +816,142 @@ Dear 【行政同工】：
       $('tplNote').textContent = editing ? '修改範本內容會自動儲存。【】內是要補的資料。' : '可直接修改後再複製；修改只在這次畫面有效。【】內是要補的資料。';
     }
     function renderAll() {
-      renderStatic(); renderOverview(); renderProgram(); renderMenu(); renderPrep();
+      renderStatic(); renderOverview(); renderProgram(); renderMenu(); renderFloor(); renderPrep();
       applyEditable();
     }
+
+
+    /* ================= 場地圖・桌次（向量圖，可拖曳、可編名單） ================= */
+    let selTable = null;
+    const FP_STATIC = `
+      <g class="fp-static">
+        <rect x="0" y="160" width="900" height="370" fill="#FBF7F0"/>
+        <line x1="0" y1="171" x2="900" y2="171" stroke="#CDBFA9" stroke-width="5"/><line x1="0" y1="521" x2="900" y2="521" stroke="#CDBFA9" stroke-width="5"/>
+        <g fill="none" stroke="#B9AC98" stroke-width="1.4">
+          <path d="M65 218H265V378M265 218V200M155 200V218M330 378H265"/><path d="M560 178V262H900"/><path d="M265 408H330M378 408H448M532 408H820"/>
+          <path d="M545 408V505M265 440V505M60 290V368H122V290Z"/><path d="M122 233H165V290H122Z"/><path d="M810 395V455H828"/>
+        </g>
+        <g fill="#F2D5DD">${[[57,168],[167,168],[257,168],[459,168],[573,168],[670,168],[770,168],[850,168],[57,212],[157,212],[255,212],[459,212],[573,212],[671,212],[775,212],[877,212],[55,333],[157,333],[459,333],[648,333],[768,333],[877,333],[57,453],[161,453],[255,453],[459,453],[573,453],[671,453],[775,453],[877,453],[57,507],[345,507],[444,507],[557,507],[650,507],[773,507],[845,507]].map(([x,y]) => `<rect x="${x - 7}" y="${y - 7}" width="14" height="14" rx="2"/>`).join('')}</g>
+        <rect x="370" y="174" width="78" height="17" rx="3" fill="#E5EEDF" stroke="#4F6B48"/><text x="409" y="182.5" style="fill:#3E5838">舞台</text>
+        <rect x="271" y="177" width="65" height="12" rx="2" fill="#E8D3A8"/><rect x="488" y="243" width="65" height="12" rx="2" fill="#E8D3A8"/>
+        <rect x="690" y="182" width="65" height="45" rx="4" fill="#F1DFB8" stroke="#C9A57A"/><text x="722" y="204">小吃區</text>
+        <text x="24" y="209">WC</text><text x="143" y="256">D休</text>
+        <rect x="549" y="290" width="49" height="85" fill="#fff" stroke="#B9AC98"/><line x1="549" y1="332" x2="598" y2="332" stroke="#B9AC98"/><text x="573" y="311">WC</text><text x="573" y="354">WC</text>
+        <rect x="598" y="290" width="70" height="83" fill="none" stroke="#B9AC98"/>
+        <rect x="707" y="290" width="28" height="85" fill="#fff" stroke="#B9AC98"/><text x="721" y="322">中</text><text x="721" y="342">控</text>
+        <rect x="736" y="290" width="69" height="85" fill="none" stroke="#7E716A" stroke-width="2"/><path d="M770 290V375M736 332H805" stroke="#7E716A" stroke-width="2"/>
+        <rect x="782" y="455" width="46" height="53" fill="#fff" stroke="#B9AC98"/><text x="805" y="490">B休</text>
+        <path d="M840 240V265H818" fill="none" stroke="#C9A57A" stroke-width="4"/><path d="M822 258L814 265L822 272" fill="none" stroke="#C9A57A" stroke-width="4"/><text x="850" y="282">入口</text>
+      </g>`;
+    // 手機上場地圖可左右滑：第一次看到時先捲到桌子所在的中間區域
+    function centerFloor() { const w = $('fpWrap'); if (!w._c && w.clientWidth && w.scrollWidth > w.clientWidth) { w.scrollLeft = w.scrollWidth * 0.29; w._c = 1; } }
+    const seated = t => (t.people || []).filter(x => String(x).trim()).length;
+    function renderFloor(mapOnly) {
+      const tbls = DATA.floor.tables;
+      const svg = `<svg viewBox="0 160 900 370" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="彭園場地圖與桌次">${FP_STATIC}<g id="fpTables">${tbls.map(t => {
+        const n = seated(t), r = t.main ? 20 : 14;
+        return `<g class="fp-tbl${t.main ? ' main' : ''}${n >= (+t.seats || 10) ? ' full' : ''}${t.id === selTable ? ' sel' : ''}" data-tid="${esc(t.id)}" transform="translate(${t.x} ${t.y})" tabindex="0" role="button" aria-label="${esc(t.label)} 桌，${n} 人">
+          <circle class="t" r="${r}"/><text class="l" y="0">${esc(t.label)}</text>
+          ${n ? `<g class="bd" transform="translate(${r * .75} ${-r * .75})"><circle r="7"/><text>${n}</text></g>` : ''}</g>`; }).join('')}</g></svg>`;
+      const wrap = $('fpWrap'), sl = wrap.scrollLeft;
+      wrap.innerHTML = svg; wrap.scrollLeft = sl;
+      requestAnimationFrame(centerFloor);
+      const total = tbls.reduce((a, t) => a + seated(t), 0), cap = tbls.reduce((a, t) => a + (+t.seats || 0), 0);
+      $('fpCount').textContent = `${tbls.length} 桌・已排 ${total}／${cap} 位`;
+      $('fpHint').textContent = editing ? '拖曳桌子移動位置；點桌子修改桌號、座位數與名單。' : '點桌子看這一桌的名單；綠色是已坐滿。';
+      if (!mapOnly) renderTablePanel();
+    }
+    function renderTablePanel() {
+      const t = DATA.floor.tables.find(x => x.id === selTable);
+      if (!t) {
+        $('tablePanel').innerHTML = `<div class="h2">🪑 桌次</div>
+          <p class="muted" style="font-size:.85rem;margin:6px 0 0">點場地圖上的桌子，或下面的桌號。</p>
+          <div class="tchips">${DATA.floor.tables.map(x => `<button type="button" class="tchip${seated(x) >= (+x.seats || 10) ? ' full' : ''}" data-tsel="${esc(x.id)}">${esc(x.label)}<small>${seated(x)}／${esc(x.seats)}</small></button>`).join('')}</div>`;
+        return;
+      }
+      const n = seated(t);
+      $('tablePanel').innerHTML = editing ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div class="h2">🪑 編輯桌子</div><button type="button" class="btn btn-soft" style="min-height:34px;padding:0 12px" data-tsel="">關閉</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <label style="font-size:.78rem;font-weight:800;color:var(--ink-2)">桌號<input type="text" id="tLabel" value="${esc(t.label)}" maxlength="10"></label>
+          <label style="font-size:.78rem;font-weight:800;color:var(--ink-2)">座位數<input type="number" id="tSeats" value="${esc(t.seats)}" min="1" max="30"></label>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.85rem;font-weight:800"><input type="checkbox" id="tMain"${t.main ? ' checked' : ''}> 主桌（較大、金色）</label>
+        <div style="font-size:.78rem;font-weight:800;color:var(--ink-2);margin:12px 0 4px">名單（一行一位，可寫「姓名｜小組」）・<span id="tCount">${n}</span> 人</div>
+        <textarea id="tPeople" placeholder="例如：王小明｜培榮小組">${esc((t.people || []).join('\n'))}</textarea>
+        <button type="button" class="btn btn-soft" style="margin-top:10px;color:var(--red-d);width:100%" id="tDel">刪除這一桌</button>`
+      : `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div><div class="kicker">TABLE</div><div class="h2">${t.main ? '' : '第 '}${esc(t.label)}${t.main ? '' : ' 桌'}</div></div>
+          <div style="display:flex;gap:6px;align-items:center"><span class="pill ${n >= (+t.seats || 10) ? 'pill-pine' : 'pill-gold'}">${n}／${esc(t.seats)} 位</span><button type="button" class="btn btn-soft" style="min-height:34px;padding:0 12px" data-tsel="">全部</button></div>
+        </div>
+        ${n ? `<ul class="people">${t.people.filter(x => String(x).trim()).map(x => { const [nm, g] = String(x).split(/[｜|]/); return `<li>${esc(nm.trim())}${g ? `<small class="muted" style="font-weight:600;font-size:.75rem;margin-left:6px">${esc(g.trim())}</small>` : ''}</li>`; }).join('')}</ul>`
+          : `<p class="muted" style="font-size:.88rem;margin:10px 0 0">這一桌還沒有名單。${'按右下角「✏️ 編輯內容」後點這桌即可加入。'}</p>`}`;
+    }
+    // 選桌子
+    document.addEventListener('click', e => {
+      const c = e.target.closest('[data-tsel]');
+      if (c) { selTable = c.dataset.tsel || null; renderFloor(); }
+    });
+    // 桌子：點選／拖曳（編輯模式才可拖）
+    let drag = null;
+    const svgPt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+    $('fpWrap').addEventListener('pointerdown', e => {
+      const g = e.target.closest('.fp-tbl'); if (!g) return;
+      const t = DATA.floor.tables.find(x => x.id === g.dataset.tid); if (!t) return;
+      if (!editing) { selTable = t.id; renderFloor(); return; }
+      const svg = g.ownerSVGElement, p = svgPt(svg, e);
+      drag = { t, g, svg, dx: p.x - t.x, dy: p.y - t.y, moved: false };
+      g.classList.add('drag'); g.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    $('fpWrap').addEventListener('pointermove', e => {
+      if (!drag) return;
+      const p = svgPt(drag.svg, e);
+      const x = Math.round(Math.min(890, Math.max(10, p.x - drag.dx))), y = Math.round(Math.min(515, Math.max(178, p.y - drag.dy)));
+      if (Math.abs(x - drag.t.x) + Math.abs(y - drag.t.y) > 1) drag.moved = true;
+      drag.t.x = x; drag.t.y = y; drag.g.setAttribute('transform', `translate(${x} ${y})`);
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      const { t, moved } = drag; drag = null;
+      selTable = t.id; renderFloor();
+      if (moved) queueSave();
+    };
+    $('fpWrap').addEventListener('pointerup', endDrag);
+    $('fpWrap').addEventListener('pointercancel', endDrag);
+    $('fpWrap').addEventListener('keydown', e => { const g = e.target.closest('.fp-tbl'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selTable = g.dataset.tid; renderFloor(); } });
+    // 編輯桌子欄位
+    $('tablePanel').addEventListener('input', e => {
+      const t = DATA.floor.tables.find(x => x.id === selTable); if (!t || !editing) return;
+      if (e.target.id === 'tLabel') t.label = e.target.value.trim();
+      else if (e.target.id === 'tSeats') t.seats = Math.max(1, Math.min(30, +e.target.value || 10));
+      else if (e.target.id === 'tPeople') { t.people = e.target.value.split('\n').map(x => x.trim()).filter(Boolean); $('tCount').textContent = seated(t); }
+      else return;
+      renderFloor(true); queueSave(); // 只更新地圖，不重繪右側，避免打字中斷
+    });
+    $('tablePanel').addEventListener('change', e => {
+      const t = DATA.floor.tables.find(x => x.id === selTable); if (!t || !editing) return;
+      if (e.target.id === 'tMain') { t.main = e.target.checked; renderFloor(true); queueSave(); }
+    });
+    $('tablePanel').addEventListener('click', e => {
+      if (e.target.id !== 'tDel' || !editing) return;
+      const i = DATA.floor.tables.findIndex(x => x.id === selTable); if (i < 0) return;
+      const t = DATA.floor.tables[i];
+      if (!confirm(`確定刪除「${t.label}」這一桌？${seated(t) ? `這桌的 ${seated(t)} 位名單也會一起刪除。` : ''}`)) return;
+      DATA.floor.tables.splice(i, 1); selTable = null; renderFloor(); queueSave();
+    });
+    $('fpAdd').addEventListener('click', () => {
+      const used = DATA.floor.tables.map(t => +t.label).filter(n => !isNaN(n));
+      const id = 't' + Date.now().toString(36);
+      DATA.floor.tables.push({ id, label: String((used.length ? Math.max(...used) : 0) + 1), x: 640, y: 470, seats: 10, people: [] });
+      selTable = id; renderFloor(); queueSave(); toast('已加在右下方，拖到想要的位置');
+    });
+    $('fpRenumber').addEventListener('click', () => {
+      if (!confirm('依位置（由上而下、由左而右）重新編號所有桌子？主桌不變。')) return;
+      DATA.floor.tables.filter(t => !t.main).sort((a, b) => (Math.round(a.y / 30) - Math.round(b.y / 30)) || (a.x - b.x)).forEach((t, i) => { t.label = String(i + 1); });
+      renderFloor(); queueSave();
+    });
+    $('fpOrig').addEventListener('click', () => { $('lb').querySelector('img').src = 'images/christmas/floor-plan.jpg'; $('lb').querySelector('img').alt = '彭園原始場地圖'; $('lb').classList.add('on'); });
 
     /* ================= 互動 ================= */
     $('progSeg').addEventListener('click', e => { const b = e.target.closest('[data-prog]'); if (b) { progFilter = b.dataset.prog; renderProgram(); applyEditable(); } });
@@ -769,6 +975,7 @@ Dear 【行政同工】：
     }
     document.addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
     document.addEventListener('click', e => {
+      if (e.target.closest('#lb')) { $('lb').classList.remove('on'); return; }
       if (editing) return; // 編輯時點圖不放大
       const im = e.target.closest('img[data-lb]');
       if (im) { $('lb').querySelector('img').src = im.src; $('lb').querySelector('img').alt = im.alt; $('lb').classList.add('on'); return; }
@@ -839,7 +1046,7 @@ Dear 【行政同工】：
     function applyRemote() {
       if (!pendingRemote) return;
       const a = document.activeElement;
-      if (editing && a && a.closest && (a.closest('[data-k]') || a.id === 'tplText')) return; // 正在打字時先不覆蓋
+      if (editing && a && a.closest && (a.closest('[data-k]') || a.closest('#tablePanel') || a.id === 'tplText')) return; // 正在打字時先不覆蓋
       DATA = merge(pendingRemote); pendingRemote = null; renderAll();
     }
     let unsub = null;
