@@ -97,7 +97,9 @@
   function isExternal(url) {
     try { return new URL(url, location.href).origin !== location.origin; } catch (_) { return false; }
   }
-  const isImage = icon => /^(https?:\/\/|\/)/i.test(String(icon || ''));
+  const isImage = icon => /^(https?:\/\/|\/)/i.test(String(icon || '')) || (window.clcIsDataIcon && window.clcIsDataIcon(icon));
+  // 圖示可以是網址，或上傳後存成的 data:image（js/clc-icon-upload.js）
+  const safeIcon = v => (window.clcIsDataIcon && window.clcIsDataIcon(v)) ? String(v) : safeUrl(v);
   // 字母圖示：抓不到圖、圖太小（< 96px 會糊）時，用彩色圓角方塊＋名稱第一個字（同 LinFamily）。
   const MONO_COLORS = ['#4E8B7E', '#B5835A', '#5F77A8', '#A8607A', '#4F8FA0', '#7E6FAE', '#6E8B4E'];
   const isGoogleIcon = v => /google\.[a-z.]+\/s2\/favicons/i.test(String(v || ''));
@@ -111,7 +113,7 @@
   }
   function iconHtml(app) {
     const icon = String(app.icon || '').trim();
-    if (isImage(icon) && safeUrl(icon) && !isGoogleIcon(icon)) return `<span class="ha-icon" aria-hidden="true"><img alt="" src="${esc(safeUrl(icon))}" data-mono="${esc(monoHtml(app))}"></span>`;
+    if (isImage(icon) && safeIcon(icon) && !isGoogleIcon(icon)) return `<span class="ha-icon" aria-hidden="true"><img alt="" src="${esc(safeIcon(icon))}" data-mono="${esc(monoHtml(app))}"></span>`;
     if (icon && !isImage(icon)) return `<span class="ha-icon" aria-hidden="true">${esc(icon)}</span>`;
     return `<span class="ha-icon" aria-hidden="true">${monoHtml(app)}</span>`;
   }
@@ -228,10 +230,22 @@
     </form>`;
   document.body.appendChild(dialog);
   const $ = k => dialog.querySelector('[data-ha="' + k + '"]');
-  let editingId = null, auto = {}, fetchSeq = 0, fetchTimer = 0;
+  let editingId = null, auto = {}, fetchSeq = 0, fetchTimer = 0, uploadedIcon = '';
+  const placeholderIcon = $('icon').placeholder;
+  function setUploaded(icon) {
+    uploadedIcon = icon || '';
+    $('icon').placeholder = uploadedIcon ? '已使用上傳的圖片（填網址可取代）' : placeholderIcon;
+    if (uploader) uploader.setUploaded(!!uploadedIcon);
+  }
+  const uploader = window.clcIconUploader ? window.clcIconUploader({
+    dialog, row: dialog.querySelector('.ha-iconrow'),
+    onIcon: d => { $('icon').value = ''; setUploaded(d); showError(''); preview(); },
+    onClear: () => { setUploaded(''); preview(); },
+    onError: showError
+  }) : null;
   function showError(msg) { $('err').textContent = msg; $('err').hidden = !msg; }
   function status(msg) { $('status').textContent = msg; $('status').hidden = !msg; }
-  function preview() { $('preview').innerHTML = iconHtml({ name: $('name').value, icon: $('icon').value, url: $('url').value }); }
+  function preview() { $('preview').innerHTML = iconHtml({ name: $('name').value, icon: uploadedIcon || $('icon').value, url: $('url').value }); }
   function openDialog(id) {
     if (!isAdmin()) return;
     const app = id ? apps.find(a => a.id === id) : null;
@@ -245,7 +259,10 @@
     $('urlNote').hidden = !hasMenu;
     $('urlNote').textContent = hasMenu ? '這一格是選單：' + app.menu.map(m => m.name).join('、') : '';
     $('name').value = app ? app.name : '';
-    $('icon').value = app && !isGoogleIcon(app.icon) ? (app.icon || '') : '';
+    const curIcon = app && !isGoogleIcon(app.icon) ? (app.icon || '') : '';
+    const isUp = !!(window.clcIsDataIcon && window.clcIsDataIcon(curIcon));
+    $('icon').value = isUp ? '' : curIcon;
+    setUploaded(isUp ? curIcon : '');
     auto = { name: '', icon: '', url: app ? safeUrl(app.url) : '' };
     showError(''); status('');
     $('save').disabled = false;
@@ -267,15 +284,17 @@
     if (!info) return;
     const name = String(info.name || '').trim().slice(0, 20), icon = info.ok && !isGoogleIcon(info.icon) ? safeUrl(info.icon) : '';
     if (name && (!$('name').value.trim() || $('name').value === auto.name)) { $('name').value = name; auto.name = name; }
-    if (!$('icon').value.trim() || $('icon').value === auto.icon) { $('icon').value = icon; auto.icon = icon; }
+    if (!uploadedIcon && (!$('icon').value.trim() || $('icon').value === auto.icon)) { $('icon').value = icon; auto.icon = icon; }
     preview();
   }
   $('url').addEventListener('input', () => { clearTimeout(fetchTimer); fetchTimer = setTimeout(fetchInfo, 600); });
   $('url').addEventListener('change', fetchInfo);
   $('name').addEventListener('input', preview);
-  $('icon').addEventListener('input', preview);
+  $('icon').addEventListener('input', () => { if ($('icon').value.trim() && uploadedIcon) setUploaded(''); preview(); });
   $('cancel').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+  // 按下和放開都在框外才關閉（拖曳選字滑出去不會關掉）
+  if (window.clcDialogBackdropClose) window.clcDialogBackdropClose(dialog);
+  else dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
   dialog.querySelector('form').addEventListener('submit', async e => {
     e.preventDefault();
     const old = editingId ? apps.find(a => a.id === editingId) : null;
@@ -283,9 +302,9 @@
     if (!hasMenu && safeUrl($('url').value) !== auto.url) { clearTimeout(fetchTimer); await fetchInfo(); }
     let name = $('name').value.trim().slice(0, 20);
     const url = hasMenu ? (old.url || '') : safeUrl($('url').value);
-    const icon = $('icon').value.trim();
+    const icon = uploadedIcon || $('icon').value.trim();
     if (!hasMenu && !url) return showError('請輸入網址，例如 venue.html 或 https://example.com');
-    if (icon && isImage(icon) && !safeUrl(icon)) return showError('圖示網址格式不正確。');
+    if (icon && isImage(icon) && !safeIcon(icon)) return showError('圖示網址格式不正確。');
     if (!old && apps.length >= MAX_APPS) return showError('最多 ' + MAX_APPS + ' 個 App。');
     if (!name) { try { name = isExternal(url) ? new URL(url).hostname.replace(/^www\./, '') : url.replace(/\/$/, ''); } catch (_) { name = url; } name = name.slice(0, 20); }
     if (!name) return showError('請輸入名稱。');
