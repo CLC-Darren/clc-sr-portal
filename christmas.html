@@ -15,53 +15,65 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"CLC Arial"','Arial','"Microsoft JhengHei"','sans-serif']},colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}};</script>
   <style>
-    /* ===== 聖誕主視覺色系（取自主視覺：紅底、松綠、雪白、香檳金、深藍字） ===== */
+    /* ===== 聖誕主視覺色系（取自主視覺：紅、松綠、雪白、香檳金、深藍字） =====
+       背景：上方一條紅色帶，往下漸層到底色；底色跟著裝置的淺色／深色模式。 */
     :root{
-      --red:#C8232C; --red-d:#8E1620; --red-dd:#4A0B11;
+      --red:#C8232C; --red-d:#8E1620;
       --pine:#1E6B45; --pine-l:#2E8B5C;
       --gold:#D8B97A; --gold-d:#A9864A;
-      --snow:#FFFCF7; --ink:#1D2540; --ink-2:#5A6178; --line:#ECE4D8;
+      --snow:#FFFFFF; --ink:#1D2540; --ink-2:#5A6178; --line:#ECE4D8;
+      --bg:#F4F0EA; --panel:#FFFFFF; --panel-ink:#1D2540; --panel-ink-2:#6B7186; --panel-line:rgba(29,37,64,.09);
+      --hover:rgba(29,37,64,.05); --shadow:0 6px 24px rgba(60,20,20,.08);
+      --tab-bg:rgba(255,255,255,.86);
       --tab-h:64px;
     }
+    @media (prefers-color-scheme:dark){:root{
+      --snow:#FFFCF7;
+      --bg:#0E0C10; --panel:#16131A; --panel-ink:#F2F1F5; --panel-ink-2:#9C98A6; --panel-line:rgba(255,255,255,.08);
+      --hover:rgba(255,255,255,.06); --shadow:0 10px 30px rgba(0,0,0,.35);
+      --tab-bg:rgba(22,19,26,.86);
+    }}
     html{font-size:16px}
     @media (min-width:1024px){html{font-size:17px}}
     body{margin:0;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;font-family:"CLC Arial",Arial,"Microsoft JhengHei",sans-serif;
-      background:#090A0F;color:var(--ink)}
-    .xm-bg{position:fixed;inset:0;z-index:-1;
-      background:radial-gradient(1200px 600px at 20% -10%,#B21E29 0%,transparent 60%),
-                 radial-gradient(900px 600px at 110% 10%,#7A121C 0%,transparent 55%),
-                 linear-gradient(180deg,#5C0E16 0%,#2B070C 55%,#16050A 100%)}
-    .xm-bg::after{content:"";position:absolute;inset:0;opacity:.35;
-      background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff 50%,transparent 51%),
-      radial-gradient(1.2px 1.2px at 42% 62%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 88% 48%,#fff 50%,transparent 51%),
-      radial-gradient(1.5px 1.5px at 24% 84%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 60% 90%,#fff 50%,transparent 51%);
-      background-size:340px 340px}
+      background:var(--bg);color:var(--ink)}
 
-    /* ===== 版面：手機＝底部分頁列；電腦＝左側導覽 ===== */
-    .xm-shell{max-width:1180px;margin:0 auto;padding:16px 14px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom))}
+    /* ===== 版面：手機＝底部分頁列；電腦＝左側導覽＋滿版內容 ===== */
+    .xm-shell{min-height:calc(100vh - 46px)}
+    .xm-main{position:relative;isolation:isolate;min-width:0;padding:18px 14px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom))}
+    .xm-main::before{content:"";position:absolute;left:0;right:0;top:0;height:340px;z-index:-1;pointer-events:none;
+      background:linear-gradient(180deg,#A31B24 0%,#B9232C 28%,color-mix(in srgb,#B9232C 35%,var(--bg)) 62%,var(--bg) 100%)}
+    .xm-main::after{content:"";position:absolute;left:0;right:0;top:0;height:300px;z-index:-1;pointer-events:none;opacity:.5;
+      background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff 50%,transparent 51%),
+      radial-gradient(1.2px 1.2px at 42% 52%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 88% 38%,#fff 50%,transparent 51%),
+      radial-gradient(1.5px 1.5px at 24% 74%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 60% 30%,#fff 50%,transparent 51%);
+      background-size:320px 260px;-webkit-mask-image:linear-gradient(180deg,#000 40%,transparent);mask-image:linear-gradient(180deg,#000 40%,transparent)}
     .xm-side{display:none}
     @media (min-width:1024px){
-      .xm-shell{display:grid;grid-template-columns:232px 1fr;gap:28px;padding:28px 24px 48px}
-      .xm-side{display:block;position:sticky;top:76px;align-self:start}
+      .xm-shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:calc(100vh - 48px)}
+      .xm-main{padding:32px clamp(24px,3vw,56px) 56px}
+      .xm-main::before{height:420px}
+      .xm-side{display:flex;flex-direction:column;position:sticky;top:48px;height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;
+        padding:22px 14px;background:var(--panel);border-right:1px solid var(--panel-line)}
       .xm-tabbar{display:none!important}
     }
-    .xm-side-title{color:#fff;padding:6px 10px 14px}
-    .xm-side-title small{display:block;color:var(--gold);font-size:.7rem;letter-spacing:.22em;font-weight:800}
+    .xm-side-title{color:var(--panel-ink);padding:4px 10px 16px}
+    .xm-side-title small{display:block;color:var(--red);font-size:.7rem;letter-spacing:.22em;font-weight:800}
     .xm-side-title b{display:block;font-size:1.15rem;margin-top:4px;line-height:1.3}
-    .xm-nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;border:0;background:transparent;
-      color:rgba(255,255,255,.78);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;text-align:left;transition:background .15s,color .15s}
-    .xm-nav-btn:hover{background:rgba(255,255,255,.07);color:#fff}
-    .xm-nav-btn[aria-current="page"]{background:var(--snow);color:var(--red-d)}
+    .xm-nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:2px;border-radius:12px;border:0;background:transparent;
+      color:var(--panel-ink);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;text-align:left;transition:background .15s,color .15s}
+    .xm-nav-btn:hover{background:var(--hover)}
+    .xm-nav-btn[aria-current="page"]{background:var(--red);color:#fff}
     .xm-nav-btn .ico{width:22px;text-align:center;font-size:1.05rem}
-    .xm-side-foot{margin-top:18px;padding:12px;border-radius:14px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:.78rem;line-height:1.6}
+    .xm-side-foot{margin-top:auto;padding:12px;border-radius:14px;background:var(--hover);color:var(--panel-ink-2);font-size:.78rem;line-height:1.6}
 
     .xm-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);
       height:calc(var(--tab-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
-      background:rgba(22,6,10,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid rgba(255,255,255,.1)}
-    .xm-tab{border:0;background:transparent;color:rgba(255,255,255,.6);font:inherit;font-size:.68rem;font-weight:700;display:flex;flex-direction:column;
+      background:var(--tab-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--panel-line)}
+    .xm-tab{border:0;background:transparent;color:var(--panel-ink-2);font:inherit;font-size:.68rem;font-weight:700;display:flex;flex-direction:column;
       align-items:center;justify-content:center;gap:3px;cursor:pointer;white-space:nowrap}
-    .xm-tab .ico{font-size:1.3rem;line-height:1;filter:grayscale(.6);opacity:.8}
-    .xm-tab[aria-current="page"]{color:var(--gold)}
+    .xm-tab .ico{font-size:1.3rem;line-height:1;filter:grayscale(.7);opacity:.75}
+    .xm-tab[aria-current="page"]{color:var(--red)}
     .xm-tab[aria-current="page"] .ico{filter:none;opacity:1}
 
     /* ===== 元件 ===== */
@@ -69,15 +81,15 @@
     .view.on{display:block}
     @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
     .stack>*+*{margin-top:14px}
-    @media (min-width:1024px){.stack>*+*{margin-top:18px}}
-    .card{background:var(--snow);border-radius:22px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+    @media (min-width:1024px){.stack>*+*{margin-top:20px}}
+    .card{background:var(--snow);border-radius:22px;padding:18px;box-shadow:var(--shadow)}
     @media (min-width:1024px){.card{padding:24px;border-radius:24px}}
     .kicker{font-size:.7rem;font-weight:800;letter-spacing:.2em;color:var(--red);text-transform:uppercase}
     .h1{font-size:1.65rem;font-weight:900;letter-spacing:-.01em;line-height:1.2;color:#fff;margin:2px 0 0}
-    @media (min-width:1024px){.h1{font-size:2.1rem}}
+    @media (min-width:1024px){.h1{font-size:2.2rem}}
     .h2{font-size:1.15rem;font-weight:900;color:var(--ink);margin:4px 0 0;white-space:nowrap}
     .muted{color:var(--ink-2)}
-    .sub{font-size:.85rem;color:rgba(255,255,255,.72);margin-top:6px;line-height:1.55}
+    .sub{font-size:.85rem;color:rgba(255,255,255,.82);margin-top:6px;line-height:1.55}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:800;white-space:nowrap}
     .pill-red{background:#FCE8E9;color:var(--red-d)}
     .pill-pine{background:#E3F2EA;color:#17553A}
@@ -90,11 +102,16 @@
     .btn-soft{background:#F3ECE1;color:var(--ink)}.btn-soft:hover{background:#EAE0D0}
     .grid2{display:grid;gap:14px}
     @media (min-width:700px){.grid2{grid-template-columns:1fr 1fr}}
-    @media (min-width:1024px){.grid2{gap:18px}}
-    .seg{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(255,255,255,.12);overflow-x:auto;scrollbar-width:none}
+    @media (min-width:1024px){.grid2{gap:20px}}
+    /* 分段按鈕：白底膠囊，紅底與淺／深底色都看得清楚 */
+    .seg{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--panel);box-shadow:var(--shadow);overflow-x:auto;scrollbar-width:none}
     .seg::-webkit-scrollbar{display:none}
-    .seg button{flex:1;border:0;background:transparent;color:rgba(255,255,255,.8);font:inherit;font-size:.85rem;font-weight:800;padding:8px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
-    .seg button[aria-pressed="true"]{background:var(--snow);color:var(--red-d);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    .seg button{flex:1;border:0;background:transparent;color:var(--panel-ink-2);font:inherit;font-size:.85rem;font-weight:800;padding:8px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
+    .seg button:hover{color:var(--panel-ink)}
+    .seg button[aria-pressed="true"]{background:var(--red);color:#fff}
+    .card .seg{background:#F3ECE1;box-shadow:none}
+    .card .seg button{color:var(--ink-2)}
+    @media (min-width:1024px){.seg{max-width:720px}}
 
     /* 總覽 */
     .hero{position:relative;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35);background:#9b1b24}
@@ -113,6 +130,11 @@
     .ov-grid{display:grid;gap:14px}
     @media (min-width:1024px){.ov-grid{grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
       .ov-home{grid-template-areas:"a b" "c b"}.ov-a{grid-area:a}.ov-b{grid-area:b}.ov-c{grid-area:c}}
+    @media (min-width:1500px){.ov-home{grid-template-columns:1.5fr 1fr 1fr;grid-template-areas:"a b c"}}
+    .pgrid{display:grid;gap:14px;align-items:start}
+    @media (min-width:1280px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
+    @media (min-width:1280px){#todoList{columns:2;column-gap:40px}#todoList .chk{break-inside:avoid}#todoList .chk:nth-child(-n+2){border-top:0}}
+    @media (min-width:1500px){.menu-list{columns:3}}
 
     /* 流程 */
     .tl{position:relative;margin:0;padding:0;list-style:none}
@@ -176,12 +198,11 @@
     .toast.on{opacity:1;transform:translate(-50%,0)}
     @media (min-width:1024px){.toast{bottom:32px}}
     a{color:inherit}
-    @media print{.xm-tabbar,.xm-side,#clc-header{display:none!important}.view{display:block!important}.xm-bg{display:none}body{background:#fff}}
+    @media print{.xm-tabbar,.xm-side,#clc-header{display:none!important}.view{display:block!important}body{background:#fff}}
   </style>
 </head>
 <body>
-  <div class="xm-bg" aria-hidden="true"></div>
-  <header id="clc-header"></header>
+    <header id="clc-header"></header>
 
   <!-- 權限：目前只開給 SR Superuser -->
   <section id="gate" class="gate px-4" role="status">
@@ -200,17 +221,17 @@
       <div class="xm-side-foot">🔒 目前只有 SR Superuser 看得到這一頁。<br>資料來源：彭園菜單（11/14）、場地圖、2025 餐會流程表。</div>
     </aside>
 
-    <main>
+    <main class="xm-main">
       <!-- ① 總覽 -->
       <section class="view" id="v-overview" aria-labelledby="t-overview">
         <div class="ov-grid ov-home">
           <div class="stack ov-a">
-            <div class="hero"><img src="images/christmas/hero.jpg" alt="Merry Christmas 主視覺：松枝、拐杖糖與冬青圍繞的白色圓框" fetchpriority="high"></div>
             <div style="padding:2px 4px">
               <div class="kicker" style="color:var(--gold)">2026 CLC SENIOR CHRISTMAS</div>
               <h1 class="h1" id="t-overview">加樂聖誕感恩餐會</h1>
               <p class="sub">江子翠行道會・加樂團契｜與長輩一同歡慶救主降生 🎁</p>
             </div>
+            <div class="hero"><img src="images/christmas/hero.jpg" alt="Merry Christmas 主視覺：松枝、拐杖糖與冬青圍繞的白色圓框" fetchpriority="high"></div>
           </div>
           <div class="stack ov-b">
             <div class="card">
@@ -245,7 +266,7 @@
             <p class="sub">以 2025/12/18 餐會流程為範本，人名與獎項請依今年分工更新。</p>
           </div>
           <div class="seg" role="group" aria-label="流程篩選" id="progSeg"></div>
-          <div id="programList" class="stack"></div>
+          <div id="programList" class="pgrid"></div>
         </div>
       </section>
 
@@ -343,7 +364,7 @@
             <div class="grid2">
               <div class="card">
                 <div class="h2">💰 餐費試算</div>
-                <div class="seg" role="group" aria-label="每桌價格" id="priceSeg" style="background:#F3ECE1;margin-top:10px"></div>
+                <div class="seg" role="group" aria-label="每桌價格" id="priceSeg" style="margin-top:10px"></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
                   <div><div style="font-weight:900">桌數</div><div class="muted" style="font-size:.78rem">菜單 30–32／場地圖 28–30</div></div>
                   <div class="stepper"><button type="button" data-step="-1" aria-label="減少一桌">−</button><output id="tables">30</output><button type="button" data-step="1" aria-label="增加一桌">＋</button></div>
@@ -378,7 +399,7 @@
           </div>
 
           <div data-prep="msg" class="stack" hidden>
-            <div class="seg" role="group" aria-label="通知範本" id="tplSeg" style="background:rgba(255,255,255,.08)"></div>
+            <div class="seg" role="group" aria-label="通知範本" id="tplSeg"></div>
             <div class="card tpl">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
                 <div class="h2" id="tplTitle"></div>
@@ -646,7 +667,7 @@ Dear 【行政同工】：
     let price = 8800, tables = 30;
     const fmt = n => 'NT$ ' + n.toLocaleString('en-US');
     function renderBudget() {
-      $('priceSeg').innerHTML = PRICES.map(p => `<button type="button" data-price="${p.k}" aria-pressed="${p.k === price}" style="color:var(--ink)">${p.l}</button>`).join('');
+      $('priceSeg').innerHTML = PRICES.map(p => `<button type="button" data-price="${p.k}" aria-pressed="${p.k === price}">${p.l}</button>`).join('');
       $('tables').textContent = tables;
       $('total').textContent = fmt(price * tables);
       $('totalNote').textContent = `${fmt(price)} × ${tables} 桌・約 ${tables * 10} 人`;
