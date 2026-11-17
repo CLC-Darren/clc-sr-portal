@@ -368,13 +368,13 @@
           <div>
             <div class="kicker" style="color:var(--gold)">MENU</div>
             <h1 class="h1" id="t-menu" data-k="t.mnTitle">宴客菜單</h1>
-            <p class="sub" data-k="t.mnSub">彭園會館（板橋）湘菜・尚雅廳｜11 道・以 10 人一桌計</p>
+            <p class="sub" data-k="t.mnSub">彭園會館（板橋）湘菜・尚雅廳｜12 道・以 10 人一桌計</p>
           </div>
           <div class="ov-grid">
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
                 <div class="h2" data-k="t.mnCard">🍽️ 今年菜色</div>
-                <span class="pill pill-red" data-k="t.mnPrice">NT$ 8,000／桌＋10%</span>
+                <span class="pill pill-red" data-k="t.mnPrice">NT$ 8,500／桌（含 10%）</span>
               </div>
               <ol class="menu-list" id="menuList" style="margin-top:8px"></ol><button type="button" class="ed rt-add" data-add="menu">＋ 新增菜色</button>
             </div>
@@ -382,11 +382,11 @@
               <div class="card">
                 <div class="h2">📄 彭園原始菜單</div>
                 <p class="muted" style="font-size:.82rem;margin:4px 0 10px" data-k="t.mnImgNote">點圖放大。製單：彭園副總 11/14</p>
-                <img class="thumb" src="images/menu.jpg" alt="彭園宴客菜單原稿" data-lb loading="lazy">
+                <img class="thumb" src="images/menu-20261117.jpg" alt="彭園宴客菜單原稿" data-lb loading="lazy">
               </div>
               <div class="card">
                 <div class="h2" data-k="t.vegTitle">🥬 素食與特殊需求</div>
-                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.vegText">彭園註明「素套餐人數未定」，請各小組長回報素食人數（去年報名表有標註「素食」「素菜」的長輩）。</p>
+                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.vegText">素食與特殊飲食需求請各小組長另行統計，並向彭園確認套餐安排。</p>
               </div>
             </div>
           </div>
@@ -536,6 +536,7 @@
 
     /* ================= 預設內容（Firestore 還沒存過時使用；Superuser 修改後以 Firestore 為準） ================= */
     const DEFAULTS = {
+      menuVersion: '20261117',
       hero: { year: '2026', title: '加樂聖誕餐會', top: 'MERRY', script: 'Christmas', bottom: 'HAPPY NEW YEAR' },
       start: '2026-12-10T12:00',
       t: {},
@@ -543,19 +544,18 @@
         ['日期', '12/10（四）', '午餐・12:00 開席'],
         ['地點', '彭園會館 尚雅廳', '板橋・4 樓'],
         ['桌數', '30–32 桌', '10 人一桌'],
-        ['每桌', 'NT$ 8,000', '另加 10% 服務費'],
+        ['每桌', 'NT$ 8,500', '已含 10% 服務費'],
         ['上午', '10:30 聚會', '聖誕佈道・彩媽演出'],
         ['集合', '11:00 彭園', '招待、節目、音控']
       ],
       confirm: [
         ['日期', '菜單寫 2026/12/10（四），場地圖寫 115.12.18（午，為星期五）。請和彭園確認是哪一天。'],
-        ['價格', '菜單是每桌 8,000＋10% 服務費（＝8,800），場地圖備註寫「8,500 含 10%」。'],
         ['桌數', '菜單 30–32 桌，場地圖 28–30 桌；請在報名截止後回覆彭園。'],
         ['素食', '素套餐人數未定，請小組長回報。']
       ],
       menu: [
-        ['御前五味花生', '冷盤'], ['美味四拼', '冷盤'], ['元盅三絲干貝', '湯品'], ['經典富貴烤雙方', '湘菜招牌'],
-        ['蒜茸蒸蝦湘粉底', '海鮮'], ['梅干蹄膀', ''], ['蒲燒鯛魚油飯', '主食'], ['清蒸海上鮮', '海鮮'],
+        ['御前五味花生', '冷盤'], ['美味三拼', '冷盤'], ['元盅三絲干貝', '湯品'], ['經典富貴烤雙方', '湘菜招牌'],
+        ['蒜茸蒸蝦湘粉底', '海鮮'], ['梅干蹄膀', ''], ['蒲燒鯛魚油飯', '主食'], ['珍菇繪時蔬', '蔬菜'], ['清蒸海上鮮', '海鮮'],
         ['老薑燉全雞湯', '湯品'], ['紅豆冰捲', '甜點'], ['四季水果', '水果']
       ],
       venue: [
@@ -694,7 +694,7 @@ Dear 牧師、師母：
 Dear 【行政同工】：
 
 12/10(四) 江翠加樂聖誕感恩餐會在彭園，零用金預抓【金額】。
-（彭園一桌 8,000＋10% 服務費 × 【桌數】桌）
+（彭園一桌 8,500 元，已含 10% 服務費 × 【桌數】桌）
 另外預計【日期】會收奉獻！` },
         { id: 'remind', name: '前一天', hint: '12/9 發給小組長', text:
 `【12/10(四) 加樂聖誕感恩餐會】
@@ -728,6 +728,16 @@ Dear 【行政同工】：
         if (k === 't' || k === 'hero') d[k] = Object.assign(d[k], remote[k] || {});
         else if (k in d) d[k] = remote[k];
       });
+      // 舊雲端內容只升級本次菜單；保留流程、座位及其他已編輯資料，不自動寫回。
+      if (remote && remote.menuVersion !== DEFAULTS.menuVersion) {
+        d.menuVersion = DEFAULTS.menuVersion;
+        d.menu = clone(DEFAULTS.menu);
+        ['mnSub', 'mnPrice', 'vegText'].forEach(k => { d.t[k] = DEFAULTS.t[k]; });
+        d.facts = d.facts.map(f => f[0] === '每桌' ? clone(DEFAULTS.facts[3]) : f);
+        d.confirm = d.confirm.filter(c => c[0] !== '價格');
+        const cash = d.templates.find(t => t.id === 'cash');
+        if (cash) cash.text = cash.text.replace('8,000＋10% 服務費', '8,500 元，已含 10% 服務費');
+      }
       return d;
     };
     const getPath = p => p.split('.').reduce((o, k) => o == null ? o : o[k], DATA);
@@ -764,7 +774,7 @@ Dear 【行政同工】：
     window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 
     /* ================= 繪製 ================= */
-    let progFilter = 'all', prepTab = 'todo', tpl = 0, price = 8800, tables = 30;
+    let progFilter = 'all', prepTab = 'todo', tpl = 0, price = 8500, tables = 30;
     const fmt = n => 'NT$ ' + n.toLocaleString('en-US');
 
     function renderStatic() {
@@ -819,7 +829,7 @@ Dear 【行政同工】：
       document.querySelectorAll('[data-prep]').forEach(el => el.hidden = el.dataset.prep !== prepTab);
       renderTodo();
       // 預算
-      $('priceSeg').innerHTML = [[8800, '菜單 8,000＋10%'], [8500, '場地圖 8,500 含']].map(([k, l]) => `<button type="button" data-price="${k}" aria-pressed="${k === price}">${l}</button>`).join('');
+      $('priceSeg').innerHTML = [[8500, '新菜單 8,500（含 10%）']].map(([k, l]) => `<button type="button" data-price="${k}" aria-pressed="${k === price}">${l}</button>`).join('');
       $('tables').textContent = tables;
       $('total').textContent = fmt(price * tables);
       $('totalNote').textContent = `${fmt(price)} × ${tables} 桌・約 ${tables * 10} 人`;
@@ -1028,6 +1038,7 @@ Dear 【行政同工】：
       });
     }
     $('editToggle').addEventListener('click', () => {
+      if (!editing && !canSave) { toast('尚未連接雲端，暫時無法編輯'); return; }
       editing = !editing;
       document.body.classList.toggle('editing', editing);
       $('editToggle').textContent = editing ? '✓ 完成' : '✏️ 編輯內容';
@@ -1073,6 +1084,7 @@ Dear 【行政同工】：
     function flushSave() { if (saveTimer) { clearTimeout(saveTimer); save(); } }
     async function save() {
       saveTimer = null;
+      if (!canSave) return;
       try {
         await DOC().set({ json: JSON.stringify(DATA), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: window.currentAdminEmail || '' });
         status('已儲存 ✓');
@@ -1087,11 +1099,17 @@ Dear 【行政同工】：
     let unsub = null;
     function startSync() {
       if (unsub || !window.db) return;
-      unsub = DOC().onSnapshot(snap => {
-        canSave = true;
-        if (snap.metadata.hasPendingWrites || !snap.exists) return;
-        try { pendingRemote = JSON.parse(snap.data().json || '{}'); applyRemote(); } catch (e) { console.warn('讀取聖誕頁內容失敗', e); }
-      }, err => { console.warn('讀取聖誕頁內容失敗', err); canSave = true; status('雲端讀取失敗，修改可能無法儲存'); });
+      unsub = DOC().onSnapshot({ includeMetadataChanges: true }, snap => {
+        if (snap.metadata.hasPendingWrites) return;
+        try {
+          if (snap.exists) { pendingRemote = JSON.parse(snap.data().json || '{}'); applyRemote(); }
+          if (!snap.metadata.fromCache) { canSave = true; status('已連接 SR 雲端'); }
+        } catch (e) { canSave = false; console.warn('讀取聖誕頁內容失敗', e); status('雲端資料格式錯誤，已停用儲存'); }
+      }, err => {
+        console.warn('讀取聖誕頁內容失敗', err);
+        canSave = false; clearTimeout(saveTimer); saveTimer = null;
+        status('雲端讀取失敗（' + (err.code || 'unknown') + '），已停用儲存');
+      });
     }
 
     /* ================= 權限：只有 SR Superuser ================= */
