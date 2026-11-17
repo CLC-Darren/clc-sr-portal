@@ -423,7 +423,7 @@
           <div>
             <div class="kicker" style="color:var(--gold)">PLANNING</div>
             <h1 class="h1" id="t-prep" data-k="t.ppTitle">籌備</h1>
-            <p class="sub">時程、預算、獎項與通知範本。勾選只存在這台裝置。<span class="ed"> 按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
+            <p class="sub">時程、預算、獎項與通知範本。勾選狀態會即時同步至雲端。<span class="ed"> 按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
           </div>
           <div class="seg" role="group" aria-label="籌備分類" id="prepSeg"></div>
 
@@ -515,6 +515,7 @@
       hero: { year: '2026', title: '加樂聖誕餐會', top: 'MERRY', script: 'Christmas', bottom: 'HAPPY NEW YEAR' },
       start: '2026-12-10T12:00',
       t: {},
+      todoDone: {},
       facts: [
         ['日期', '12/10（四）', '午餐・12:00 開席'],
         ['地點', '彭園會館 尚雅廳', '板橋・4 樓'],
@@ -696,13 +697,25 @@ Dear 【行政同工】：
       item: { t: '12:00', end: '', ttl: '新項目', who: '', desc: '' }
     };
 
+    // 清單勾選狀態（雲端為主，本機快取作為離線備援）
+    const KEY = 'sr_xmas2026_todo';
+    let localDone = {};
+    try { localDone = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { localDone = {}; }
+
     let DATA = clone(DEFAULTS);
+    DATA.todoDone = Object.assign({}, localDone);
+
     const merge = remote => {
       const d = clone(DEFAULTS);
       Object.keys(remote || {}).forEach(k => {
         if (k === 't' || k === 'hero') d[k] = Object.assign(d[k], remote[k] || {});
+        else if (k === 'todoDone') d[k] = Object.assign({}, remote[k] || {});
         else if (k in d) d[k] = remote[k];
       });
+      // 若雲端尚未存過 todoDone，沿用本機既有勾選紀錄
+      if (!remote || !('todoDone' in remote)) {
+        d.todoDone = Object.assign({}, localDone);
+      }
       // 舊雲端內容只升級本次菜單；保留流程、座位及其他已編輯資料，不自動寫回。
       if (remote && remote.menuVersion !== DEFAULTS.menuVersion) {
         d.menuVersion = DEFAULTS.menuVersion;
@@ -819,11 +832,8 @@ Dear 【行政同工】：
     function updatePrizeSum() {
       $('prizeSum').textContent = `共 ${DATA.prizes.reduce((a, p) => a + num(p[2]), 0)} 份・禮券 ${fmt(DATA.prizes.reduce((a, p) => a + num(p[3]), 0))}`;
     }
-    // 清單勾選存在本機
-    const KEY = 'sr_xmas2026_todo';
-    let done = {};
-    try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { done = {}; }
     function renderTodo() {
+      const done = DATA.todoDone || {};
       $('todoList').innerHTML = DATA.todo.map(([w, t, n], i) => `<div class="chk"><input type="checkbox" data-todo="${esc(t)}" aria-label="${esc(t)}"${done[t] ? ' checked' : ''}><span class="tx">${E(`todo.${i}.1`)}${(n || document.body.classList.contains('editing')) ? `<small>${E(`todo.${i}.2`)}</small>` : ''}</span>${E(`todo.${i}.0`, 'span', 'when')}${DEL('todo.' + i)}</div>`).join('');
       const c = DATA.todo.filter(r => done[r[1]]).length;
       $('todoCount').textContent = `${c}／${DATA.todo.length}`;
@@ -983,11 +993,16 @@ Dear 【行政同工】：
     $('tplSeg').addEventListener('click', e => { const b = e.target.closest('[data-tpl]'); if (b) { tpl = +b.dataset.tpl; renderTpl(); applyEditable(); } });
     $('tplCopy').addEventListener('click', () => copy($('tplText').value));
     $('tplText').addEventListener('input', () => { if (editing) { DATA.templates[tpl].text = $('tplText').value; queueSave(); } });
+
+    // 清單直接點擊勾選即同步寫入資料庫（不需進入編輯模式）
     $('todoList').addEventListener('change', e => {
       const k = e.target.dataset.todo; if (k == null) return;
-      if (e.target.checked) done[k] = 1; else delete done[k];
-      try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (err) {}
+      if (!DATA.todoDone) DATA.todoDone = {};
+      if (e.target.checked) DATA.todoDone[k] = 1; else delete DATA.todoDone[k];
+      try { localStorage.setItem(KEY, JSON.stringify(DATA.todoDone)); } catch (err) {}
       renderTodo(); applyEditable();
+      if (canSave) queueSave();
+      else toast('尚未連接雲端，僅暫存於此裝置');
     });
 
     function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 1800); }
@@ -1071,7 +1086,9 @@ Dear 【行政同工】：
       if (!pendingRemote) return;
       const a = document.activeElement;
       if (editing && a && a.closest && (a.closest('[data-k]') || a.closest('#tablePanel') || a.id === 'tplText')) return; // 正在打字時先不覆蓋
-      DATA = merge(pendingRemote); pendingRemote = null; renderAll();
+      DATA = merge(pendingRemote); pendingRemote = null;
+      try { localStorage.setItem(KEY, JSON.stringify(DATA.todoDone || {})); } catch (err) {}
+      renderAll();
     }
     let unsub = null;
     function startSync() {
