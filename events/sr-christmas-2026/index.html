@@ -344,7 +344,7 @@
               <a class="btn btn-red" href="https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/edit?gid=1998783581#gid=1998783581" target="_blank" rel="noopener noreferrer">開啟試算表 ↗</a>
             </div>
             <p class="muted registration-note" id="registration-help">如需填寫、編輯或無法顯示表格，請開啟試算表，並使用已獲授權的 Google 帳號。</p>
-            <iframe id="registrationFrame" class="registration-frame" title="2026 加樂聖誕感恩餐會報名試算表" aria-describedby="registration-help" data-src="https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/htmlembed?gid=1998783581&amp;single=true&amp;widget=true&amp;headers=false" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <iframe id="registrationFrame" class="registration-frame" title="2026 加樂聖誕感恩餐會報名試算表" aria-describedby="registration-help" data-src="https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/preview#gid=1998783581" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
           </div>
         </div>
       </section>
@@ -448,7 +448,7 @@
           <div>
             <div class="kicker" style="color:var(--gold)">PLANNING</div>
             <h1 class="h1" id="t-prep" data-k="t.ppTitle">籌備</h1>
-            <p class="sub">時程、預算、獎項與通知範本。勾選只存在這台裝置。<span class="ed">　按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
+            <p class="sub">時程、預算、獎項與通知範本。勾選只存在這台裝置。<span class="ed"> 按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
           </div>
           <div class="seg" role="group" aria-label="籌備分類" id="prepSeg"></div>
 
@@ -814,7 +814,7 @@ Dear 【行政同工】：
               ${E(base + '.ttl', 'div', 'ttl')}
               ${(it.who || ed) ? E(base + '.who', 'div', 'who') : ''}
               ${(it.desc || ed) ? E(base + '.desc', 'div', 'desc') : ''}
-              ${(it.links || []).length ? `<div class="desc">${it.links.map(([l, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">▶ ${esc(l)}</a>`).join('　')}</div>` : ''}
+              ${(it.links || []).length ? `<div class="desc">${it.links.map(([l, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">▶ ${esc(l)}</a>`).join(' ')}</div>` : ''}
               ${prizes ? `<div class="prize">${prizes}</div>` : ''}
             </div>${DEL(base)}</div></li>`; }).join('')}</ul>
           <button type="button" class="ed rt-add" data-add="program.${pi}.items">＋ 新增項目</button>
