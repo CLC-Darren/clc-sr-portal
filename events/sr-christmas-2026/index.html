@@ -66,7 +66,7 @@
     .xm-side-title small{display:block;color:var(--red);font-size:.7rem;letter-spacing:.22em;font-weight:800}
     .xm-side-title b{display:block;font-size:1.15rem;margin-top:4px;line-height:1.3}
     .xm-nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:2px;border-radius:12px;border:0;background:transparent;
-      color:var(--panel-ink);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;text-align:left;transition:background .15s,color .15s}
+      color:var(--panel-ink);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;text-align:left;text-decoration:none;box-sizing:border-box;transition:background .15s,color .15s}
     .xm-nav-btn:hover{background:var(--hover)}
     .xm-nav-btn[aria-current="page"]{background:var(--red);color:#fff}
     .xm-nav-btn .ico{width:22px;text-align:center;font-size:1.05rem}
@@ -76,7 +76,7 @@
       height:calc(var(--tab-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
       background:var(--tab-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--panel-line)}
     .xm-tab{border:0;background:transparent;color:var(--panel-ink-2);font:inherit;font-size:.68rem;font-weight:700;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;gap:3px;cursor:pointer;white-space:nowrap}
+      align-items:center;justify-content:center;gap:3px;cursor:pointer;white-space:nowrap;text-decoration:none}
     .xm-tab .ico{font-size:1.3rem;line-height:1;filter:grayscale(.7);opacity:.75}
     .xm-tab[aria-current="page"]{color:var(--red)}
     .xm-tab[aria-current="page"] .ico{filter:none;opacity:1}
@@ -231,12 +231,6 @@
     table.xt td.r,table.xt th.r{text-align:right}
     .scroll-x{overflow-x:auto}
 
-    /* 報名：在內容區內嵌原始試算表，沿用 Google 的存取權限。 */
-    .registration-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .registration-note{font-size:.82rem;line-height:1.6;margin:0 0 14px}
-    .registration-frame{display:block;width:100%;height:70vh;height:70dvh;min-height:400px;border:1px solid var(--line);border-radius:14px;background:#fff}
-    @media (min-width:1024px){.registration-frame{height:calc(100vh - 260px);height:calc(100dvh - 260px);min-height:520px}}
-
     /* 鎖定畫面、燈箱、提示 */
     .gate{max-width:440px;margin:12vh auto 0;text-align:center}
     .lb{position:fixed;inset:0;z-index:60;background:rgba(10,4,6,.92);display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
@@ -326,25 +320,6 @@
             <div class="kicker">TO CONFIRM</div>
             <div class="h2" data-k="t.confirmTitle">待確認事項</div>
             <div style="margin-top:10px" id="confirmList"></div><button type="button" class="ed rt-add" data-add="confirm">＋ 新增待確認事項</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- 報名 -->
-      <section class="view" id="v-registration" aria-labelledby="t-registration">
-        <div class="stack">
-          <div style="padding:2px 4px">
-            <div class="kicker" style="color:var(--gold)">REGISTRATION</div>
-            <h1 class="h1" id="t-registration">報名</h1>
-            <p class="sub">2026 加樂聖誕感恩餐會・報名試算表</p>
-          </div>
-          <div class="card">
-            <div class="registration-toolbar">
-              <h2 class="h2">報名試算表</h2>
-              <a class="btn btn-red" href="https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/edit?gid=1998783581#gid=1998783581" target="_blank" rel="noopener noreferrer">開啟試算表 ↗</a>
-            </div>
-            <p class="muted registration-note" id="registration-help">如需填寫、編輯或無法顯示表格，請開啟試算表，並使用已獲授權的 Google 帳號。</p>
-            <iframe id="registrationFrame" class="registration-frame" title="2026 加樂聖誕感恩餐會報名試算表" aria-describedby="registration-help" data-src="https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/preview#gid=1998783581" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
           </div>
         </div>
       </section>
@@ -749,26 +724,28 @@ Dear 【行政同工】：
     const E = (path, tagName = 'span', cls = '') => `<${tagName}${cls ? ` class="${cls}"` : ''} data-k="${path}">${esc(getPath(path))}</${tagName}>`;
     const DEL = path => `<button type="button" class="ed rt-del" data-del="${path}" aria-label="刪除這一列">✕</button>`;
 
-    /* ================= 分頁 ================= */
+    /* ================= 分頁與外連 ================= */
+    const REG_URL = 'https://docs.google.com/spreadsheets/d/11GYWJJLrzRA-qr-P-2MAvZVyVtsmpyTRsBJVhNyH83Y/edit?gid=1998783581#gid=1998783581';
     const VIEWS = [
-      { id: 'overview', ico: '🎄', label: '總覽' }, { id: 'registration', ico: '📝', label: '報名' }, { id: 'program', ico: '⏱️', label: '流程' },
-      { id: 'menu', ico: '🍽️', label: '菜單' }, { id: 'venue', ico: '📍', label: '場地' }, { id: 'prep', ico: '📋', label: '籌備' }
+      { id: 'overview', ico: '🎄', label: '總覽' },
+      { id: 'program', ico: '⏱️', label: '流程' },
+      { id: 'menu', ico: '🍽️', label: '菜單' },
+      { id: 'venue', ico: '📍', label: '場地' },
+      { id: 'prep', ico: '📋', label: '籌備' },
+      { id: 'registration', ico: '📝', label: '報名 ↗', href: REG_URL }
     ];
-    const navHtml = cls => VIEWS.map(v => `<button type="button" class="${cls}" data-view="${v.id}"><span class="ico" aria-hidden="true">${v.ico}</span><span>${v.label}</span></button>`).join('');
+    const navHtml = cls => VIEWS.map(v => v.href
+      ? `<a class="${cls}" href="${v.href}" target="_blank" rel="noopener noreferrer"><span class="ico" aria-hidden="true">${v.ico}</span><span>${v.label}</span></a>`
+      : `<button type="button" class="${cls}" data-view="${v.id}"><span class="ico" aria-hidden="true">${v.ico}</span><span>${v.label}</span></button>`
+    ).join('');
     $('sideNav').innerHTML = navHtml('xm-nav-btn');
     $('tabbar').innerHTML = navHtml('xm-tab');
-    function loadRegistration() {
-      if ($('app').hidden || !$('v-registration').classList.contains('on')) return;
-      const frame = $('registrationFrame');
-      if (!frame.hasAttribute('src')) frame.src = frame.dataset.src;
-    }
     function show(id, push) {
-      if (!VIEWS.some(v => v.id === id)) id = 'overview';
+      if (!VIEWS.some(v => !v.href && v.id === id)) id = 'overview';
       document.querySelectorAll('.view').forEach(el => el.classList.toggle('on', el.id === 'v-' + id));
       document.querySelectorAll('[data-view]').forEach(b => { if (b.dataset.view === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
       if (push) { history.replaceState(null, '', '#' + id); window.scrollTo(0, 0); }
       if (id === 'venue') requestAnimationFrame(centerFloor);
-      if (id === 'registration') loadRegistration();
     }
     document.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) show(b.dataset.view, true); });
     window.addEventListener('hashchange', () => show(location.hash.slice(1)));
@@ -1118,7 +1095,6 @@ Dear 【行政同工】：
       const ok = !!window.isSuperuser;
       $('app').hidden = !ok; $('tabbar').hidden = !ok; $('gate').hidden = ok; $('editBar').hidden = !ok;
       if (ok) { show(location.hash.slice(1)); startSync(); return; }
-      $('registrationFrame').removeAttribute('src');
       if (editing) $('editToggle').click();
       const loggedIn = a && a.canView;
       $('gateTitle').textContent = loggedIn ? '這一頁目前只開放給 Superuser' : '請先登入';
