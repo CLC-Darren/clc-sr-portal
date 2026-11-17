@@ -87,7 +87,7 @@
     @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
     .stack>*+*{margin-top:14px}
     @media (min-width:1024px){.stack>*+*{margin-top:20px}}
-    .card{background:var(--snow);border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+    .card{background:var(--snow);border-radius:22px;padding:18px;box-shadow:var(--shadow);min-width:0}
     @media (min-width:1024px){.card{padding:24px;border-radius:24px}}
     .kicker{font-size:.7rem;font-weight:800;letter-spacing:.2em;color:var(--red);text-transform:uppercase}
     .h1{font-size:1.65rem;font-weight:900;letter-spacing:-.01em;line-height:1.2;color:#fff;margin:2px 0 0}
@@ -177,9 +177,11 @@
 
     /* 場地圖・桌次（向量圖） */
     .fp-grid{display:grid;gap:14px}
-    @media (min-width:1024px){.fp-grid{grid-template-columns:minmax(0,2.3fr) minmax(300px,1fr);gap:20px;align-items:start}.fp-panel{position:sticky;top:72px}}
-    .grid3{display:grid;gap:14px}
-    @media (min-width:800px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}}
+    @media (min-width:1024px){.fp-grid{gap:20px}}
+    .grid3{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    @media (min-width:1024px){.grid3{gap:20px}}
+    .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+    .btn-row>*{flex:1 1 120px}
     .fp-wrap{overflow:auto;border-radius:16px;background:#FBF7F0;border:1px solid var(--line);-webkit-overflow-scrolling:touch}
     .fp-wrap svg{display:block;width:100%;min-width:720px;height:auto;user-select:none;-webkit-user-select:none}
     body.editing .fp-wrap svg{touch-action:none}
@@ -200,8 +202,10 @@
     .tchip small{color:var(--ink-2);font-weight:700;margin-left:4px}
     .tchip.full{background:#E7EEE3;border-color:#C9D8C2}
     .people{list-style:none;margin:10px 0 0;padding:0;columns:2;column-gap:16px}
+    @media (min-width:700px){.people{columns:3}}
+    @media (min-width:1280px){.people{columns:4}}
     .people li{padding:6px 0;border-top:1px solid var(--line);font-size:.92rem;font-weight:700;break-inside:avoid}
-    .fp-panel textarea{width:100%;box-sizing:border-box;min-height:220px;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:.92rem;line-height:1.7;color:var(--ink);background:#fff;resize:vertical}
+    .fp-panel textarea{width:100%;box-sizing:border-box;min-height:180px;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:.92rem;line-height:1.7;color:var(--ink);background:#fff;resize:vertical}
     .fp-panel input[type=text],.fp-panel input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:#fff;width:100%;box-sizing:border-box}
 
     /* 籌備 */
@@ -242,6 +246,9 @@
     @media (min-width:1024px){.toast{bottom:32px}}
     a{color:inherit}
     /* ===== 編輯模式（Superuser） ===== */
+    .edit-bar{position:fixed;right:16px;bottom:calc(var(--tab-h) + 16px + env(safe-area-inset-bottom));z-index:45;display:flex;align-items:center;gap:8px}
+    @media (min-width:1024px){.edit-bar{bottom:24px;right:28px}}
+    .edit-bar .btn{box-shadow:0 8px 24px rgba(0,0,0,.25)}
     body.editing [data-k]{outline:1.5px dashed #C9A57A;outline-offset:2px;border-radius:4px;cursor:text;min-width:1.2em}
     body.editing [data-k]:focus{outline:2px solid var(--red);background:rgba(211,176,126,.12)}
     body.editing [data-k]:empty::before{content:"（空白）";color:#B7AAA0;font-weight:500}
@@ -252,7 +259,7 @@
     .rt-add{border:1.5px dashed #CDBFA9;background:transparent;color:var(--ink-2);border-radius:10px;padding:8px 12px;font:inherit;font-size:.82rem;font-weight:800;cursor:pointer;margin-top:10px}
     .ed-row{align-items:center;gap:10px;margin-top:12px;font-size:.85rem;font-weight:800;color:var(--ink-2)}
     .ed-row input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:#fff}
-    @media print{.xm-tabbar,.xm-side,#clc-header{display:none!important}.view{display:block!important}body{background:#fff}}
+    @media print{.xm-tabbar,.xm-side,#clc-header,.edit-bar{display:none!important}.view{display:block!important}body{background:#fff}}
   </style>
 </head>
 <body>
@@ -305,9 +312,9 @@
             </div>
             <div class="card">
               <div class="facts" id="facts"></div><button type="button" class="ed rt-add" data-add="facts">＋ 新增資訊格</button>
-              <div style="display:flex;gap:8px;margin-top:12px">
-                <a class="btn btn-red" style="flex:1" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">📍 導航</a>
-                <a class="btn btn-soft" style="flex:1" href="tel:+886222507568">📞 訂席專線</a>
+              <div class="btn-row" style="margin-top:12px">
+                <a class="btn btn-red" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">📍 導航</a>
+                <a class="btn btn-soft" href="tel:+886222507568">📞 訂席專線</a>
               </div>
             </div>
           </div>
@@ -342,7 +349,7 @@
           </div>
           <div class="ov-grid">
             <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
                 <div class="h2" data-k="t.mnCard">🍽️ 今年菜色</div>
                 <span class="pill pill-red" data-k="t.mnPrice">NT$ 8,500／桌（含 10%）</span>
               </div>
@@ -371,11 +378,12 @@
             <h1 class="h1" id="t-venue" data-k="t.vnTitle">場地與交通</h1>
             <p class="sub" data-k="t.vnSub">彭園會館 4 樓・捷運江子翠站 3 號出口</p>
           </div>
+          <!-- 場地圖與下方桌次 -->
           <div class="fp-grid">
-            <div class="card" style="min-width:0">
+            <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
                 <div class="h2" data-k="t.fpTitle">🗺️ 場地圖・桌次</div>
-                <div style="display:flex;gap:6px;align-items:center">
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                   <span class="pill pill-gold" id="fpCount"></span>
                   <button type="button" class="btn btn-soft" style="min-height:34px;padding:0 12px;font-size:.8rem" id="fpOrig">原始場地圖</button>
                 </div>
@@ -390,24 +398,25 @@
             </div>
             <div class="card fp-panel" id="tablePanel"></div>
           </div>
+          <!-- 最下方三個區塊 -->
           <div class="grid3">
-              <div class="card">
-                <div class="h2">📍 地址</div>
-                <p style="font-size:.95rem;font-weight:700;line-height:1.6;margin:6px 0 0" data-k="t.vnAddr">新北市板橋區雙十路二段 239 號 4 樓</p>
-                <p class="muted" style="font-size:.85rem;margin:2px 0 12px" data-k="t.vnAddr2">文化路與雙十路口・捷運江子翠站 3 號出口</p>
-                <div style="display:flex;gap:8px">
-                  <a class="btn btn-red" style="flex:1" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">Google 地圖</a>
-                  <button class="btn btn-soft" style="flex:1" type="button" data-copy="新北市板橋區雙十路二段239號4樓（彭園會館）">複製地址</button>
-                </div>
+            <div class="card">
+              <div class="h2">📍 地址</div>
+              <p style="font-size:.95rem;font-weight:700;line-height:1.6;margin:6px 0 0" data-k="t.vnAddr">新北市板橋區雙十路二段 239 號 4 樓</p>
+              <p class="muted" style="font-size:.85rem;margin:2px 0 12px" data-k="t.vnAddr2">文化路與雙十路口・捷運江子翠站 3 號出口</p>
+              <div class="btn-row">
+                <a class="btn btn-red" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BD%AD%E5%9C%92%E6%9C%83%E9%A4%A8+%E6%9D%BF%E6%A9%8B+%E9%9B%99%E5%8D%81%E8%B7%AF%E4%BA%8C%E6%AE%B5239%E8%99%9F">Google 地圖</a>
+                <button class="btn btn-soft" type="button" data-copy="新北市板橋區雙十路二段239號4樓（彭園會館）">複製地址</button>
               </div>
-              <div class="card">
-                <div class="h2">🎤 場地備註（彭園）</div>
-                <ul id="venueNotes" style="margin:8px 0 0;padding:0;list-style:none"></ul><button type="button" class="ed rt-add" data-add="venue">＋ 新增備註</button>
-              </div>
-              <div class="card">
-                <div class="h2" data-k="t.flowTitle">🚶 動線</div>
-                <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.flowText">上午聚會結束後由牧師帶隊步行前往，小組長協助引導、傳道壓後；行動不便長輩搭接駁車，彭園 1 樓有同工協助上下車、引導上樓。</p>
-              </div>
+            </div>
+            <div class="card">
+              <div class="h2">🎤 場地備註（彭園）</div>
+              <ul id="venueNotes" style="margin:8px 0 0;padding:0;list-style:none"></ul><button type="button" class="ed rt-add" data-add="venue">＋ 新增備註</button>
+            </div>
+            <div class="card">
+              <div class="h2" data-k="t.flowTitle">🚶 動線</div>
+              <p class="muted" style="font-size:.88rem;line-height:1.7;margin:6px 0 0" data-k="t.flowText">上午聚會結束後由牧師帶隊步行前往，小組長協助引導、傳道壓後；行動不便長輩搭接駁車，彭園 1 樓有同工協助上下車、引導上樓。</p>
+            </div>
           </div>
         </div>
       </section>
@@ -418,7 +427,7 @@
           <div>
             <div class="kicker" style="color:var(--gold)">PLANNING</div>
             <h1 class="h1" id="t-prep" data-k="t.ppTitle">籌備</h1>
-            <p class="sub">時程、預算、獎項與通知範本。勾選狀態會即時同步至雲端。</p>
+            <p class="sub">時程、預算、獎項與通知範本。勾選狀態會即時同步至雲端。<span class="ed"> 按「✏️ 編輯內容」可修改所有文字，會自動儲存。</span></p>
           </div>
           <div class="seg" role="group" aria-label="籌備分類" id="prepSeg"></div>
 
@@ -459,7 +468,7 @@
 
           <div data-prep="prize" class="stack" hidden>
             <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
                 <div class="h2" data-k="t.przTitle">🎁 抽獎獎項（2025）</div><span class="pill pill-gold" id="prizeSum"></span>
               </div>
               <div class="scroll-x"><table class="xt" style="margin-top:8px">
@@ -491,6 +500,7 @@
   <nav class="xm-tabbar" id="tabbar" aria-label="頁面分頁" hidden></nav>
   <div class="lb" id="lb" role="dialog" aria-label="圖片放大"><img alt=""></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="edit-bar" id="editBar" hidden><button type="button" class="btn btn-pine" id="editToggle">✏️ 編輯內容</button></div>
 
   <script>window.CLC_PAGE_ROOT = '../../';</script>
   <script src="../../header.js?v=20261116-root"></script>
@@ -912,7 +922,7 @@ Dear 【行政同工】：
           <div style="display:flex;gap:6px;align-items:center"><span class="pill ${n >= (+t.seats || 10) ? 'pill-pine' : 'pill-gold'}">${n}／${esc(t.seats)} 位</span><button type="button" class="btn btn-soft" style="min-height:34px;padding:0 12px" data-tsel="">全部</button></div>
         </div>
         ${n ? `<ul class="people">${t.people.filter(x => String(x).trim()).map(x => { const [nm, g] = String(x).split(/[｜|]/); return `<li>${esc(nm.trim())}${g ? `<small class="muted" style="font-weight:600;font-size:.75rem;margin-left:6px">${esc(g.trim())}</small>` : ''}</li>`; }).join('')}</ul>`
-          : `<p class="muted" style="font-size:.88rem;margin:10px 0 0">這一桌還沒有名單。</p>`}`;
+          : `<p class="muted" style="font-size:.88rem;margin:10px 0 0">這一桌還沒有名單。按右下角「✏️ 編輯內容」後點這桌即可加入。</p>`}`;
     }
     // 選桌子
     document.addEventListener('click', e => {
@@ -1014,7 +1024,7 @@ Dear 【行政同工】：
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') $('lb').classList.remove('on'); });
 
-    /* ================= 編輯（Superuser）：自動存到 Firestore ================= */
+    /* ================= 編輯（Superuser）：所有文字直接點選修改，自動存到 Firestore ================= */
     let editing = false, saveTimer = null, pendingRemote = null, canSave = false;
     function applyEditable() {
       document.querySelectorAll('[data-k]').forEach(el => {
@@ -1022,6 +1032,15 @@ Dear 【行政同工】：
         else el.removeAttribute('contenteditable');
       });
     }
+    $('editToggle').addEventListener('click', () => {
+      if (!editing && !canSave) { toast('尚未連接雲端，暫時無法編輯'); return; }
+      editing = !editing;
+      document.body.classList.toggle('editing', editing);
+      $('editToggle').textContent = editing ? '✓ 完成' : '✏️ 編輯內容';
+      if (!editing) { document.activeElement && document.activeElement.blur(); flushSave(); }
+      renderAll();
+      toast(editing ? '點任何有虛線的文字即可修改' : '已離開編輯');
+    });
     // 編輯中：文字改了就寫回資料
     document.addEventListener('input', e => {
       const el = e.target.closest && e.target.closest('[data-k]');
@@ -1056,6 +1075,7 @@ Dear 【行政同工】：
     });
 
     function queueSave() { if (!canSave) return; clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }
+    function flushSave() { if (saveTimer) { clearTimeout(saveTimer); save(); } }
     async function save() {
       saveTimer = null;
       if (!canSave) return;
@@ -1091,8 +1111,9 @@ Dear 【行政同工】：
     renderAll();
     function gate(a) {
       const ok = !!window.isSuperuser;
-      $('app').hidden = !ok; $('tabbar').hidden = !ok; $('gate').hidden = ok;
+      $('app').hidden = !ok; $('tabbar').hidden = !ok; $('gate').hidden = ok; $('editBar').hidden = !ok;
       if (ok) { show(location.hash.slice(1)); startSync(); return; }
+      if (editing) $('editToggle').click();
       const loggedIn = a && a.canView;
       $('gateTitle').textContent = loggedIn ? '這一頁目前只開放給 Superuser' : '請先登入';
       $('gateText').textContent = loggedIn ? '2026 加樂聖誕感恩餐會專案頁還在籌備中，開放後會再通知。' : '這是 2026 加樂聖誕感恩餐會的籌備頁，目前只有 SR Superuser 可以檢視。';
