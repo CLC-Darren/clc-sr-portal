@@ -1,6 +1,6 @@
 // SR PWA 安裝入口：只顯示在瀏覽器可安裝時，已安裝則隱藏。
 // 不儲存永久 installed 旗標：解除安裝後，瀏覽器重新發出 beforeinstallprompt 時可再次顯示。
-// iOS 不支援 beforeinstallprompt，在 Safari 瀏覽器中提供「加入主畫面」指引。
+// iOS 不支援 beforeinstallprompt，在 Safari 或 Chrome 瀏覽器中提供「加入主畫面」指引。
 (function () {
   let deferredPrompt = null;
   let justInstalled = false;
@@ -45,7 +45,7 @@
       return;
     }
     if (isIOS()) {
-      alert('請在 Safari 的「分享」選單中選擇「加入主畫面」，即可安裝 CLC SR。');
+      alert('請用 Safari 或 Chrome 開啟目前網址，再於瀏覽器的「分享」選單中選擇「加入主畫面」，即可安裝 CLC SR。');
     }
   };
   document.addEventListener('DOMContentLoaded', updateInstallButton);
