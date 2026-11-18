@@ -1,3 +1,13 @@
+// 共用捲軸外觀；不修改登入或權限。
+(function () {
+  // 共用細捲軸：不預留空白邊條，App／全螢幕隱藏外觀但仍可捲動。
+  if (!window.CLC_SCROLLBARS_INSTALLED && !document.getElementById('clc-scrollbar-loader')) {
+    const scrollbarScript = document.createElement('script');
+    scrollbarScript.id = 'clc-scrollbar-loader';
+    scrollbarScript.src = 'https://linfamily.pages.dev/js/scrollbars.js?v=20261118-1';
+    (document.head || document.documentElement).appendChild(scrollbarScript);
+  }
+})();
 // 全站字型：英文 Arial、中文微軟正黑體。粗體一律用 Arial Bold（Windows 會把 800／900 字重換成很粗的 Arial Black）。
 (function () {
   if (document.getElementById('clcFontFace')) return;
