@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 10-12月加樂團契服事表（確認版）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- 頂部工具列（不列印） -->
+  <div class="toolbar no-print" id="toolbar">
+    <div class="toolbar-inner">
+      <div class="toolbar-left">
+        <span class="badge-mode" id="storageStatusBadge">本機暫存已就緒</span>
+        <span class="save-time" id="lastSavedText">尚未修改</span>
+      </div>
+      <div class="toolbar-center">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchInput" placeholder="搜尋同工姓名（如：夢凌、佳珍）..." />
+          <button type="button" id="clearSearchBtn" class="icon-btn hidden" title="清除搜尋">✕</button>
+        </div>
+        <select id="weekJumpSelect" class="week-select" title="快速跳轉週次">
+          <option value="all">顯示全部週次 (14週)</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <div class="view-toggle" role="group" aria-label="檢視模式切換">
+          <button type="button" class="toggle-btn active" data-view="auto" id="btnViewAuto">自動</button>
+          <button type="button" class="toggle-btn" data-view="table" id="btnViewTable">全表模式</button>
+          <button type="button" class="toggle-btn" data-view="card" id="btnViewCard">卡片模式</button>
+        </div>
+        <button type="button" class="btn btn-outline" id="btnCalendarPreview" title="預覽未來動態季度週次與行事曆放假判定">
+          📅 季度/放假設定
+        </button>
+        <button type="button" class="btn btn-outline" id="btnExportJson" title="匯出 JSON 備份檔">
+          匯出備份
+        </button>
+        <label class="btn btn-outline file-label" title="匯入先前備份的 JSON 檔">
+          匯入備份
+          <input type="file" id="importJsonInput" accept=".json" hidden />
+        </label>
+        <button type="button" class="btn btn-danger-outline" id="btnResetDefault" title="還原為原始確認版資料">
+          還原預設
+        </button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+          🖨️ 列印 / 存PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主容器 -->
+  <main class="page-wrapper">
+    <!-- 表頭橫幅（完全對應原 Excel Row 1-2） -->
+    <header class="roster-banner">
+      <div class="banner-main">
+        <div class="banner-year" id="bannerYear">2026</div>
+        <div class="banner-title-group">
+          <h1 class="banner-title" id="bannerTitle" contenteditable="true" data-meta="title">10-12月加樂團契服事表（確認版）</h1>
+          <p class="banner-hint no-print">💡 點擊任何同工姓名或詩歌欄位即可直接修改，系統將自動暫存於您的瀏覽器本機。</p>
+        </div>
+      </div>
+      <div class="banner-meta">
+        <div class="legend-group">
+          <span class="legend-item legend-red">調整異動</span>
+          <span class="legend-item legend-green">加樂出遊</span>
+          <span class="legend-item legend-yellow">教會講員</span>
+          <span class="legend-item legend-cyan">其他講員</span>
+        </div>
+        <div class="banner-note" id="bannerNote" contenteditable="true" data-meta="note">*師母講道時間確認後要 email 通知心怡。</div>
+      </div>
+    </header>
+
+    <!-- 桌機版：完整對應原 Excel 17欄結構之高精準表格 -->
+    <section class="desktop-table-section" id="desktopTableSection">
+      <div class="table-scroll-container">
+        <table class="roster-table" id="rosterTable">
+          <colgroup>
+            <col class="col-date" />       <!-- A: 日期 -->
+            <col class="col-msg" />        <!-- B: 信息 -->
+            <col class="col-worship-l" />  <!-- C: 敬拜左 -->
+            <col class="col-worship-r" />  <!-- D: 敬拜右 -->
+            <col class="col-musician" />   <!-- E: 樂手 -->
+            <col class="col-slides" />     <!-- F: 投影片 -->
+            <col class="col-sound" />      <!-- G: 音控 -->
+            <col class="col-camera" />     <!-- H: 攝影 -->
+            <col class="col-rec-name" />   <!-- I: 招待人名 -->
+            <col class="col-rec-loc" />    <!-- J: 招待崗位 -->
+            <col class="col-meal" />       <!-- K: 愛宴 -->
+            <col class="col-shuttle" />    <!-- L: 接送 -->
+            <col class="col-roll" />       <!-- M: 點名 -->
+            <col class="col-lounge-1" />   <!-- N: 交誼廳左 -->
+            <col class="col-lounge-2" />   <!-- O: 交誼廳右 -->
+            <col class="col-exercise" />   <!-- P: 體操 -->
+            <col class="col-duty" />       <!-- Q: 值班 -->
+          </colgroup>
+          <thead>
+            <!-- Row 3: 崗位主標題（固定欄位） -->
+            <tr class="header-row-main">
+              <th rowspan="2" class="fixed-col sticky-col">日期</th>
+              <th rowspan="2" class="fixed-col">信息</th>
+              <th colspan="2" class="fixed-col">敬拜</th>
+              <th rowspan="2" class="fixed-col">樂手</th>
+              <th class="fixed-col">投影片</th>
+              <th class="fixed-col">音控</th>
+              <th class="fixed-col">攝影</th>
+              <th colspan="2" class="fixed-col">招待</th>
+              <th class="fixed-col">愛宴</th>
+              <th class="fixed-col">接送</th>
+              <th class="fixed-col">點名</th>
+              <th colspan="2" class="fixed-col">交誼廳</th>
+              <th class="fixed-col">體操</th>
+              <th class="fixed-col">值班</th>
+            </tr>
+            <!-- Row 4: 各組組長列（可編輯） -->
+            <tr class="header-row-leaders">
+              <th colspan="3" class="leader-cell" data-leader="worship">夢凌</th>
+              <th colspan="2" class="leader-cell" data-leader="slidesSound">佳珍</th>
+              <th class="leader-cell" data-leader="camera">琮玲</th>
+              <th colspan="2" class="leader-cell" data-leader="reception">培榮</th>
+              <th class="leader-cell" data-leader="meal">品頤</th>
+              <th class="leader-cell" data-leader="shuttle">振隆</th>
+              <th class="leader-cell" data-leader="rollCall">翊婕</th>
+              <th colspan="2" class="leader-cell" data-leader="lounge">惠玲</th>
+              <th class="leader-cell" data-leader="exercise">夢凌</th>
+              <th class="leader-cell" data-leader="duty">培榮</th>
+            </tr>
+          </thead>
+          <tbody id="rosterTableBody">
+            <!-- 由 JS 動態渲染 14 週（每週 6 列） -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 手機版：專為單手滑動與長輩/同工快速查詢設計的「週次卡片視圖」 -->
+    <section class="mobile-cards-section" id="mobileCardsSection">
+      <!-- 手機版橫向週次快速膠囊導覽列 -->
+      <div class="mobile-week-pills" id="mobileWeekPills"></div>
+      <!-- 卡片列表容器 -->
+      <div class="mobile-cards-container" id="mobileCardsContainer"></div>
+    </section>
+  </main>
+
+  <!-- 季度與教會行事曆（放假）預留設定彈窗 -->
+  <div class="modal-backdrop hidden" id="calendarModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>📅 季度週數計算與教會行事曆（未來動態版預留）</h2>
+        <button type="button" class="icon-btn" id="closeCalendarModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          此介面已為未來串接後台 API（<code>RosterApiService</code>）預留資料結構。目前您可在此模擬「放假 / 暫停聚會」週次標記（例如：春節、國定假日、教會退修會），標記後服事表該週會自動顯示休會橫幅並暫存於本機。
+        </p>
+        <div class="quarter-generator-box">
+          <div class="form-row">
+            <label>
+              年度
+              <input type="number" id="genYear" value="2026" min="2025" max="2035" />
+            </label>
+            <label>
+              季度
+              <select id="genQuarter">
+                <option value="Q1">第一季 (1-3月)</option>
+                <option value="Q2">第二季 (4-6月)</option>
+                <option value="Q3">第三季 (7-9月)</option>
+                <option value="Q4" selected>第四季 (10-12月)</option>
+              </select>
+            </label>
+            <label>
+              聚會星期
+              <select id="genWeekday">
+                <option value="4" selected>每週四</option>
+                <option value="0">每週日</option>
+                <option value="6">每週六</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-outline" id="btnPreviewQuarterDates">試算該季週次</button>
+          </div>
+          <div id="quarterPreviewResult" class="quarter-preview-result hidden"></div>
+        </div>
+
+        <h3 class="sub-heading">本季各週聚會 / 放假狀態管理</h3>
+        <div class="holiday-list" id="holidayManagerList"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="saveCalendarSettings">完成並套用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="toast" id="toast">已儲存至本機</div>
+
+  <!-- 載入順序：預設資料 -> API預留服務層 -> 應用程式核心邏輯 -->
+  <script src="js/default-data.js"></script>
+  <script src="js/api-service.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
