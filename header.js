@@ -451,7 +451,10 @@ let clcLogoClickTimer = null;
 let clcLogoPressTimer = null;
 let clcLogoLongPressed = false;
 let clcLogoPressStart = null;
+// 只有在 DX 網域下瀏覽時才提供總控台的站台切換。
+const clcCanSwitchSites = location.hostname === 'clc-dx04.pages.dev';
 function clcShowSiteSwitcher(toggle) {
+  if (!clcCanSwitchSites) return;
   const switcher = document.getElementById('siteSwitcher');
   if (!switcher) return;
   if (toggle) switcher.classList.toggle('hidden'); else switcher.classList.remove('hidden');
@@ -460,7 +463,7 @@ function clcShowSiteSwitcher(toggle) {
 }
 function handleLogoClick(e) {
   const switcher = document.getElementById('siteSwitcher');
-  if (!window.isSuperuser || !switcher) return; // 照舊回首頁
+  if (!clcCanSwitchSites || !window.isSuperuser || !switcher) return; // 獨立站的 Logo 直接回本站首頁
   e.preventDefault();
   if (clcLogoLongPressed) { clcLogoLongPressed = false; return; } // 長按已開啟選單，放開時不再回首頁
   const href = e.currentTarget.getAttribute('href');
@@ -481,7 +484,7 @@ function clcCancelLogoPress() {
 }
 document.addEventListener('pointerdown', function(e) {
   const link = e.target.closest && e.target.closest('#clcLogoLink');
-  if (!link || !window.isSuperuser) return;
+  if (!link || !clcCanSwitchSites || !window.isSuperuser) return;
   clcLogoLongPressed = false;
   clcCancelLogoPress();
   clcLogoPressStart = { x: e.clientX, y: e.clientY };
@@ -620,15 +623,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return location.href;
   }
-  // Copy link 用各站「原本的網址」：DX 底下的 /ya/、/sr/ 換回 YA、SR 自己的網域；/lf/ 本來就只在 DX 底下，維持不變。
-  const ORIGINAL_HOSTS = { ya: 'https://clc-ya-portal.pages.dev', sr: 'https://clc-sr-portal.pages.dev' };
+  // 右鍵選單的網址使用各站自己的網域，並保留頁面路徑、查詢和錨點。
+  const ORIGINAL_HOSTS = {
+    lf: 'https://linfamily.pages.dev',
+    ya: 'https://clc-ya-portal.pages.dev',
+    sr: 'https://clc-sr-portal.pages.dev'
+  };
+  const DX_HOST = 'clc-dx04.pages.dev';
   function originalUrl(href) {
-    try {
-      const u = new URL(href, location.href);
-      const m = u.hostname === 'clc-dx04.pages.dev' && u.pathname.match(/^\/(ya|sr)(\/.*)?$/i);
-      if (m) return ORIGINAL_HOSTS[m[1].toLowerCase()] + (m[2] || '/') + u.search + u.hash;
-      return u.href;
-    } catch (_) { return href; }
+    const u = new URL(href, location.href);
+    const site = u.hostname === DX_HOST && u.pathname.match(/^\/(lf|ya|sr)(\/.*)?$/i);
+    if (site || u.hostname === DX_HOST || Object.values(ORIGINAL_HOSTS).includes(u.origin)) {
+      // 分享的連結不帶 LF App 的返回狀態。
+      if (u.searchParams.has('lfhome')) u.searchParams.delete('lfhome');
+    }
+    if (site) return ORIGINAL_HOSTS[site[1].toLowerCase()] + (site[2] || '/') + u.search + u.hash;
+    return u.href;
   }
   let menu = null, toastTimer = null;
   function closeMenu() { if (menu) { menu.remove(); menu = null; } }
@@ -667,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function showMenu(x, y) {
     closeMenu();
-    const url = pageUrl(), link = originalUrl(url);
+    const link = originalUrl(pageUrl());
     menu = document.createElement('div');
     menu.className = 'clc-hmenu'; menu.setAttribute('role', 'menu');
     menu.innerHTML = '<button type="button" role="menuitem" data-act="copy" class="clc-hmenu-copy"><span>Copy link</span><span class="clc-hmenu-url"></span></button><button type="button" role="menuitem" data-act="open">Open in new window</button>';
@@ -675,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const b = e.target.closest('button'); if (!b) return;
       closeMenu();
       if (b.dataset.act === 'copy') toast(await copyText(link) ? 'Link copied' : 'Couldn\'t copy link');
-      else openWindow(url);
+      else openWindow(link);
     });
     document.body.appendChild(menu);
     urlMarquee(menu, link);
