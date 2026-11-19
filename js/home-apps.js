@@ -328,14 +328,17 @@
   // ---------- 讀取 ----------
   render();
   window.addEventListener('clc-admin-changed', render);
+  const finish = window.clcVerseWait?.();
   try {
     settingsRef().onSnapshot(snap => {
+      finish?.();
       const items = snap.exists && Array.isArray(snap.data().items) ? snap.data().items : DEFAULT_APPS;
       apps = items.filter(a => a && a.id && a.name);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(apps)); } catch (_) {}
       render();
-    }, err => console.warn('首頁圖示讀取失敗（沿用快取或預設）', err));
+    }, err => { finish?.(); console.warn('首頁圖示讀取失敗（沿用快取或預設）', err); });
   } catch (err) {
+    finish?.();
     console.warn('首頁圖示無法連線資料庫', err);
   }
 })();
