@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <script>document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive:false });</script><!-- iPhone／iPad 雙指縮放（主頁鎖縮放，同 LF） -->
+  <style>html { touch-action:manipulation; } @media (pointer:coarse) { input, textarea, select { font-size:16px !important; } }</style><!-- 關雙擊放大；觸控裝置輸入框 16px，iPhone 點輸入框才不會自動放大 -->
   <title>CLC SR | 加樂團契控台</title>
 
   <!-- PWA 設定 -->
