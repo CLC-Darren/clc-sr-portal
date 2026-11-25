@@ -79,3 +79,7 @@ events/sr-christmas-2026/
 - YA 主站如使用禁止 iframe 的 CSP／X-Frame-Options，SR 歌詞頁會被阻擋。請先在 YA 站**只放行 SR 網域**，不要開放任何網站嵌入。必要時直接開啟 `https://clc-ya-portal.pages.dev/hymn-lyrics?neutral=1`。
 - 部分手機瀏覽器限制跨網域 iframe 的下載、列印與第三方登入儲存；上線後應實機測試。
 - 此 ZIP 僅完成程式與本地模擬，**沒有登入你的 Firebase／Cloudflare，也沒有發布任何線上設定**。
+
+## 離線導覽
+
+四站共用固定版本的 Service Worker 導覽程式，依 LF → DX → SR → YA 逐站啟用。第一階段支援離線入口及 🏠 返回，後續再做子頁閱讀與離線同步。[開發原則與驗收方式](docs/development-guidelines.md)
