@@ -189,7 +189,7 @@
       }
     }
     /* Desktop activity notes share one right-hand column for + and ×. */
-    .desktop-event-stack { position:relative; padding-bottom:7px; }
+    .desktop-event-stack { position:relative; top:var(--desktop-event-offset, 0px); padding-bottom:7px; }
     .desktop-event-row {
       display:grid;
       grid-template-columns:6px minmax(0,1fr) 16px;
@@ -1020,9 +1020,29 @@
     // =========================================================================
     // 3. RENDER COMPACT DESKTOP SPREADSHEET TABLE
     // =========================================================================
+    let desktopEventObserver;
+
+    function alignDesktopEvents(weeks) {
+      for (const {activityCell, lastSongCell} of weeks) {
+        if (!lastSongCell.getClientRects().length) continue;
+        const stack = activityCell.querySelector('.desktop-event-stack');
+        const anchor = stack.querySelector('.desktop-event-row:last-child') ||
+          stack.querySelector('.desktop-event-add');
+        const song = lastSongCell.getBoundingClientRect();
+        const note = anchor.getBoundingClientRect();
+        const previous = parseFloat(stack.style.getPropertyValue('--desktop-event-offset')) || 0;
+        const offset = previous + (song.top + song.height/2) - (note.top + note.height/2);
+        if (Math.abs(offset-previous) > 0.25) {
+          stack.style.setProperty('--desktop-event-offset', offset+'px');
+        }
+      }
+    }
+
     function renderDesktopTable() {
       const tbody = document.getElementById('roster-tbody');
+      desktopEventObserver?.disconnect();
       tbody.innerHTML = '';
+      const weekCells = [];
 
       const visibleItems = getActiveWeeks();
 
@@ -1031,6 +1051,7 @@
         const isMonthEnd = nextItem && nextItem.week.month !== week.month;
         const spStyle = SPEAKER_STYLES[week.speakerType] || SPEAKER_STYLES.church;
         const hasSpeaker = Boolean((week.speaker || '').trim());
+        let activityCell;
 
         for (let r = 0; r < 6; r++) {
           const tr = document.createElement('tr');
@@ -1046,6 +1067,7 @@
           // -----------------------------------------------------------------
           if (r === 0) {
             const tdActivity = document.createElement('td');
+            activityCell = tdActivity;
             tdActivity.rowSpan = 6;
             const dividerCellClass = isMonthEnd ? 'month-divider-cell' : 'week-divider-cell';
             tdActivity.className = `sticky-col-left ${dividerCellClass} align-top px-2 pt-1.5 pb-0 leading-normal`;
@@ -1160,6 +1182,7 @@
               </div>
             `;
             tr.appendChild(tdSongRow);
+            if (r === 5) weekCells.push({activityCell,lastSongCell:tdSongRow});
           }
 
           // -----------------------------------------------------------------
@@ -1272,6 +1295,14 @@
         }
       });
 
+      alignDesktopEvents(weekCells);
+      if (typeof ResizeObserver !== 'undefined') {
+        desktopEventObserver = new ResizeObserver(() => alignDesktopEvents(weekCells));
+        for (const {activityCell,lastSongCell} of weekCells) {
+          desktopEventObserver.observe(activityCell);
+          desktopEventObserver.observe(lastSongCell);
+        }
+      }
       updateSelectionVisuals();
     }
 
