@@ -184,6 +184,7 @@
       animation: flashSage 1.0s ease-out;
     }
 
+    #roster-view-switch { display:none }
     /* Modern iOS HIG & Android Material 3 Mobile/Tablet Portrait Switch (< 900px or portrait tablet) */
     @media (max-width: 899px), (max-width: 1024px) and (orientation: portrait) {
       #desktop-table-section {
@@ -192,6 +193,18 @@
       #mobile-cards-section {
         display: block !important;
       }
+      body.roster-table-view #desktop-table-section { display:block !important }
+      body.roster-table-view #mobile-cards-section { display:none !important }
+      #roster-view-switch {
+        display:inline-flex;gap:3px;padding:3px;border:1px solid #c5dec8;
+        border-radius:10px;background:#eef6ee;
+      }
+      #roster-view-switch button {
+        min-height:44px;padding:0 11px;border:0;border-radius:7px;
+        color:#2c5e34;font-weight:750;font-size:15px;
+      }
+      #roster-view-switch button[aria-pressed="true"] { background:#2f6538;color:#fff }
+      body.roster-table-view #roster-scroll { touch-action:pan-x pan-y }
     }
     @media (min-width: 900px) and (not ((max-width: 1024px) and (orientation: portrait))) {
       #desktop-table-section {
@@ -346,6 +359,10 @@
       </div>
 
       <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
+      <div id="roster-view-switch" role="group" aria-label="服事表顯示方式">
+        <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
+        <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">電腦表格</button>
+      </div>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
       </div>
@@ -2426,6 +2443,17 @@
         box.classList.add('translate-y-24', 'opacity-0');
       }, 2600);
     }
+
+    const viewSwitch = document.getElementById('roster-view-switch');
+    viewSwitch.addEventListener('click',event => {
+      const button = event.target.closest('[data-roster-view]');
+      if (!button) return;
+      document.body.classList.toggle('roster-table-view',button.dataset.rosterView === 'table');
+      for (const choice of viewSwitch.querySelectorAll('button')) {
+        choice.setAttribute('aria-pressed',String(choice === button));
+      }
+      resizeRosterViewport();
+    });
 
     function resizeRosterViewport() {
       const viewport = document.getElementById('roster-scroll');
