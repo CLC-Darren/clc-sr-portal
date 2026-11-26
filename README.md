@@ -83,3 +83,25 @@ events/sr-christmas-2026/
 ## 離線導覽
 
 四站共用固定版本的 Service Worker 導覽程式，依 LF → DX → SR → YA 逐站啟用。第一階段支援離線入口及 🏠 返回，後續再做子頁閱讀與離線同步。[開發原則與驗收方式](docs/development-guidelines.md)
+
+## 後續開發｜外部 App 在 YA／SR 站內開啟
+
+**狀態：待開發。** 希望 Superuser 在既有的 App 編輯流程中勾選「在站內開啟」，儲存後由 YA／SR 自動產生可分享的站內網址，在自己的 Header 下方顯示合作網站。合作網站只需允許嵌入，由 YA／SR 管理入口和名稱。
+
+### 可直接貼給 ChatGPT／Codex 的開發指令
+
+```text
+請先讀 CLC-Darren/clc-ya-portal 和 CLC-Darren/clc-sr-portal 的 README、index.html、header.js、js/home-apps.js 和 Firestore 規則，實作「外部 App 在站內開啟」。
+
+1. 在 Superuser 的「編輯 App」加入「在站內開啟」設定。支援單一網址，也支援多入口 App 的個別入口。既有資料與未啟用的連結維持原本開啟方式。
+2. 儲存後使用既有 App ID 與穩定的入口 ID 產生可分享的站內網址。單入口範例是 open.html?id=partner，多入口範例是 open.html?id=partner&entry=booking。網址須適用於 YA／SR 獨立站，以及 DX 下的 /ya/、/sr/。
+3. 站內入口從本站已儲存的 App 設定解析外部 HTTPS 網址，在既有 Header 下方用 iframe 顯示。沿用既有讀取和編輯權限，檢查核准的嵌入來源。網址列使用本站入口，保留返回首頁和「另開原網站」的按鈕。
+4. 若入口已移除、網址無效，或對方限制嵌入，提供可理解的說明與原站連結。跨來源 iframe 無法可靠地用 load 事件判斷嵌入成功，因此請一直提供另開連結。遵守對方的 CSP、X-Frame-Options 和登入限制。
+5. 盡量共用 YA／SR 的程式，維持首頁排列與原有 App 功能。驗證獨立網址、DX 子路徑、分享後重新整理、原有單一／多入口 App，以及手機與桌面。
+
+請合作網站在要嵌入的頁面回傳以下 HTTP 回應標頭，並依實際開放的站台保留所需網域：
+
+Content-Security-Policy: frame-ancestors 'self' https://clc-ya-portal.pages.dev https://clc-sr-portal.pages.dev https://clc-dx04.pages.dev;
+
+若對方已有 CSP，請修改現有政策中的 frame-ancestors，並檢查同頁的 X-Frame-Options: DENY 或 SAMEORIGIN 等衝突設定。標頭由外部網站設定，YA／SR 負責產生並開啟站內網址。
+```
