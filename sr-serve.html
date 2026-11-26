@@ -33,19 +33,11 @@ h1 { color:var(--pine); font-size:clamp(31px,4.5vw,56px); letter-spacing:.035em;
 .tabs button[aria-pressed=true] { background:var(--pine); color:white; border-color:var(--pine) }
 .help { margin:0; background:#f6faf6; border-block:1px solid var(--line); padding:9px 18px; font-size:13px; color:var(--muted) }
 .scroller { max-height:64vh; min-height:230px; overflow:auto; overscroll-behavior:contain }
-table { width:100%; min-width:1400px; border-spacing:0; table-layout:fixed; font-size:13px }
 th,td { text-align:left; vertical-align:middle; padding:6px 8px; white-space:pre-wrap; overflow-wrap:anywhere }
 thead { position:sticky; top:0; z-index:4 }
-thead th,thead td { background:#e4f1e8; color:#24503e; font-weight:750; border-bottom:1px solid #ccdfd1 }
-thead .people th,thead .people td { background:#f2f8f2; font-size:12px; color:var(--muted); font-weight:500 }
-.corner,.row-head { width:42px; padding:0; text-align:center; position:sticky; left:0; z-index:2; background:#f0f5ed; font-size:11px; color:var(--muted) }
-.row-head button { border:0; width:100%; min-height:32px; background:transparent; font:inherit }
-.date { position:sticky; left:42px; z-index:1; background:#fbfcf8 }
-thead .date,thead .corner { z-index:3 }
-tbody tr { height:33px }
+.date { position:sticky; left:0; z-index:1; background:#fbfcf8 }
 tbody:nth-of-type(even) td { background:#f9fbf7 }
 tbody td.date { background:#f8faf3 }
-tbody tr.week-start td,tbody tr.week-start th { border-top:1px solid #bccfc1; padding-top:9px; padding-bottom:9px }
 tbody tr.week-start .date { color:var(--pine); font-weight:800; background:#e8f1e4 }
 tbody td[data-tone=church] { background:#fcf0d3 }
 tbody td[data-tone=guest] { background:#e2f3ee }
@@ -53,7 +45,7 @@ tbody td[data-tone=event] { background:#e7efd6 }
 tbody td[data-tone=change] { background:#f8ebe4; color:#824834 }
 td[data-col] { cursor:cell }
 td[data-col]:focus { outline:none }
-td[data-col].selected,.row-head.selected { background:#ccebe1!important }
+td[data-col].selected { background:#ccebe1!important }
 td[data-col].active { box-shadow:inset 0 0 0 2px #27836c }
 td textarea { display:block; width:100%; min-height:42px; font:inherit; resize:vertical }
 .footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:9px; padding:12px 17px; border-top:1px solid var(--line); font-size:12px }
@@ -78,7 +70,7 @@ dialog li { margin-bottom:7px }
 #event-form label { display:grid; gap:4px }
 #event-form input,#event-form select { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; width:100% }
 
-main,.topbar { width:min(1880px,calc(100% - 28px)) }
+main,.topbar { width:min(1920px,calc(100% - 28px)) }
 .topbar { min-height:45px }
 .brand { gap:7px; font-size:14px }
 .brand small { display:none }
@@ -103,19 +95,9 @@ main,.topbar { width:min(1880px,calc(100% - 28px)) }
 .more-content > * + * { margin-top:9px }
 .help { background:transparent; border:0; padding:0; font-size:14px }
 .scroller { max-height:calc(100dvh - 146px); min-height:230px; border-top:1px solid var(--line); border-radius:0 0 10px 10px }
-table { min-width:1728px; font-size:21px; line-height:1.27 }
-th,td { padding:4px 6px; border-bottom:1px solid #e5ebe4 }
-thead th,thead td { text-align:center; border-bottom-color:#bfd4c3 }
-thead .date,thead tr:first-child th:nth-child(3) { text-align:left }
-thead tr.people td { padding-block:3px; font-weight:650 }
 tbody td { text-align:center }
 tbody .date,tbody td[data-col="1"],tbody td.song { text-align:left }
-tbody tr { height:36px }
-tbody tr.week-start td,tbody tr.week-start th { border-top:2px solid #8fac97; padding-block:5px }
-.group-end { border-inline-end:1px solid #a9bfb0 }
-tbody td.song { background:#f0f6ef; color:#285642; font-weight:650 }
 .pause-message { text-align:left }
-.row-head button { font-size:12px }
 #status { margin-block:4px 8px }
 @media(max-width:680px) {
   main,.topbar { width:calc(100% - 14px) }
@@ -126,6 +108,26 @@ tbody td.song { background:#f0f6ef; color:#285642; font-weight:650 }
   .toolbar-controls { gap:4px 6px }
   .scroller { max-height:calc(100dvh - 174px) }
 }
+/* Widths follow the proportions of the original sheet and shrink together on desktop. */
+table { width:100%; min-width:980px; border-spacing:0; table-layout:fixed; font-size:clamp(16px,1.35vw,21px); line-height:1.22 }
+th,td { padding:3px clamp(2px,.28vw,6px) }
+thead { color:#285e4a; background:#e7f1e8; box-shadow:0 1px 0 #a8c1ae }
+thead th,thead td { text-align:center; background:#e7f1e8; border:0 }
+thead th { font-size:.92em; font-weight:800; padding-top:7px }
+thead th[rowspan] { vertical-align:middle; padding-top:3px }
+thead tr.people td { color:#536c5d; font-size:inherit; padding-bottom:6px }
+thead .date { z-index:3; background:#e7f1e8 }
+tbody tr { height:clamp(29px,2.45vw,37px) }
+tbody .group-end:not([data-col="16"]) { border-inline-end:1px solid #d5e2d7 }
+tbody + tbody tr:first-child > * { border-top:2px solid #95b19d }
+tbody td.date,tbody td[data-col="1"],tbody td.song { text-align:left }
+tbody td.song { color:#285642 }
+tbody td[data-col="2"].song { white-space:nowrap }
+tbody .date[data-col="0"],tbody [data-col="9"],tbody .song { font-size:.85em }
+tbody tr.week-start .date { font-size:inherit; white-space:nowrap }
+tbody td[rowspan] { white-space:pre-wrap }
+.pause-message { font-weight:750 }
+.pause-detail td { font-size:.85em }
 </style>
 <header class="topbar">
   <a class="brand" href="index.html" style="text-decoration:none"><span class="mark" aria-hidden="true">‹</span><span>SR 首頁</span></a>
@@ -189,7 +191,7 @@ tbody td.song { background:#f0f6ef; color:#285642; font-weight:650 }
 </dialog>
 <script type="application/json" id="source">{"rows":[["2026","10-12月加樂團契服事表（確認版）",null,null,null,null,null,null,null,null,null,null,null,"調整異動","加樂出遊","教會講員","其他講員"],[null,null,null,null,null,null,null,null,null,null,null,null,null,"*師母講道時間確認後要 email 通知心怡。"],["日期","信息","敬拜",null,"樂手","投影片","音控","攝影","招待",null,"愛宴","接送","點名","交誼廳",null,"體操","值班"],[null,null,"夢凌",null,null,"佳珍",null,"琮玲","培榮",null,"品頤","振隆","翊婕","惠玲",null,"夢凌","培榮"],["10月1日","林家祥弟兄","李夢凌",null,"陳立馨","麗足","佳珍","宗豫","黃惠珍","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","陳文泉"],["講座、慶生","生命超 Change！\n教會 APP 輕鬆上手","胡春梅",null,"李語潔",null,null,"小燕子","黃秀珠","中間","楊証忠","游信義","陳月嬌","黎家玲","方翌靜","讚美操"],[null,null,"卓美鈴",null,null,null,null,null,"程島芳","B1大廳","孫藝綾","自用車-1","季芳","王秀嬿"],[null,null,"快歌","好心情",null,null,null,null,"廖瑞英","會堂入口","靖文","劉姿利",null,"張麗月"],["社福諮詢站：\n佳穎、靖珍",null,"慢歌","永遠不分離",null,null,null,null,"詹玉琴","電梯機動","蔡佩蓁","自用車-2",null,"徐秀芬","量血壓"],[null,null,null,null,null,null,null,null,null,null,null,null,null,"楊佳穎","洪菡翎"],["10月8日","林漢威牧師","吳翊婕",null,"王郁芬","芳櫻","琮玲","琮玲","林來好","一樓","品頤","教會 AWF-7019","紀麗足","交誼廳接待",null,"夢凌","鄭水龍"],["樂齡活動",null,"高明玉",null,"李夢凌",null,null,"玉琴","林瑞香","中間","楊証忠","塗建成","黃邁儀","林彥均","陳淑娟","健康操"],[null,null,"洪菡翎",null,null,null,null,null,"邱翠琴","B1大廳","怡召","自用車-1","胡春梅","陳美燕"],[null,null,"快歌","真正好（台）",null,null,null,null,"黃淑貞","會堂入口","茹心","吳永盛",null,"李雪清"],[null,null,"慢１","野地的花",null,null,null,null,"李卉蓁","電梯機動","（訂便當）","自用車-2",null,"周雅慧","量血壓"],[null,null,"慢２","我的心你要稱頌耶和華",null,null,null,null,null,null,null,null,null,"楊雯羽","林曉艾"],["10月15日","宋瑞賢傳道","盧佳珍",null,"高詠新","宜芬","玉琴","玲惠","巫文寶","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","李培榮"],["加樂手作",null,"鄭茹心",null,"李夢凌",null,null,"美鈴","廖桂貞","中間","楊証忠","胡偉立","余佳美","黃鈺卿","徐子晴","讚美操"],[null,null,"陳品秀",null,null,null,null,null,"沈秀雲","B1大廳","莊淑芳","自用車-1","季芳","周克立"],[null,null,"快歌","我要全心讚美",null,null,null,null,"高珮瑩","會堂入口","郭秀榛","王筱清",null,"柯雪玉"],[null,null,"慢１","活出愛",null,null,null,null,"葉志榮","電梯機動","怡召","自用車-2",null,"嚴綉華","量血壓"],[null,null,"慢２","主你是我力量",null,null,null,null,null,null,null,null,null,"吳秀花","陳惠玲"],["10月22日","范麗娟師母","許淑美",null,"李語潔","佳珍","佩玲","珈宜","林美雪","一樓","品頤","教會 AWF-7019","陳月嬌","交誼廳接待",null,"夢凌","黃邁儀"],[null,null,"張芝瑜",null,"劉榮中",null,null,"小燕子","黃惠珍","中間","楊証忠","塗建成","吳翊婕","林彥均","陳惠玲","健康操"],[null,null,"劉稏倫",null,null,null,null,null,"黃秀珠","B1大廳","吳靜惠","自用車-1","顧毓卿","陳純卿"],[null,null,"快歌","不住感謝不停讚美",null,null,null,null,"程島芳","會堂入口","孫藝綾","游信義",null,"陳秋芬"],[null,null,"慢１","我要順服",null,null,null,null,"廖瑞英","電梯機動","（訂便當）","自用車-2",null,"姚美蘭","量血壓"],[null,null,"慢２","想起你",null,null,null,null,null,null,null,null,null,"羅珈宜","鄭瑞君"],["10月29日","林漢威牧師","陶小燕 ",null,"梁睿閎","佩玲","玉琴","琮玲","林瑞香","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","熊智康"],[null,null,"黎家玲",null,"袁苡瑄",null,null,"美鈴","邱翠琴","中間","楊証忠","李宗豫","胡春梅","周克立",null,"讚美操"],[null,null,"方翌靜",null,null,null,null,null,"黃淑貞","B1大廳","小溱","自用車-1","余佳美","柯雪玉"],[null,null,"快歌","再一次",null,null,null,null,"李卉蓁","會堂入口","茹心","胡孝明",null,"吳秀花"],[null,null,"慢１","愛中相遇",null,null,null,null,"林來好","電梯機動","靖文","自用車-2",null,"嚴綉華","量血壓"],[null,null,"慢２","永遠敬拜",null,null,null,null,null,null,null,null,null,"柯    梅","陳惠玲"],["11月5日","黃琬雯姊妹","卓美鈴",null,"王郁芬","芳櫻","琮玲","宗豫","高珮瑩","一樓","品頤","教會 AWF-7019","紀麗足","交誼廳接待",null,"夢凌","陳文泉"],["講座、慶生",null,"吳翊婕  ",null,"李夢凌",null,null,"玲惠","詹玉琴","中間","楊証忠","胡偉立","陳月嬌","黎家玲","方翌靜","健康操"],[null,null,"胡春梅",null,null,null,null,null,"巫文寶","B1大廳","茹心","自用車-1","季芳","王秀嬿"],[null,null,"快歌","牽我手",null,null,null,null,"廖桂貞","會堂入口","郭秀榛","王筱清",null,"張麗月"],["社福諮詢站：\n佳穎、靖珍",null,"慢歌","你的恩典夠我用",null,null,null,null,"沈秀雲","電梯機動","（訂便當）","自用車-2",null,"徐秀芬","量血壓"],[null,null,null,null,null,null,null,null,null,null,null,null,null,"楊佳穎","洪菡翎"],["11月12日","宋瑞賢傳道","李夢凌",null,"葉馨雅","佩玲","佳珍","玉琴","葉志榮","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","鄭水龍"],["樂齡活動",null,"高明玉",null,"劉榮中",null,null,"小燕子","林美雪","中間","楊証忠","李宗豫","黃邁儀","林彥均","陳淑娟","讚美操"],[null,null,"鄭茹心",null,null,null,null,null,"黃惠珍","B1大廳","孫藝綾","自用車-1","余佳美","陳美燕"],[null,null,"快歌","在這裡",null,null,null,null,"黃秀珠","會堂入口","吳靜惠","游信義",null,"李雪清"],[null,null,"慢１","我要見到你",null,null,null,null,"程島芳","電梯機動","蔡佩蓁","自用車-2",null,"周雅慧","量血壓"],[null,null,"慢２","恩典的記號",null,null,null,null,null,null,null,null,null,"楊雯羽","林曉艾"],["11月19日","林永健牧師","陶小燕",null,"梁睿閎","麗足","玉琴","琮玲","黃淑貞","一樓","品頤","教會 AWF-7019","陳月嬌","交誼廳接待",null,"夢凌","李培榮"],["加樂手作",null,"張芝瑜",null,"李夢凌",null,null,"美鈴","李卉蓁","中間","楊証忠","塗建成","胡春梅","黃鈺卿","徐子晴","健康操"],[null,null,"黎家玲",null,null,null,null,null,"林來好","B1大廳","莊淑芳","自用車-1","詩屏","周克立"],[null,null,"快歌","屬天的喜樂",null,null,null,null,"林瑞香","會堂入口","怡召","楊淑珠",null,"柯雪玉"],[null,null,"慢１","恩典夠用",null,null,null,null,"邱翠琴","電梯機動","（訂便當）","自用車-2",null,"嚴綉華","量血壓"],[null,null,"慢２","蒙神祝福的人",null,null,null,null,null,null,null,null,null,"吳秀花","陳惠玲"],["11月26日","林漢威牧師","許淑美",null,"李語潔","宜芬","佩玲","珈宜","詹玉琴","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","黃邁儀"],[null,null,"方翌靜",null,"袁苡瑄",null,null,"玲惠","巫文寶","中間","楊証忠","劉姿利","余佳美","林彥均","陳惠玲","讚美操"],[null,null,"劉稏倫",null,null,null,null,null,"廖桂貞","B1大廳","靖文","自用車-1","顧毓卿","陳純卿"],[null,null,"快歌","我們的腳要來跳舞",null,null,null,null,"沈秀雲","會堂入口","茹心","胡孝明",null,"陳秋芬"],[null,null,"慢１","你歡喜的祭（台）",null,null,null,null,"高珮瑩","電梯機動","小溱","自用車-2",null,"姚美蘭","量血壓"],[null,null,"慢２","我揚聲敬拜",null,null,null,null,null,null,null,null,null,"羅珈宜","鄭瑞君"],["12月3日",null,"吳翊婕",null,"陳立馨","玉琴","佳珍","宗豫","林美雪","一樓","品頤","教會 AWF-7019","紀麗足","交誼廳接待",null,"夢凌","熊智康"],["講座、慶生",null,"高明玉",null,"李夢凌",null,null,"美鈴","黃惠珍","中間","楊証忠","胡偉立","陳月嬌","黎家玲","方翌靜","健康操"],[null,null,"鄭茹心",null,null,null,null,null,"黃秀珠","B1大廳","郭秀榛","自用車-1","季芳","王秀嬿"],[null,null,"快歌","幸福",null,null,null,null,"程島芳","會堂入口","蔡佩蓁","游信義",null,"張麗月"],["社福諮詢站：\n佳穎、靖珍",null,"慢歌","創造我的耶和華",null,null,null,null,"廖瑞英","電梯機動","（訂便當）","自用車-2",null,"徐秀芬","量血壓"],[null,null,null,null,null,null,null,null,null,null,null,null,null,"楊佳穎","洪菡翎"],["12月10日","加樂聖誕佈道","李夢凌",null,"王郁芬","佳珍","琮玲","琮玲","林來好","一樓",null,"教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","陳文泉"],["樂齡活動","聖誕餐會（彭園）","卓美鈴",null,"劉榮中",null,null,"玉琴","林瑞香","中間",null,"劉姿利","黃邁儀","林彥均","徐子晴","讚美操"],[null,null,"許淑美",null,null,null,null,null,"邱翠琴","B1大廳",null,"自用車-1","詩屏","陳美燕"],[null,null,"快歌","到各山嶺去傳揚",null,null,null,null,"黃淑貞","會堂入口",null,"王筱清",null,"李雪清"],[null,null,"慢歌","祂一直都在",null,null,null,null,"李卉蓁","電梯機動",null,"自用車-2",null,"周雅慧","量血壓"],[null,null,null,null,null,null,null,null,null,null,null,null,null,"楊雯羽","林曉艾"],["12月17日","林漢威牧師","盧佳珍",null,"高詠新","麗足","佩玲","小燕子","巫文寶","一樓","品頤","教會 AWF-7019","陳月嬌","交誼廳接待",null,"夢凌","鄭水龍"],["加樂手作","聖誕佈道信息","洪菡翎",null,"李語潔",null,null,"玲惠","廖桂貞","中間","楊証忠","吳永盛","吳翊婕","黃鈺卿","陳淑娟","健康操"],[null,null,"黎家玲",null,null,null,null,null,"沈秀雲","B1大廳","莊淑芳","自用車-1","顧毓卿","周克立"],[null,null,"快歌","主的喜樂是我力量",null,null,null,null,"高珮瑩","會堂入口","茹心","胡孝明",null,"柯雪玉"],[null,null,"慢１","住在你裡面",null,null,null,null,"葉志榮","電梯機動","孫藝綾","自用車-2",null,"嚴綉華","量血壓"],[null,null,"慢２","耶穌愛你",null,null,null,null,null,null,null,null,null,"吳秀花","陳惠玲"],["12月24日","宋瑞賢傳道","卓美鈴",null,"葉馨雅","宜芬","玉琴","珈宜","程島芳","一樓","品頤","教會 AWF-7019","方桂香","交誼廳接待",null,"美鈴","李培榮"],[null,null,"張芝瑜",null,"袁苡瑄",null,null,"琮玲","廖瑞英","中間","楊証忠","劉振隆","胡春梅","林彥均","陳惠玲","讚美操"],[null,null,"李夢凌",null,null,null,null,null,"林美雪","B1大廳","怡召","自用車-1","余佳美","陳純卿"],[null,null,"快歌","好喜歡與你在一起",null,null,null,null,"黃惠珍","會堂入口","小溱","吳永盛",null,"陳秋芬"],[null,null,"慢１","最美的禮物",null,null,null,null,"黃秀珠","電梯機動","吳靜惠","自用車-2",null,"姚美蘭","量血壓"],[null,null,"慢２","在耶穌的腳前",null,null,null,null,null,null,null,null,null,"羅珈宜","鄭瑞君"],["12月31日","林漢威牧師","陶小燕",null,"李語潔","宜芬","佩玲","玉琴","黃淑貞","一樓","品頤","教會 AWF-7019","紀麗足","交誼廳接待",null,"夢凌","黃邁儀"],[null,null,"劉稏倫",null,"李夢凌",null,null,"小燕子","李卉蓁","中間","楊証忠","李宗豫","陳月嬌","周克立",null,"健康操"],[null,null,"方翌靜",null,null,null,null,null,"林來好","B1大廳","蔡佩蓁","自用車-1","余佳美","柯雪玉"],[null,null,"快歌","信耶穌真有福氣(台)",null,null,null,null,"林瑞香","會堂入口","郭秀榛","楊淑珠",null,"吳秀花"],[null,null,"慢１","陪我走過春夏秋冬",null,null,null,null,"邱翠琴","電梯機動","（訂便當）","自用車-2",null,"嚴綉華","量血壓"],[null,null,"慢２","雲上太陽",null,null,null,null,null,null,null,null,null,"柯    梅","陳惠玲"]],"tones":[["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","guest","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","guest","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","event","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","church","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""],["","","","","","","","","","","","","","","","",""]],"merges":[[2,0,3,0],[2,1,3,1],[2,2,2,3],[2,8,2,9],[2,13,2,14],[3,2,3,4],[3,5,3,6],[3,8,3,9],[3,13,3,14],[4,2,4,3],[4,13,4,14],[5,1,6,1],[5,2,5,3],[6,2,6,3],[7,3,7,6],[8,0,9,0],[8,3,8,6],[9,3,9,6],[10,2,10,3],[10,13,10,14],[11,2,11,3],[12,2,12,3],[13,3,13,6],[14,3,14,6],[15,3,15,6],[16,2,16,3],[16,13,16,14],[17,2,17,3],[18,2,18,3],[19,3,19,6],[20,3,20,6],[21,3,21,6],[22,2,22,3],[22,13,22,14],[23,2,23,3],[24,2,24,3],[25,3,25,6],[26,3,26,6],[27,3,27,6],[28,2,28,3],[28,13,28,14],[29,2,29,3],[30,2,30,3],[31,3,31,6],[32,0,33,0],[32,3,32,6],[33,3,33,6],[34,2,34,3],[34,13,34,14],[35,2,35,3],[36,2,36,3],[37,3,37,6],[38,0,39,0],[38,3,38,6],[39,3,39,6],[40,2,40,3],[40,13,40,14],[41,2,41,3],[42,2,42,3],[43,3,43,6],[44,3,44,6],[45,3,45,6],[46,2,46,3],[46,13,46,14],[47,2,47,3],[48,2,48,3],[49,3,49,6],[50,3,50,6],[51,3,51,6],[52,2,52,3],[52,13,52,14],[53,2,53,3],[54,2,54,3],[55,3,55,6],[56,3,56,6],[57,3,57,6],[58,2,58,3],[58,13,58,14],[59,2,59,3],[60,2,60,3],[61,3,61,6],[62,0,63,0],[62,3,62,6],[63,3,63,6],[64,2,64,3],[64,13,64,14],[65,2,65,3],[66,2,66,3],[67,3,67,6],[68,3,68,6],[69,3,69,6],[70,2,70,3],[70,13,70,14],[71,2,71,3],[72,2,72,3],[73,3,73,6],[74,3,74,6],[75,3,75,6],[76,2,76,3],[76,13,76,14],[77,2,77,3],[78,2,78,3],[79,3,79,6],[80,3,80,6],[81,3,81,6],[82,2,82,3],[82,13,82,14],[83,2,83,3],[84,2,84,3],[85,3,85,6],[86,3,86,6],[87,3,87,6]],"fonts":[[29,29,16,16,16,16,16,16,16,16,29,29,19,13,13,13,16],[16,16,16,16,16,16,16,16,16,16,29,29,16,13,16,16,16],[21,21,21,16,21,21,21,21,21,16,21,21,21,21,16,21,21],[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[17,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[16,16,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[17,16,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[21,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[21,16,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[21,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[17,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[16,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[21,16,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[17,16,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[16,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[17,21,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[16,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,16,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[17,16,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,16,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16],[21,21,21,16,21,21,21,21,21,16,21,16,21,16,16,21,21],[16,16,21,16,21,16,16,21,21,16,21,21,21,21,21,19,16],[16,16,21,16,16,16,16,16,21,16,21,16,21,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,21,21,16,21,16,21,16],[16,21,16,16,16,16,16,16,21,16,16,16,16,21,16,21,16],[17,21,16,16,16,16,16,16,16,16,21,21,16,21,21,21,16]]}</script>
 <script>
-const {rows, tones, merges, fonts} = JSON.parse(document.querySelector('#source').textContent);
+const {rows, tones, merges} = JSON.parse(document.querySelector('#source').textContent);
 const grid = document.querySelector('#grid');
 document.querySelector('#office-note').textContent = rows[1]?.[13] ?? '';
 const scroller = document.querySelector('.scroller');
@@ -288,16 +290,17 @@ function renderSheetCell(tr,tag,value,row,col,className = '') {
   if ([0,1,3,4,5,6,7,9,10,11,12,14,15,16].includes(merge?.[3] ?? col)) {
     cell.className += ' group-end';
   }
-  if (row < 4 || isArchive()) cell.style.fontSize = fonts[row][col] + 'px';
   return cell;
 }
 
 function render() {
   grid.replaceChildren();
   const colgroup = document.createElement('colgroup');
-  [42,132,165,51,57,106,101,97,94,105,104,102,111,95,108,105,93,106].forEach(size => {
+  const columnWidths = [116,175,53,62,105,98,91,93,99,100,100,111,90,100,97,94,99];
+  const fullWidth = columnWidths.reduce((total,size) => total+size,0);
+  columnWidths.forEach(size => {
     const col = document.createElement('col');
-    col.style.width = size + 'px';
+    col.style.width = 100*size/fullWidth + '%';
     colgroup.append(col);
   });
   grid.append(colgroup);
@@ -305,8 +308,6 @@ function render() {
   const headers = head.insertRow();
   const people = head.insertRow();
   people.className = 'people';
-  addCell(headers, 'th', '#', 'corner');
-  addCell(people, 'td', '', 'corner');
   rows[2].forEach((label,column) => {
     const th = renderSheetCell(headers,'th',label,2,column,column === 0 ? 'date' : '');
     if (th) {
@@ -322,12 +323,10 @@ function render() {
     if (event?.kind === 'pause') {
       const first = body.insertRow();
       first.className = 'pause';
-      addCell(first,'th','','row-head');
       addCell(first,'th',source[week.start][0],'date');
       addCell(first,'td',event.text,'pause-message').colSpan = width-1;
       const second = body.insertRow();
       second.className = 'pause-detail';
-      addCell(second,'td','','row-head');
       addCell(second,'td',week.date + '（星期四）').colSpan = width;
       return;
     }
@@ -335,13 +334,6 @@ function render() {
       visibleRows.push(index);
       const row = body.insertRow();
       if (index === week.start) row.className = 'week-start';
-      const label = addCell(row, 'th', '', 'row-head');
-      label.scope = 'row';
-      const button = document.createElement('button');
-      button.textContent = index + 5;
-      button.dataset.row = index;
-      button.setAttribute('aria-label', '選取第 ' + (index+5) + ' 列');
-      label.append(button);
       data[index].forEach((value,column) => {
         const classes = column === 0 ? 'date' : isArchive() && (column === 2 || column === 3) && index-week.start >= 3 ? 'song' : '';
         const td = renderSheetCell(row,'td',value,index+4,column,classes);
@@ -354,7 +346,6 @@ function render() {
     }
     if (event?.kind === 'event') {
       const row = body.insertRow();
-      addCell(row,'th','','row-head');
       addCell(row,'td',event.text,'pause-message').colSpan = width;
     }
   });
@@ -384,10 +375,6 @@ function paint(focus = false) {
     td.classList.toggle('selected', row <= bottom && row + (td.rowSpan || 1)-1 >= top && col <= right && col + (td.colSpan || 1)-1 >= left);
     td.classList.toggle('active', td === focused);
     td.tabIndex = td === tabbable ? 0 : -1;
-  });
-  grid.querySelectorAll('.row-head button').forEach(button => {
-    const row = Number(button.dataset.row);
-    button.parentElement.classList.toggle('selected', left === 0 && right === width-1 && row >= top && row <= bottom);
   });
   if (focus) focused?.focus({preventScroll:true});
 }
@@ -489,16 +476,8 @@ window.addEventListener('pointerup',() => { dragging = false; });
 window.addEventListener('pointercancel',() => { dragging = false; });
 
 grid.addEventListener('click',event => {
-  const button = event.target.closest('.row-head button');
-  if (!button) {
-    const td = event.target.closest('td[data-col]');
-    if (td && !event.target.closest('textarea') && event.pointerType === 'touch') move(point(td));
-    return;
-  }
-  anchor = {row:Number(button.dataset.row),col:0};
-  extent = {...anchor,col:width-1};
-  paint(true);
-  show('已選取第 ' + (anchor.row+5) + ' 列。');
+  const td = event.target.closest('td[data-col]');
+  if (td && !event.target.closest('textarea') && event.pointerType === 'touch') move(point(td));
 });
 
 function edit(td) {
@@ -538,6 +517,15 @@ grid.addEventListener('focusin',event => {
 
 grid.addEventListener('keydown',event => {
   if (!anchor || event.target.closest('textarea')) return;
+  if (event.key === ' ' && event.shiftKey) {
+    event.preventDefault();
+    const row = anchor.row;
+    anchor = {row,col:0};
+    extent = {row,col:width-1};
+    paint(true);
+    show('已選取整列。');
+    return;
+  }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !event.shiftKey) {
     event.preventDefault();
     undoLast();
@@ -641,8 +629,8 @@ function selectQuarter(key) {
   grid.setAttribute('aria-label',title + '加樂團契服事表');
   document.querySelector('#quarter-description').textContent = isArchive() ? '10–12 月 · 確認版' : '1–3 月 · 排班草稿';
   document.querySelector('#grid-help').textContent = isArchive()
-    ? '第四季原表供查閱。點左側列號選整列，再按 Ctrl／⌘ + C 複製。'
-    : '點列號選整列，或拖曳選取範圍。按 Ctrl／⌘ + C、V 複製貼上，雙擊可編輯。排班草稿保留在目前頁面。';
+    ? '第四季原表供查閱。點選儲存格後按 Shift + 空白鍵可選整列，再按 Ctrl／⌘ + C 複製。'
+    : '按 Shift + 空白鍵選整列，或拖曳選取範圍。按 Ctrl／⌘ + C、V 複製貼上，雙擊可編輯。排班草稿保留在目前頁面。';
   document.querySelector('#office-note').hidden = !isArchive();
   render();
   scroller.scrollTo(0,0);
@@ -699,7 +687,7 @@ document.querySelector('#event-default').addEventListener('click',() => {
   delete overrides[eventDate.value];
   storeEvents();
 });
-document.querySelector('#grid-help').textContent = '第四季原表供查閱。點左側列號可選整列，再按 Ctrl／⌘ + C 複製。';
+document.querySelector('#grid-help').textContent = '第四季原表供查閱。點選儲存格後按 Shift + 空白鍵可選整列，再按 Ctrl／⌘ + C 複製。';
 buildWeeks();
 render();
 </script>
