@@ -41,6 +41,8 @@
       @media (prefers-reduced-motion: reduce) { .slot-grid.is-editing .slot-cell > :first-child { animation:none; } }
       .slot-cell.slot-pressing > :first-child { transform:scale(.92); transition:transform .45s; }
       .slot-cell.slot-source { opacity:.2; }
+      .slot-cell.slot-source-icon { visibility:hidden; }
+      .slot-floating.slot-floating-icon { background:none !important; box-shadow:none !important; }
       .slot-grid .slot-target { outline:2px solid #00A3B4; outline-offset:3px; border-radius:22%; }
       .slot-floating { position:fixed !important; margin:0 !important; pointer-events:none; z-index:2147483646; will-change:transform; aspect-ratio:auto !important; }
       .slot-floating > :first-child { animation:none !important; transform:translateY(-10px) scale(1.22) rotate(-3deg); transition:transform .18s cubic-bezier(.2,.8,.3,1.2); }
@@ -216,7 +218,18 @@
     }
     function startDrag() {
       const cell = g.cell, r = cell.getBoundingClientRect();
-      const f = cell.cloneNode(true);
+      const icon = o.dragIcon ? cell.querySelector(o.dragIcon) : null;
+      const f = cell.cloneNode(!icon);
+      if (icon) {
+        const box = icon.getBoundingClientRect();
+        const visual = icon.cloneNode(true);
+        visual.style.position = 'absolute';
+        visual.style.left = box.left - r.left + 'px';
+        visual.style.top = box.top - r.top + 'px';
+        visual.style.width = box.width + 'px';
+        f.appendChild(visual);
+        f.classList.add('slot-floating-icon');
+      }
       f.classList.remove('slot-pressing', 'slot-source');
       f.classList.add('slot-floating'); // 不用 reorder-floating（那是今日待辦的卡片外框樣式）
       f.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
@@ -226,7 +239,7 @@
       f.classList.add('slot-landing'); // 先跟原本一樣大，下一格畫面再「彈起來」
       grid.appendChild(f); // 放在格子裡面，才會套到各站 App 的樣式（position:fixed 不影響排版）
       requestAnimationFrame(() => requestAnimationFrame(() => f.classList.remove('slot-landing')));
-      cell.classList.add('slot-source');
+      cell.classList.add(icon ? 'slot-source-icon' : 'slot-source');
       g.dragging = true; g.float = f; g.origin = { x: r.left, y: r.top };
       const gr0 = grid.getBoundingClientRect();
       g.slots = new Map(Array.from(grid.querySelectorAll(':scope > [data-slot]')).map(el => {
@@ -276,7 +289,7 @@
       suppressClickUntil = Date.now() + 400;
       const ok = commit && st.target && !saving && canEdit();
       land(st.float, (ok ? st.target : st.cell).getBoundingClientRect(), st.origin);
-      st.cell.classList.remove('slot-source');
+      st.cell.classList.remove('slot-source', 'slot-source-icon');
       st.target?.classList.remove('slot-target');
       const plan = st.plan;
       if (!ok) { grid.querySelectorAll(':scope > .slot-shifted').forEach(c => { c.style.transform = ''; c.classList.remove('slot-shifted'); }); return; }

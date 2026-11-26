@@ -33,7 +33,7 @@
     #homeApps[data-site="sr"] .ha-name { font-size:25px; line-height:1.15; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow-wrap:anywhere; min-height:2.3em; }
     @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:27px; } }
     #homeApps .slot-target { border-radius:1.5rem; }
-    .slot-floating .ha-tile { box-shadow:0 24px 50px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.25); }
+
     #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
     .dark #homeApps .ha-tile { color:var(--text,#f1f5f9); }
     #homeApps .ha-tile:focus-visible { outline:2px solid #2dd4bf; outline-offset:4px; }
@@ -160,6 +160,7 @@
     canEdit: isAdmin,
     getItems: () => apps,
     renderTile,
+    dragIcon: '.ha-icon',
     save: persist,
     error: err => alert('排列儲存失敗：' + errorText(err)),
     onAdd: pos => { addPos = pos; openDialog(null); },
@@ -182,7 +183,10 @@
         remove: () => removeApp(app.id)
       });
     } : null,
-    onManageClose: () => window.clcAppEntries?.closeManagement(),
+    onManageClose: () => {
+      closeEntryMenu(false);
+      window.clcAppEntries?.closeManagement();
+    },
     onRemove: id => removeApp(id),
     onEditingChange: () => closeEntryMenu(false)
   });
