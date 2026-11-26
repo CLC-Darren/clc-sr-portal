@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-TW"><head>
+<html lang="zh-TW" class="dark"><head>
   <meta charset="UTF-8">
+  <meta name="theme-color" content="#090A0F">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026 10-12月加樂團契服事表</title>
   <link rel="icon" href="images/sr-serve-favicon.png">
@@ -9,8 +10,16 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{extend:{colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}
+    };
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet">
   <style>
+    /* The SR header sits above a light roster, so use the solid YA dark surface here. */
+    #clc-header { background-color:#090A0F; color:#f1f5f9 }
     :root {
       --bg-cream: #FCFDFB;
       --forest-green: #3D7A47;
