@@ -68,7 +68,8 @@
 
     /* Compact 31px Row Height Spreadsheet Table Architecture */
     .roster-table {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       table-layout: fixed;
       width: 100%;
       min-width: 1230px;
@@ -115,7 +116,7 @@
     }
     .sticky-header-sub {
       position: sticky;
-      top: 34px;
+      top: var(--roster-first-row, 34px);
       z-index: 30;
     }
     .sticky-col-left {
@@ -220,6 +221,55 @@
     }
     .desktop-event-stack .desktop-event-add { position:absolute; right:0; top:-16px; }
     .desktop-event-row:focus-within .desktop-event-action { opacity:1; }
+    #desktop-table-section { box-sizing:border-box;padding:8px 12px 12px }
+    @media (min-width:640px) { #desktop-table-section { padding-inline:20px } }
+    #roster-scroll {
+      max-height:max(180px, calc(100dvh - var(--roster-top, 150px) - 12px));
+      overflow:auto;border:1px solid #c5dec8;border-radius:9px;
+      scrollbar-width:thin;scrollbar-color:#83a98a #edf4eb;
+    }
+    #roster-scroll:focus-visible { outline:2px solid #3d7a47;outline-offset:2px }
+    .roster-table th,.roster-table td { border-left:0 }
+    .roster-announcement { background:#f8edda;color:#603d21;font-weight:750 }
+    .roster-announcement td { padding:7px 9px;line-height:1.35 }
+    .roster-announcement .sticky-col-left { background:inherit }
+    .roster-announcement.pause,.roster-announcement.pause .sticky-col-left { background:#fae5e4;color:#8a2626 }
+    .roster-announcement.outing,.roster-announcement.outing .sticky-col-left { background:#e5f3e4;color:#285534 }
+    .roster-announcement.special,.roster-announcement.special .sticky-col-left { background:#fbefd4 }
+    .mobile-announcement { padding:12px 14px;border-radius:10px;font-size:18px }
+    .roster-manager-panel { max-height:90dvh;overflow:auto;scrollbar-width:thin }
+    #roster-settings-button[hidden],#roster-tbody button[hidden] { display:none!important }
+    .roster-settings-block { padding:8px 0;border-top:1px solid #c5dec8 }
+    .roster-settings-block summary { color:#2c5e34;font-weight:800;cursor:pointer }
+    .roster-settings-block form { margin-top:8px }
+    .roster-settings-block form[hidden] { display:none }
+    .roster-settings-block label,#roster-search-form label { display:grid;gap:4px;font-weight:700;margin-bottom:8px }
+    .roster-settings-block input,.roster-settings-block select,#roster-search-form input,#roster-search-form select {
+      width:100%;min-width:0;min-height:42px;box-sizing:border-box;border:1px solid #a2bea6;
+      border-radius:8px;background:#fff;color:#203a25;padding:6px 9px;color-scheme:light;
+    }
+    .roster-settings-block button,#roster-search button,.roster-search-button {
+      border:1px solid #9bbd9f;border-radius:8px;background:#eaf4e9;color:#234d2c;
+      padding:5px 10px;min-height:38px;font-weight:750;
+    }
+    #roster-calendar-list li { display:flex;gap:5px;margin-top:5px }
+    #roster-calendar-list button:first-child { flex:1;text-align:left }
+    #roster-calendar-error { color:#962c23 }
+    .roster-settings-note { margin-top:6px;color:#526950 }
+    #roster-search {
+      position:fixed;inset:0;margin:auto;width:min(94vw,580px);max-height:88dvh;overflow:auto;
+      border:1px solid #a9c7ad;border-radius:16px;background:#fcfdfb;color:#1e3323;padding:16px;font-size:18px;
+    }
+    #roster-search::backdrop { background:#111e16a6 }
+    .roster-search-header { display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:12px }
+    .roster-search-header h2 { font-size:23px;font-weight:850 }
+    .roster-search-header p { font-size:14px }
+    .roster-search-dates { display:grid;grid-template-columns:1fr 1fr;gap:8px }
+    #roster-search-results { margin-top:12px }
+    #roster-search-results section { margin-top:8px;padding:8px 0;border-top:1px solid #d4e4d6 }
+    #roster-search-results h3,#roster-search-results h4 { font-weight:850 }
+    .roster-search-choices { display:flex;flex-wrap:wrap;gap:7px;margin-top:8px }
+    @media(max-width:480px) { #roster-search { padding:12px } }
   </style>
 <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-5{bottom:1.25rem}.right-2\.5{right:0.625rem}.right-5{right:1.25rem}.z-50{z-index:50}.m-16{margin:4rem}.mx-auto{margin-left:auto;margin-right:auto}.mx-1\.5{margin-left:0.375rem;margin-right:0.375rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.ml-auto{margin-left:auto}.ml-1{margin-left:0.25rem}.ml-1\.5{margin-left:0.375rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-2{height:0.5rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-9{height:2.25rem}.h-\[26px\]{height:26px}.h-\[34px\]{height:34px}.h-\[172px\]{height:172px}.h-\[22px\]{height:22px}.h-\[24px\]{height:24px}.h-\[25px\]{height:25px}.h-\[31px\]{height:31px}.h-full{height:100%}.min-h-screen{min-height:100vh}.min-h-\[15px\]{min-height:15px}.min-h-\[16px\]{min-height:16px}.min-h-\[18px\]{min-height:18px}.w-2{width:0.5rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-9{width:2.25rem}.w-full{width:100%}.w-28{width:7rem}.w-\[54px\]{width:54px}.w-\[64px\]{width:64px}.min-w-\[74px\]{min-width:74px}.max-w-2xl{max-width:42rem}.max-w-md{max-width:28rem}.max-w-full{max-width:100%}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.translate-y-24{--tw-translate-y:6rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.appearance-none{-webkit-appearance:none;appearance:none}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-y-0\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.125rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.125rem * var(--tw-space-y-reverse))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:0.75rem}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-t-4{border-top-width:4px}.border-dashed{border-style:dashed}.border-double{border-style:double}.border-\[\#3D7A47\]{--tw-border-opacity:1;border-color:rgb(61 122 71 / var(--tw-border-opacity, 1))}.border-\[\#3D7A47\]\/40{border-color:rgb(61 122 71 / 0.4)}.border-\[\#7EB55C\]{--tw-border-opacity:1;border-color:rgb(126 181 92 / var(--tw-border-opacity, 1))}.border-\[\#8BC3CB\]{--tw-border-opacity:1;border-color:rgb(139 195 203 / var(--tw-border-opacity, 1))}.border-\[\#C5DEC8\]{--tw-border-opacity:1;border-color:rgb(197 222 200 / var(--tw-border-opacity, 1))}.border-\[\#F4BD3E\]{--tw-border-opacity:1;border-color:rgb(244 189 62 / var(--tw-border-opacity, 1))}.border-\[\#2C5E34\]{--tw-border-opacity:1;border-color:rgb(44 94 52 / var(--tw-border-opacity, 1))}.border-\[\#E3EDE4\]{--tw-border-opacity:1;border-color:rgb(227 237 228 / var(--tw-border-opacity, 1))}.bg-\[\#2C5E34\]{--tw-bg-opacity:1;background-color:rgb(44 94 52 / var(--tw-bg-opacity, 1))}.bg-\[\#3D7A47\]{--tw-bg-opacity:1;background-color:rgb(61 122 71 / var(--tw-bg-opacity, 1))}.bg-\[\#BAE6FD\]{--tw-bg-opacity:1;background-color:rgb(186 230 253 / var(--tw-bg-opacity, 1))}.bg-\[\#BBF7D0\]{--tw-bg-opacity:1;background-color:rgb(187 247 208 / var(--tw-bg-opacity, 1))}.bg-\[\#E4EFE5\]{--tw-bg-opacity:1;background-color:rgb(228 239 229 / var(--tw-bg-opacity, 1))}.bg-\[\#E53E3E\]{--tw-bg-opacity:1;background-color:rgb(229 62 62 / var(--tw-bg-opacity, 1))}.bg-\[\#EEF6EE\]{--tw-bg-opacity:1;background-color:rgb(238 246 238 / var(--tw-bg-opacity, 1))}.bg-\[\#F4BD3E\]{--tw-bg-opacity:1;background-color:rgb(244 189 62 / var(--tw-bg-opacity, 1))}.bg-\[\#F4F8F4\]{--tw-bg-opacity:1;background-color:rgb(244 248 244 / var(--tw-bg-opacity, 1))}.bg-\[\#FCFDFB\]{--tw-bg-opacity:1;background-color:rgb(252 253 251 / var(--tw-bg-opacity, 1))}.bg-\[\#FDE68A\]{--tw-bg-opacity:1;background-color:rgb(253 230 138 / var(--tw-bg-opacity, 1))}.bg-black\/45{background-color:rgb(0 0 0 / 0.45)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-\[\#E6F4F6\]{--tw-bg-opacity:1;background-color:rgb(230 244 246 / var(--tw-bg-opacity, 1))}.bg-\[\#F4F9F4\]{--tw-bg-opacity:1;background-color:rgb(244 249 244 / var(--tw-bg-opacity, 1))}.bg-\[\#F7FAF7\]{--tw-bg-opacity:1;background-color:rgb(247 250 247 / var(--tw-bg-opacity, 1))}.bg-\[\#FDECEC\]{--tw-bg-opacity:1;background-color:rgb(253 236 236 / var(--tw-bg-opacity, 1))}.bg-\[\#FEF5DC\]{--tw-bg-opacity:1;background-color:rgb(254 245 220 / var(--tw-bg-opacity, 1))}.bg-transparent{background-color:transparent}.bg-white\/85{background-color:rgb(255 255 255 / 0.85)}.p-1{padding:0.25rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.px-0\.5{padding-left:0.125rem;padding-right:0.125rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.py-0{padding-top:0px;padding-bottom:0px}.pl-3\.5{padding-left:0.875rem}.pr-8{padding-right:2rem}.pt-1{padding-top:0.25rem}.pt-2{padding-top:0.5rem}.text-center{text-align:center}.text-right{text-align:right}.align-top{vertical-align:top}.align-middle{vertical-align:middle}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-\[14px\]{font-size:14px}.text-\[16px\]{font-size:16px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[10px\]{font-size:10px}.text-\[12px\]{font-size:12px}.text-\[13px\]{font-size:13px}.font-black{font-weight:900}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-extrabold{font-weight:800}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-\[1\.06\]{line-height:1.06}.leading-\[31px\]{line-height:31px}.leading-normal{line-height:1.5}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-widest{letter-spacing:0.1em}.tracking-normal{letter-spacing:0em}.tracking-wide{letter-spacing:0.025em}.text-\[\#1E3323\]{--tw-text-opacity:1;color:rgb(30 51 35 / var(--tw-text-opacity, 1))}.text-\[\#2C5E34\]{--tw-text-opacity:1;color:rgb(44 94 52 / var(--tw-text-opacity, 1))}.text-\[\#3D7A47\]{--tw-text-opacity:1;color:rgb(61 122 71 / var(--tw-text-opacity, 1))}.text-\[\#4A6650\]{--tw-text-opacity:1;color:rgb(74 102 80 / var(--tw-text-opacity, 1))}.text-\[\#6C8570\]{--tw-text-opacity:1;color:rgb(108 133 112 / var(--tw-text-opacity, 1))}.text-\[\#FEF5DC\]{--tw-text-opacity:1;color:rgb(254 245 220 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-white\/80{color:rgb(255 255 255 / 0.8)}.text-\[\#1E5B70\]{--tw-text-opacity:1;color:rgb(30 91 112 / var(--tw-text-opacity, 1))}.text-\[\#23626E\]{--tw-text-opacity:1;color:rgb(35 98 110 / var(--tw-text-opacity, 1))}.text-\[\#2B5D82\]{--tw-text-opacity:1;color:rgb(43 93 130 / var(--tw-text-opacity, 1))}.text-\[\#5C7260\]\/60{color:rgb(92 114 96 / 0.6)}.text-\[\#8BB591\]{--tw-text-opacity:1;color:rgb(139 181 145 / var(--tw-text-opacity, 1))}.text-\[\#9A6700\]{--tw-text-opacity:1;color:rgb(154 103 0 / var(--tw-text-opacity, 1))}.text-\[\#B83232\]{--tw-text-opacity:1;color:rgb(184 50 50 / var(--tw-text-opacity, 1))}.text-\[\#C53030\]{--tw-text-opacity:1;color:rgb(197 48 48 / var(--tw-text-opacity, 1))}.text-\[\#C83E6B\]{--tw-text-opacity:1;color:rgb(200 62 107 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.opacity-0{opacity:0}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.backdrop-blur-\[1px\]{--tw-backdrop-blur:blur(1px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.last\:border-b-0:last-child{border-bottom-width:0px}.hover\:border-\[\#3D7A47\]:hover{--tw-border-opacity:1;border-color:rgb(61 122 71 / var(--tw-border-opacity, 1))}.hover\:bg-\[\#3D7A47\]:hover{--tw-bg-opacity:1;background-color:rgb(61 122 71 / var(--tw-bg-opacity, 1))}.hover\:bg-\[\#EEF6EE\]:hover{--tw-bg-opacity:1;background-color:rgb(238 246 238 / var(--tw-bg-opacity, 1))}.hover\:bg-\[\#dcecdc\]:hover{--tw-bg-opacity:1;background-color:rgb(220 236 220 / var(--tw-bg-opacity, 1))}.hover\:bg-\[\#eab02b\]:hover{--tw-bg-opacity:1;background-color:rgb(234 176 43 / var(--tw-bg-opacity, 1))}.hover\:bg-\[\#D3ECF0\]:hover{--tw-bg-opacity:1;background-color:rgb(211 236 240 / var(--tw-bg-opacity, 1))}.hover\:bg-\[\#DCECDC\]:hover{--tw-bg-opacity:1;background-color:rgb(220 236 220 / var(--tw-bg-opacity, 1))}.hover\:bg-white:hover{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/70:hover{background-color:rgb(255 255 255 / 0.7)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-\[\#3D7A47\]:focus{--tw-border-opacity:1;border-color:rgb(61 122 71 / var(--tw-border-opacity, 1))}.focus\:bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-1:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-\[\#3D7A47\]\/30:focus{--tw-ring-color:rgb(61 122 71 / 0.3)}.focus\:ring-\[\#3D7A47\]:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(61 122 71 / var(--tw-ring-opacity, 1))}@media (min-width: 640px){.sm\:gap-3{gap:0.75rem}.sm\:px-5{padding-left:1.25rem;padding-right:1.25rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xs{font-size:0.75rem;line-height:1rem}}</style></head>
 <body class="min-h-screen flex flex-col">
@@ -255,7 +305,7 @@
         </span>
 
         <!-- Super User Settings Gear Button -->
-        <button type="button" onclick="toggleSuperUserModal(true)" title="Super User 管理設定"
+        <button id="roster-settings-button" hidden type="button" onclick="toggleSuperUserModal(true)" title="管理設定"
           class="w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -284,6 +334,7 @@
         </div>
       </div>
 
+      <button type="button" class="roster-search-button" onclick="openRosterSearch()">搜尋</button>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
       </div>
@@ -294,7 +345,7 @@
   <!-- DESKTOP SPREADSHEET ROSTER                                            -->
   <!-- ===================================================================== -->
   <main id="desktop-table-section" class="w-full flex-1">
-    <div class="w-full overflow-x-auto bg-[#FCFDFB]">
+    <div id="roster-scroll" class="bg-[#FCFDFB]" tabindex="0" aria-label="可上下左右捲動的服事表">
       <table class="roster-table">
         <colgroup>
           <col style="width: 15.3%; min-width: 188px;" /> <!-- 當週活動 -->
@@ -335,18 +386,16 @@
             <th class="sticky-header-top bg-[#3D7A47] py-1">值班</th>
           </tr>
           <tr class="bg-[#EEF6EE] text-[#2C5E34] text-center text-xs font-bold h-[26px]">
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5 text-[#6C8570]">—</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">佳珍</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5 text-[#6C8570]">—</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">琮玲</th>
-            <th colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">品頤</th>
-            <th colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">振隆</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">翊婕</th>
-            <th colspan="4" class="sticky-header-sub bg-[#EEF6EE] py-0.5">惠玲</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
-            <th class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">佳珍</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">琮玲</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">品頤</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">振隆</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">翊婕</th>
+            <th data-roster-leader colspan="4" class="sticky-header-sub bg-[#EEF6EE] py-0.5">惠玲</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
           </tr>
         </thead>
         <tbody id="roster-tbody" class="bg-[#FCFDFB]"></tbody>
@@ -359,29 +408,6 @@
   <!-- ===================================================================== -->
   <section id="mobile-cards-section" class="w-full px-3.5 py-4 pb-12">
     <div class="max-w-xl mx-auto space-y-4">
-      <!-- Material 3 / iOS Elevated Filter Card -->
-      <div class="bg-white rounded-3xl p-4 shadow-sm border border-[#D4E4D6] space-y-3">
-        <div class="flex items-center justify-between">
-          <label for="mobile-select-member" class="text-[17px] font-black text-[#1E3323] flex items-center gap-2">
-            <span class="w-2.5 h-6 rounded-full bg-[#3D7A47] inline-block"></span>
-            <span>查詢我的服事</span>
-          </label>
-          <span class="text-[15px] font-bold text-[#3D7A47] bg-[#EEF6EE] px-3 py-1 rounded-full">長輩大字版</span>
-        </div>
-
-        <div class="relative">
-          <select id="mobile-select-member" onchange="setMobileMemberFilter(this.value)" class="w-full appearance-none bg-[#F4F8F4] text-[#1E3323] text-[18px] font-black rounded-2xl pl-4 pr-11 py-3.5 border-2 border-[#3D7A47] focus:outline-none focus:bg-white transition-colors">
-            <option value="ALL">👥 顯示全部同工服事</option>
-          </select>
-          <svg class="w-6 h-6 text-[#3D7A47] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
-
-        <!-- Quick Tap Chips for Frequent Co-workers (Touch Target >= 48px) -->
-        <div id="mobile-quick-chips" class="flex flex-wrap gap-2 pt-0.5"></div>
-      </div>
-
       <!-- Weekly Cards Feed -->
       <div id="mobile-cards-list" class="space-y-5"></div>
     </div>
@@ -391,10 +417,10 @@
   <!-- SUPER USER SETTINGS MODAL (TRIGGERED BY TOP-RIGHT GEAR ICON)          -->
   <!-- ===================================================================== -->
   <div id="superuser-modal" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-[1px] flex items-center justify-center p-4">
-    <div class="bg-[#FCFDFB] w-full max-w-md rounded-2xl border-2 border-[#3D7A47] shadow-2xl overflow-hidden">
+    <div class="bg-[#FCFDFB] w-full max-w-md rounded-2xl border-2 border-[#3D7A47] shadow-2xl roster-manager-panel">
       <div class="bg-[#3D7A47] text-white px-5 py-3.5 flex items-center justify-between">
         <div class="flex items-center gap-2 font-black text-lg">
-          <span>⚙️ Super User 管理設定</span>
+          <span>⚙️ 管理設定</span>
         </div>
         <button type="button" onclick="toggleSuperUserModal(false)" class="text-white/80 hover:text-white text-xl font-bold leading-none">
           ✕
@@ -421,13 +447,36 @@
           <input id="input-header-remark" type="text" value="*師母講道時間確認後要 email 通知心怡。" oninput="updateHeaderRemark(this.value)" class="w-full px-3 py-2 rounded-xl border border-[#C5DEC8] focus:border-[#3D7A47] focus:outline-none font-medium text-[#1E3323]">
         </div>
 
-        <!-- 3. Excel Paste Tip & HTML Export -->
-        <div class="bg-[#EEF6EE] p-3.5 rounded-xl border border-[#C5DEC8] space-y-1.5 text-xs text-[#2C5E34]">
-          <div class="font-black">📋 Google Sheets / Excel 矩形框選複製貼上：</div>
-          <p class="leading-relaxed">
-            可用滑鼠拖曳（或按住 <strong>Shift + 點擊</strong>）選取<strong>矩形多格範圍</strong>，跨過「一樓／車牌／直書標籤」等固定欄位時會自動跳過不影響原有標籤。按 <strong>Ctrl+C</strong> 複製、<strong>Ctrl+V</strong> 貼上即可。
-          </p>
-        </div>
+        <details class="roster-settings-block">
+          <summary>表頭與負責人</summary>
+          <form id="roster-leader-settings" hidden>
+            <details><summary>欄位標題</summary><div id="roster-heading-settings"></div></details>
+            <p class="roster-settings-note">負責人</p>
+            <label>敬拜／樂手<input maxlength="20"></label>
+            <label>投影片／音控<input maxlength="20"></label>
+            <label>攝影<input maxlength="20"></label>
+            <label>招待<input maxlength="20"></label>
+            <label>愛宴<input maxlength="20"></label>
+            <label>接送<input maxlength="20"></label>
+            <label>點名<input maxlength="20"></label>
+            <label>交誼廳<input maxlength="20"></label>
+            <label>體操<input maxlength="20"></label>
+            <label>值班<input maxlength="20"></label>
+            <button type="submit">儲存表頭與負責人</button>
+          </form>
+        </details>
+        <details class="roster-settings-block">
+          <summary>休會、出遊與特別活動</summary>
+          <form id="roster-calendar-form" hidden>
+            <label>日期<input type="date" name="date" required></label>
+            <label>類型<select name="type"><option value="pause">休會</option><option value="outing">出遊</option><option value="special">特別活動</option></select></label>
+            <label>原因或活動名稱<input name="label" maxlength="100" required></label>
+            <p id="roster-calendar-error" role="alert"></p>
+            <button type="submit">儲存活動</button>
+          </form>
+          <ul id="roster-calendar-list"></ul>
+          <p class="roster-settings-note">活動與負責人設定先保存在此瀏覽器。可下載 HTML 備份。</p>
+        </details>
 
         <div class="pt-1 flex items-center justify-between gap-3">
           <button type="button" onclick="downloadSelfHtml()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#F4BD3E] hover:bg-[#eab02b] text-[#1E3323] font-black shadow-xs transition-colors flex items-center justify-center gap-1.5">
@@ -441,6 +490,23 @@
     </div>
   </div>
 
+  <dialog id="roster-search" aria-labelledby="roster-search-title">
+    <header class="roster-search-header">
+      <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
+      <button type="button" id="roster-search-close" aria-label="關閉搜尋">關閉</button>
+    </header>
+    <form id="roster-search-form">
+      <label>姓名<input name="member" type="search" placeholder="輸入姓名，可找近音或錯字" autocomplete="off"></label>
+      <label>服事項目<select name="role"><option value="">全部服事項目</option></select></label>
+      <div class="roster-search-dates">
+        <label>開始日期<input name="from" type="date"></label>
+        <label>結束日期<input name="to" type="date"></label>
+      </div>
+      <button type="submit">搜尋</button>
+    </form>
+    <div id="roster-search-results" aria-live="polite"></div>
+  </dialog>
+
   <!-- Toast Notification -->
   <div id="toast-box" class="fixed bottom-5 right-5 z-50 transition-all duration-300 pointer-events-none translate-y-24 opacity-0">
     <div class="bg-[#2C5E34] text-white px-4 py-2.5 rounded-xl shadow-lg border border-[#7EB55C] flex items-center gap-2 text-sm font-bold">
@@ -449,6 +515,7 @@
     </div>
   </div>
 
+  <script src="https://clc-sr-portal.pages.dev/js/vendor/pinyin-pro-3.29.5.js"></script>
   <script id="roster-seed-script">
     // =========================================================================
     // 1. MULTI-QUARTER ROSTER STORE (2026 Q4 + 2027 Q1 WITH MONTHLY PRESETS)
@@ -932,7 +999,6 @@
     // Rectangular selection state across the entire 17-column grid (editable + fixed columns)
     let selectionRange = { startR: 0, startC: 12, endR: 0, endC: 12 };
     let isDraggingSelection = false;
-    let mobileFilterMember = 'ALL';
 
     // Exact 17-column mapping matching the 17 body columns (after 當週活動 rowspan="6")
     const GRID_COLS = [
@@ -961,11 +1027,302 @@
       outing: { label: '加樂出遊', cls: 'bg-[#BBF7D0] border-[#7EB55C] text-[#1E3323]' }
     };
 
+    const SEARCH_ROLES = {
+      worship:'敬拜', musician:'樂手', slides:'投影片', sound:'音控', photo:'攝影',
+      usher:'招待', meal:'愛宴', shuttle:'接送', rollcall:'點名', loungeReception:'交誼廳接待',
+      loungeBP:'量血壓', exercise:'體操', duty:'值班'
+    };
+    const CALENDAR_LABELS = { pause:'休會', outing:'出遊', special:'特別活動' };
+    const CALENDAR_KEY = 'clc-sr-roster-calendar-v1';
+    const titleElements = [...document.querySelectorAll('.roster-table thead tr:first-child th')]
+      .map(cell => cell.querySelector('div') || cell);
+    const defaultTitles = ['當週活動','敬拜','樂手','投影片','音控','攝影','招待','愛宴','接送','點名','交誼廳','體操','值班'];
+    const headingInputs = defaultTitles.map(title => {
+      const row = document.createElement('label');
+      const input = document.createElement('input');
+      input.maxLength = 20;
+      row.append(title,input);
+      document.getElementById('roster-heading-settings').append(row);
+      return input;
+    });
+    const DEFAULT_LEADERS = ['夢凌','佳珍','琮玲','培榮','品頤','振隆','翊婕','惠玲','夢凌','培榮'];
+    let localRosterSettings = {};
+    try { localRosterSettings = JSON.parse(localStorage.getItem(CALENDAR_KEY)) || {}; } catch (_) {}
+    const quarter = () => quarterStore[currentQuarterKey];
+    const canManageRoster = () => window.isSuperuser === true;
+    const calendar = () => localRosterSettings[currentQuarterKey]?.calendar ?? quarter().calendar ?? (
+      currentQuarterKey === '2027-Q1' ? [{date:'2027-02-04',type:'pause',label:'農曆春節休會'}] : []
+    );
+    const leaders = () => localRosterSettings[currentQuarterKey]?.leaders ?? quarter().leaders ?? DEFAULT_LEADERS;
+    const titles = () => localRosterSettings[currentQuarterKey]?.titles ?? quarter().titles ?? defaultTitles;
+
+    function isoWeek(week) {
+      const match = /^(\d{1,2})月\s*(\d{1,2})日$/.exec(week.date.trim());
+      return match ? quarter().year+'-'+match[1].padStart(2,'0')+'-'+match[2].padStart(2,'0') : '';
+    }
+    function displayDate(iso) {
+      return Number(iso.slice(5,7))+'月'+Number(iso.slice(8))+'日';
+    }
+    function weekOverride(week) {
+      return calendar().find(entry => entry.date === isoWeek(week) && entry.type !== 'special');
+    }
+    function rosterSchedule() {
+      const entries = getActiveWeeks().map(item => ({
+        ...item,date:isoWeek(item.week),month:item.week.month,announcement:weekOverride(item.week)
+      }));
+      for (const entry of calendar()) {
+        const month = Number(entry.date.slice(5,7));
+        if (entry.type === 'special' && (selectedMonthFilter === 'ALL' || Number(selectedMonthFilter) === month)) {
+          entries.push({date:entry.date,month,announcement:entry});
+        }
+      }
+      return entries.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+    }
+
+    function renderDesktopAnnouncement(item, monthEnd) {
+      const row = document.createElement('tr');
+      row.className = 'roster-announcement '+item.announcement.type+' '+(monthEnd ? 'month-divider' : 'week-divider');
+      const date = row.insertCell();
+      date.className = 'sticky-col-left';
+      date.textContent = displayDate(item.date);
+      const label = row.insertCell();
+      label.colSpan = GRID_COLS.length;
+      label.textContent = CALENDAR_LABELS[item.announcement.type]+'　'+item.announcement.label;
+      return row;
+    }
+    function renderMobileAnnouncement(item) {
+      const card = document.createElement('div');
+      card.className = 'roster-announcement mobile-announcement '+item.announcement.type;
+      card.textContent = displayDate(item.date)+'　'+CALENDAR_LABELS[item.announcement.type]+'　'+item.announcement.label;
+      return card;
+    }
+
+    function saveRosterSetting(patch) {
+      localRosterSettings[currentQuarterKey] = { ...(localRosterSettings[currentQuarterKey] || {}),...patch };
+      try {
+        localStorage.setItem(CALENDAR_KEY,JSON.stringify(localRosterSettings));
+        return '已儲存在此瀏覽器';
+      } catch (_) { return '已套用到目前頁面'; }
+    }
+
+    const calendarForm = document.getElementById('roster-calendar-form');
+    const calendarList = document.getElementById('roster-calendar-list');
+    function renderRosterSettings() {
+      const granted = canManageRoster();
+      document.getElementById('roster-settings-button').hidden = !granted;
+      document.getElementById('roster-leader-settings').hidden = !granted;
+      calendarForm.hidden = !granted;
+      calendarList.replaceChildren();
+      document.querySelectorAll('[data-roster-leader]').forEach((cell,index) => {
+        cell.textContent = leaders()[index] || '—';
+      });
+      titleElements.forEach((element,index) => { element.textContent = titles()[index] || defaultTitles[index]; });
+      if (!granted) return;
+      headingInputs.forEach((input,index) => { input.value = titles()[index] || defaultTitles[index]; });
+      const date = calendarForm.elements.date;
+      const months = quarter().months;
+      const firstMonth = Number(months[0]);
+      const lastMonth = Number(months[months.length-1]);
+      date.min = quarter().year+'-'+String(firstMonth).padStart(2,'0')+'-01';
+      date.max = new Date(Date.UTC(quarter().year,lastMonth,0)).toISOString().slice(0,10);
+      date.value = '';
+      calendarForm.elements.label.value = '';
+      renderCalendarList();
+      document.querySelectorAll('#roster-leader-settings > label input').forEach((input,index) => {
+        input.value = leaders()[index] || '';
+      });
+    }
+
+    function renderCalendarList() {
+      calendarList.replaceChildren();
+      const ordered = [...calendar()].sort((a,b) => a.date.localeCompare(b.date));
+      for (const entry of ordered) {
+        const row = document.createElement('li');
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.textContent = displayDate(entry.date)+'　'+CALENDAR_LABELS[entry.type]+'　'+entry.label;
+        edit.onclick = () => {
+          if (!canManageRoster()) return;
+          calendarForm.elements.date.value = entry.date;
+          calendarForm.elements.type.value = entry.type;
+          calendarForm.elements.label.value = entry.label;
+          calendarForm.elements.label.focus();
+        };
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = entry.type === 'special' ? '移除' : '恢復聚會';
+        remove.onclick = () => {
+          if (!canManageRoster()) return;
+          updateCalendar(calendar().filter(item => item !== entry));
+        };
+        row.append(edit,remove);
+        calendarList.append(row);
+      }
+    }
+    function updateCalendar(entries) {
+      const status = saveRosterSetting({calendar:entries});
+      selectionRange = {startR:0,startC:0,endR:0,endC:0};
+      updateQuarterHeaderAndTabs();
+      renderDesktopTable();
+      renderMobileCards();
+      renderCalendarList();
+      showToast(status);
+    }
+    calendarForm.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!canManageRoster()) return;
+      const date = calendarForm.elements.date.value;
+      const type = calendarForm.elements.type.value;
+      const label = calendarForm.elements.label.value.trim();
+      if (!label || !date || !calendarForm.checkValidity()) return;
+      if (type !== 'special' && !quarter().weeks.some(week => isoWeek(week) === date)) {
+        document.getElementById('roster-calendar-error').textContent = '休會或出遊請選目前班表已有的聚會日期。其他日期可選「特別活動」。';
+        return;
+      }
+      document.getElementById('roster-calendar-error').textContent = '';
+      const entries = calendar().filter(item => item.date !== date || (item.type === 'special') !== (type === 'special'));
+      updateCalendar([...entries,{date,type,label}]);
+      calendarForm.reset();
+    });
+    document.getElementById('roster-leader-settings').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!canManageRoster()) return;
+      const names = Array.from(event.currentTarget.querySelectorAll(':scope > label input'),input => input.value.trim());
+      const headingNames = headingInputs.map((input,index) => input.value.trim() || defaultTitles[index]);
+      showToast(saveRosterSetting({leaders:names,titles:headingNames}));
+      renderRosterSettings();
+    });
+
+    const searchDialog = document.getElementById('roster-search');
+    const searchForm = document.getElementById('roster-search-form');
+    const searchResults = document.getElementById('roster-search-results');
+    const searchRoles = searchForm.elements.role;
+    Object.entries(SEARCH_ROLES).forEach(([value,text]) => searchRoles.add(new Option(text,value)));
+    const nameSoundCache = new Map();
+
+    function nameKey(value) { return value.normalize('NFKC').replace(/\s+/g,'').toLowerCase(); }
+    function nameSounds(value) {
+      if (!window.pinyinPro) return [];
+      if (nameSoundCache.has(value)) return nameSoundCache.get(value);
+      const result = window.pinyinPro.pinyin(value,{toneType:'none',type:'array',nonZh:'consecutive'});
+      nameSoundCache.set(value,result);
+      return result;
+    }
+    function nearSound(value) {
+      return value.replace(/^([zcs])h/,'$1').replace(/^[nl]/,'l').replace(/ng$/,'n');
+    }
+    function differsOnce(a,b) {
+      if (Math.abs(a.length-b.length) > 1) return false;
+      if (a.length > b.length) return differsOnce(b,a);
+      let i = 0;
+      while (i < a.length && a[i] === b[i]) i++;
+      if (a.length === b.length) return a.slice(i+1).join('') === b.slice(i+1).join('');
+      return a.slice(i).join('') === b.slice(i+1).join('');
+    }
+    function nameScore(term, name) {
+      const query = nameKey(term), known = nameKey(name);
+      if (known === query) return 0;
+      if (known.includes(query)) return 1;
+      if (query.length < 2) return Infinity;
+      const left = nameSounds(query), right = nameSounds(known);
+      if (left.length && right.length && left.join('') === right.join('')) return 2;
+      if (left.length && right.length && left.map(nearSound).join('') === right.map(nearSound).join('')) return 3;
+      if (query.length >= 3 && differsOnce([...query],[...known])) return 4;
+      return Infinity;
+    }
+    function assignments() {
+      return quarter().weeks.flatMap(week => {
+        const date = isoWeek(week);
+        if (!date || weekOverride(week)) return [];
+        return Object.keys(SEARCH_ROLES).flatMap(role => (week[role] || []).flatMap(value => {
+          const name = value.trim();
+          return !name || /^[（(]/.test(name) || ['讚美操','健康操'].includes(name) ? [] : [{date,role,name}];
+        }));
+      });
+    }
+    function renderSearch(name, entries) {
+      searchResults.replaceChildren();
+      if (!entries.length) {
+        searchResults.textContent = '這個範圍內沒有符合的服事。';
+        return;
+      }
+      if (name) {
+        const heading = document.createElement('h3');
+        heading.textContent = name+'的服事';
+        searchResults.append(heading);
+      }
+      const groups = new Map();
+      for (const entry of entries) {
+        if (!groups.has(entry.date)) groups.set(entry.date,new Map());
+        const roles = groups.get(entry.date);
+        if (!roles.has(entry.role)) roles.set(entry.role,new Set());
+        roles.get(entry.role).add(entry.name);
+      }
+      for (const [date,roles] of [...groups].sort(([a],[b]) => a.localeCompare(b))) {
+        const section = document.createElement('section');
+        const headline = document.createElement('h4');
+        headline.textContent = displayDate(date);
+        const list = document.createElement('ul');
+        for (const [role,names] of roles) {
+          const li = document.createElement('li');
+          li.textContent = SEARCH_ROLES[role]+(name ? '' : '　'+[...names].join('、'));
+          list.append(li);
+        }
+        section.append(headline,list);
+        searchResults.append(section);
+      }
+    }
+    function runRosterSearch() {
+      const term = searchForm.elements.member.value.trim();
+      const role = searchRoles.value;
+      const from = searchForm.elements.from.value, to = searchForm.elements.to.value;
+      if (from && to && from > to) {
+        searchResults.textContent = '開始日期需早於或等於結束日期。';
+        return;
+      }
+      if (!term && !role && !from && !to) {
+        searchResults.textContent = '請輸入姓名、選擇服事項目或日期區間。';
+        return;
+      }
+      const data = assignments().filter(item => (!role || item.role === role) &&
+        (!from || item.date >= from) && (!to || item.date <= to));
+      if (!term) { renderSearch('',data); return; }
+      const candidates = [...new Set(data.map(item => item.name))]
+        .map(name => ({name,score:nameScore(term,name)})).filter(item => Number.isFinite(item.score))
+        .sort((a,b) => a.score-b.score || a.name.localeCompare(b.name,'zh-Hant'));
+      if (candidates.length === 0) { renderSearch('',[]); return; }
+      if (candidates.length === 1 || candidates[0].score === 0) {
+        const name = candidates[0].name;
+        renderSearch(name,data.filter(item => item.name === name));
+        return;
+      }
+      searchResults.textContent = '找到以下可能的姓名，請選擇一位：';
+      const choices = document.createElement('div');
+      choices.className = 'roster-search-choices';
+      for (const {name} of candidates) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = name;
+        button.onclick = () => renderSearch(name,data.filter(item => item.name === name));
+        choices.append(button);
+      }
+      searchResults.append(choices);
+    }
+    function openRosterSearch() {
+      searchResults.replaceChildren();
+      searchForm.reset();
+      document.getElementById('roster-search-quarter').textContent = quarter().year+' 年 '+quarter().title;
+      searchDialog.showModal();
+    }
+    searchForm.addEventListener('submit', event => { event.preventDefault(); runRosterSearch(); });
+    document.getElementById('roster-search-close').onclick = () => searchDialog.close();
+
     // =========================================================================
     // 2. QUARTER & MONTH NAVIGATION LOGIC
     // =========================================================================
     function switchQuarter(qKey) {
       currentQuarterKey = qKey;
+      renderRosterSettings();
       selectedMonthFilter = 'ALL';
       selectionRange = { startR: 0, startC: 0, endR: 0, endC: 0 };
       updateQuarterHeaderAndTabs();
@@ -1026,7 +1383,7 @@
 
       tabsContainer.innerHTML = html;
 
-      const activeWeeks = getActiveWeeks();
+      const activeWeeks = rosterSchedule().filter(item => !item.announcement);
       document.getElementById('week-count-badge').textContent = `共 ${activeWeeks.length} 週聚會`;
     }
 
@@ -1057,11 +1414,17 @@
       tbody.innerHTML = '';
       const weekCells = [];
 
-      const visibleItems = getActiveWeeks();
-
-      visibleItems.forEach(({ week, realIdx }, displayIdx) => {
-        const nextItem = visibleItems[displayIdx + 1];
-        const isMonthEnd = nextItem && nextItem.week.month !== week.month;
+      const visibleItems = rosterSchedule();
+      let gridWeekIndex = 0;
+      visibleItems.forEach((item, index) => {
+        const nextItem = visibleItems[index + 1];
+        const isMonthEnd = nextItem && nextItem.month !== item.month;
+        if (item.announcement) {
+          tbody.append(renderDesktopAnnouncement(item,isMonthEnd));
+          return;
+        }
+        const {week,realIdx} = item;
+        const displayIdx = gridWeekIndex++;
         const spStyle = SPEAKER_STYLES[week.speakerType] || SPEAKER_STYLES.church;
         const hasSpeaker = Boolean((week.speaker || '').trim());
         let activityCell;
@@ -1090,14 +1453,14 @@
               const colorCfg = EVENT_COLORS[ev.color] || EVENT_COLORS.red;
               return `
                 <div class="group/ev desktop-event-row leading-tight">
-                  <button type="button" onclick="cycleEventColor(${realIdx}, ${evIdx})"
+                  <button type="button" ${canManageRoster() ? '' : 'disabled'} onclick="cycleEventColor(${realIdx}, ${evIdx})"
                     title="點擊切換文字顏色（${colorCfg.label}）"
                     class="w-1.5 h-1.5 rounded-full ${colorCfg.dot} shrink-0 opacity-75 hover:opacity-100 hover:scale-125 transition-all"></button>
-                  <div contenteditable="true"
+                  <div contenteditable="${canManageRoster()}"
                     data-placeholder="輸入活動..."
                     onblur="updateEventItem(${realIdx}, ${evIdx}, this.innerText)"
                     class="editable-cell desktop-event-text text-[12px] ${colorCfg.cls} px-0.5 py-0 rounded leading-tight min-h-[15px]">${escapeHtml(ev.text)}</div>
-                  <button type="button" onclick="removeEventItem(${realIdx}, ${evIdx})"
+                  <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="removeEventItem(${realIdx}, ${evIdx})"
                     title="刪除此列"
                     class="desktop-event-action opacity-0 group-hover/ev:opacity-100 text-[11px] font-bold text-[#6C8570] hover:text-[#C53030] transition-opacity">×</button>
                 </div>
@@ -1110,7 +1473,7 @@
                 <div class="space-y-1">
                   <!-- Line 1: Month & Day -->
                   <div>
-                    <span contenteditable="true"
+                    <span contenteditable="${canManageRoster()}"
                       onblur="updateActivityField(${realIdx}, 'date', this.innerText)"
                       class="editable-cell inline-block text-[16px] font-black text-[#2C5E34] px-1 rounded leading-tight">${escapeHtml(week.date)}</span>
                   </div>
@@ -1118,13 +1481,13 @@
                   <!-- Line 2: Speaker -->
                   <div>
                     <div class="inline-flex items-center max-w-full rounded-lg border-2 px-1.5 py-0 shadow-2xs ${spStyle.cls}">
-                      <span contenteditable="true"
+                      <span contenteditable="${canManageRoster()}"
                         data-placeholder="輸入講員..."
                         onblur="updateActivityField(${realIdx}, 'speaker', this.innerText)"
                         class="editable-cell text-[16px] font-extrabold tracking-wide px-0.5 rounded leading-tight min-w-[74px] ${
                           hasSpeaker ? '' : 'text-[#5C7260]/60'
                         }">${hasSpeaker ? escapeHtml(week.speaker) : '輸入講員'}</span>
-                      <button type="button" onclick="cycleSpeakerType(${realIdx})"
+                      <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="cycleSpeakerType(${realIdx})"
                         title="切換講員分類底色（${spStyle.label}）"
                         class="ml-1 w-4 h-4 rounded-full bg-white/85 hover:bg-white border border-[#3D7A47]/40 flex items-center justify-center text-[10px] font-black text-[#2C5E34] shrink-0">
                         ↻
@@ -1133,7 +1496,7 @@
                   </div>
 
                   <!-- Line 3: Topic -->
-                  <div contenteditable="true"
+                  <div contenteditable="${canManageRoster()}"
                     onblur="updateActivityField(${realIdx}, 'topic', this.innerText)"
                     class="editable-cell text-[13px] font-bold text-[#2B5D82] leading-snug px-1 rounded min-h-[18px]">${escapeHtml(week.topic)}</div>
                 </div>
@@ -1143,7 +1506,7 @@
                   <div class="space-y-0.5">
                     ${eventsHtml}
                   </div>
-                  <button type="button" onclick="addEventItemUpward(${realIdx})"
+                  <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="addEventItemUpward(${realIdx})"
                     title="新增特別事件（從最底下往上疊加）"
                     class="desktop-event-action desktop-event-add text-[#3D7A47] hover:text-[#1E3323] text-xs font-black transition-colors">
                     +
@@ -1458,7 +1821,7 @@
       const colSpec = GRID_COLS[gridCol];
       if (!colSpec || colSpec.type !== 'editable') return null;
 
-      const visibleItems = getActiveWeeks();
+      const visibleItems = rosterSchedule().filter(item => !item.announcement);
       const displayIdx = Math.floor(globalRow / 6);
       const rowInWeek = globalRow % 6;
       if (displayIdx < 0 || displayIdx >= visibleItems.length) return null;
@@ -1628,6 +1991,8 @@
     // 5. SUPER USER SETTINGS & HTML EXPORT
     // =========================================================================
     function toggleSuperUserModal(show) {
+      if (show && !canManageRoster()) return;
+      if (show) renderRosterSettings();
       const modal = document.getElementById('superuser-modal');
       if (show) {
         modal.classList.remove('hidden');
@@ -1667,9 +2032,12 @@
       const scriptEl = clonedDoc.querySelector('#roster-seed-script');
       if (scriptEl) {
         let code = scriptEl.textContent;
+        const exported = Object.fromEntries(Object.entries(quarterStore).map(([key,value]) => [
+          key,{...value,...(localRosterSettings[key] || {})}
+        ]));
         code = code.replace(
           /const INITIAL_QUARTER_STORE = \{[\s\S]*?\n    \};/,
-          `const INITIAL_QUARTER_STORE = ${JSON.stringify(quarterStore, null, 6)};`
+          () => `const INITIAL_QUARTER_STORE = ${JSON.stringify(exported, null, 6).replace(/</g, '\\u003c')};`
         );
         code = code.replace(
           /let currentQuarterKey = '.*?';/,
@@ -1700,6 +2068,7 @@
     // 6. INTERACTIVE FIELD EDITING HELPERS
     // =========================================================================
     function cycleSpeakerType(weekIdx) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       const order = ['church', 'external', 'outing'];
       const curr = weeks[weekIdx].speakerType || 'church';
@@ -1718,6 +2087,7 @@
     }
 
     function updateActivityField(weekIdx, field, val) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       const cleaned = val.trim();
       weeks[weekIdx][field] = cleaned === '輸入講員' ? '' : cleaned;
@@ -1732,6 +2102,7 @@
 
     // Bottom-up special event stack helpers (first item at bottom, '+' stacks upward)
     function addEventItemUpward(weekIdx) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       if (!Array.isArray(weeks[weekIdx].events)) {
         weeks[weekIdx].events = [];
@@ -1743,6 +2114,7 @@
     }
 
     function updateEventItem(weekIdx, evIdx, val) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       const cleaned = val.trim();
       if (!cleaned) {
@@ -1755,6 +2127,7 @@
     }
 
     function cycleEventColor(weekIdx, evIdx) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       const curr = weeks[weekIdx].events[evIdx].color || 'red';
       const next = EVENT_COLOR_KEYS[(EVENT_COLOR_KEYS.indexOf(curr) + 1) % EVENT_COLOR_KEYS.length];
@@ -1764,6 +2137,7 @@
     }
 
     function removeEventItem(weekIdx, evIdx) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       weeks[weekIdx].events.splice(evIdx, 1);
       renderDesktopTable();
@@ -1773,66 +2147,20 @@
     // =========================================================================
     // 7. RENDER MODERN iOS HIG / MATERIAL DESIGN 3 MOBILE ELDER CARDS (>= 16PX)
     // =========================================================================
-    function setMobileMemberFilter(member) {
-      mobileFilterMember = member;
-      const sel = document.getElementById('mobile-select-member');
-      if (sel) sel.value = member;
-      renderMobileCards();
-    }
-
-    function populateMobileMemberOptions(visibleItems) {
-      const sel = document.getElementById('mobile-select-member');
-      const chipsBox = document.getElementById('mobile-quick-chips');
-      if (!sel) return;
-
-      const nameSet = new Set();
-      const roleKeys = ['worship', 'musician', 'slides', 'sound', 'photo', 'usher', 'meal', 'shuttle', 'rollcall', 'loungeReception', 'loungeBP', 'exercise', 'duty'];
-      visibleItems.forEach(({ week }) => {
-        roleKeys.forEach(k => {
-          (week[k] || []).forEach(n => {
-            const clean = (n || '').trim();
-            if (clean && !clean.startsWith('(') && clean !== '讚美操' && clean !== '健康操') {
-              nameSet.add(clean);
-            }
-          });
-        });
-      });
-
-      const currentVal = mobileFilterMember;
-      sel.innerHTML = `<option value="ALL">👥 顯示全部同工服事</option>` +
-        Array.from(nameSet).map(name => `<option value="${escapeHtml(name)}" ${currentVal === name ? 'selected' : ''}>👤 只看：${escapeHtml(name)}</option>`).join('');
-
-      if (chipsBox) {
-        const featured = ['ALL', '李夢凌', '佳珍', '黎家玲', '方翌靜', '黃惠珍', '游信義', '陳文泉'].filter(
-          n => n === 'ALL' || nameSet.has(n)
-        );
-        chipsBox.innerHTML = featured.map(name => {
-          const active = mobileFilterMember === name;
-          return `
-            <button type="button" onclick="setMobileMemberFilter('${escapeHtml(name)}')"
-              class="min-h-[40px] px-3.5 py-1.5 rounded-full text-[16px] font-bold transition-all ${
-                active
-                  ? 'bg-[#3D7A47] text-white shadow-xs'
-                  : 'bg-[#F4F8F4] text-[#2C5E34] border border-[#C5DEC8] active:scale-95'
-              }">
-              ${name === 'ALL' ? '全部' : escapeHtml(name)}
-            </button>
-          `;
-        }).join('');
-      }
-    }
-
     function renderMobileCards() {
       const container = document.getElementById('mobile-cards-list');
       if (!container) return;
       container.innerHTML = '';
 
-      const visibleItems = getActiveWeeks();
-      populateMobileMemberOptions(visibleItems);
-
-      visibleItems.forEach(({ week }, displayIdx) => {
+      const visibleItems = rosterSchedule();
+      visibleItems.forEach((item, displayIdx) => {
+        if (item.announcement) {
+          container.append(renderMobileAnnouncement(item));
+          return;
+        }
+        const {week} = item;
         const prevItem = visibleItems[displayIdx - 1];
-        if (prevItem && prevItem.week.month !== week.month) {
+        if (prevItem && prevItem.month !== week.month) {
           const divider = document.createElement('div');
           divider.className = 'pt-3 pb-1';
           divider.innerHTML = `
@@ -1863,37 +2191,27 @@
           { key: 'duty', label: '值班', icon: '🔔' }
         ];
 
-        let weekHasMatch = mobileFilterMember === 'ALL';
         const roleBlocks = [];
 
         roleDefs.forEach(def => {
           const names = week[def.key] || [];
           const tags = def.tagKey ? (week[def.tagKey] || []) : [];
           const items = [];
-          let hasMatchInRole = false;
 
           names.forEach((rawName, idx) => {
             const name = (rawName || '').trim();
             if (!name) return;
-            const isMatched = mobileFilterMember !== 'ALL' && name.includes(mobileFilterMember);
-            if (isMatched) {
-              hasMatchInRole = true;
-              weekHasMatch = true;
-            }
             items.push({
               name,
               tag: (tags[idx] || '').trim(),
-              isChanged: !!week.changedCells[`${def.key}:${idx}`],
-              isMatched
+              isChanged: !!week.changedCells[`${def.key}:${idx}`]
             });
           });
 
           if (items.length > 0) {
-            roleBlocks.push({ label: def.label, icon: def.icon, items, hasMatchInRole });
+            roleBlocks.push({ label: def.label, icon: def.icon, items });
           }
         });
-
-        if (!weekHasMatch) return;
 
         const spStyle = SPEAKER_STYLES[week.speakerType] || SPEAKER_STYLES.church;
         const eventsList = Array.isArray(week.events) ? week.events : [];
@@ -1920,16 +2238,11 @@
                 if (it.isChanged) {
                   return `<span class="inline-flex items-center flex-wrap bg-[#E53E3E] text-white px-2.5 py-0.5 rounded-xl text-[17px] font-black">${escapeHtml(it.name)}・異動</span>${tagBadge}`;
                 }
-                if (it.isMatched) {
-                  return `<span class="inline-flex items-center flex-wrap bg-[#F4BD3E] text-[#1E3323] px-3 py-0.5 rounded-xl text-[18px] font-black shadow-2xs">★ ${escapeHtml(it.name)}</span>${tagBadge}`;
-                }
                 return `<span class="inline-flex items-center flex-wrap"><span class="text-[18px] font-bold text-[#1E3323]">${escapeHtml(it.name)}</span>${tagBadge}</span>`;
               }).join('<span class="text-[17px] text-[#9BBF9F] mx-1.5">、</span>');
 
               return `
-                <div class="py-3.5 px-4 border-b border-[#EDF3EE] last:border-b-0 flex flex-col gap-1.5 ${
-                  block.hasMatchInRole ? 'bg-[#FEF5DC]/75' : ''
-                }">
+                <div class="py-3.5 px-4 border-b border-[#EDF3EE] last:border-b-0 flex flex-col gap-1.5">
                   <div class="flex items-center gap-2 text-[16px] font-black text-[#3D7A47]">
                     <span>${block.icon}</span>
                     <span>${block.label}</span>
@@ -1995,8 +2308,26 @@
       }, 2600);
     }
 
+    function resizeRosterViewport() {
+      const viewport = document.getElementById('roster-scroll');
+      const firstRow = viewport.querySelector('thead tr');
+      viewport.style.setProperty('--roster-top',Math.max(0,viewport.getBoundingClientRect().top)+'px');
+      if (firstRow.offsetHeight) viewport.style.setProperty('--roster-first-row',firstRow.getBoundingClientRect().height+'px');
+    }
+    window.addEventListener('resize',resizeRosterViewport);
+    window.addEventListener('clc-admin-changed', () => {
+      if (!canManageRoster()) toggleSuperUserModal(false);
+      renderRosterSettings();
+      renderDesktopTable();
+    });
     window.addEventListener('DOMContentLoaded', () => {
       setVersionStatus(versionStatus, false);
+      renderRosterSettings();
+      resizeRosterViewport();
+      if (typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(resizeRosterViewport);
+        document.querySelectorAll('body > header, .roster-table thead tr:first-child').forEach(box => observer.observe(box));
+      }
       updateQuarterHeaderAndTabs();
       renderDesktopTable();
       renderMobileCards();
