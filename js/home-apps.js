@@ -29,10 +29,10 @@
 
   const css = `
     #homeApps { --ha-icon-size:104px; }
-    #homeApps[data-site="sr"] .ha-name-line { display:block; }
+    #homeApps[data-site="sr"] .ha-name-line { display:block; overflow:hidden; text-overflow:ellipsis; }
     #homeApps .ha-cell { position:relative; aspect-ratio:auto; min-width:0; }
-    #homeApps[data-site="sr"] .ha-name { font-size:22.5px; line-height:1.15; min-height:2.3em; }
-    @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:24.3px; } }
+    #homeApps[data-site="sr"] .ha-name { font-size:20.25px; line-height:1.15; min-height:2.3em; }
+    @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:21.87px; } }
     #homeApps .slot-target { border-radius:1.5rem; }
 
     #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
@@ -72,9 +72,10 @@
     .ha-dialog h3 { margin:0; font-size:18px; font-weight:800; }
     .ha-dialog label { display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:700; color:#64748b; }
     .dark .ha-dialog label { color:#8A92A6; }
-    .ha-dialog input { height:44px; padding:0 14px; border-radius:12px; font-size:15px; background:#f1f5f9; border:1px solid #e2e8f0; color:inherit; outline:none; }
-    .dark .ha-dialog input { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.1); }
-    .ha-dialog input:focus { border-color:#007E8A; }
+    .ha-dialog input, .ha-dialog textarea { height:44px; padding:0 14px; border-radius:12px; font-size:15px; background:#f1f5f9; border:1px solid #e2e8f0; color:inherit; outline:none; }
+    .ha-dialog textarea { height:auto; padding:8px 14px; resize:vertical; }
+    .dark .ha-dialog :is(input, textarea) { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.1); }
+    .ha-dialog :is(input, textarea):focus { border-color:#007E8A; }
     .ha-dialog input:read-only { opacity:.6; }
     .ha-dialog .ha-note { font-size:12px; color:#94a3b8; margin:-4px 0 0; }
     .ha-dialog .ha-err { font-size:13px; color:#e11d48; margin:0; }
@@ -134,12 +135,17 @@
   let openEntryMenu = null;
   const nameSegmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter() : null;
   function renderAppName(name) {
-    const characters = nameSegmenter
-      ? Array.from(nameSegmenter.segment(name), item => item.segment)
-      : Array.from(name);
+    const lines = name.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    const firstLine = lines[0] || '';
+    const splitCharacters = text => nameSegmenter
+      ? Array.from(nameSegmenter.segment(text), item => item.segment)
+      : Array.from(text);
+    const firstCharacters = splitCharacters(firstLine);
+    const characters = firstCharacters.concat(splitCharacters(lines.slice(1).join('')));
     const visible = characters.length > 8 ? [...characters.slice(0, 7), '...'] : characters;
-    const first = visible.slice(0, 4).join('');
-    const second = visible.slice(4).join('');
+    const breakAt = lines.length > 1 ? Math.min(firstCharacters.length, visible.length) : 4;
+    const first = visible.slice(0, breakAt).join('');
+    const second = visible.slice(breakAt).join('');
     return [first, second].filter(Boolean)
       .map(line => `<span class="ha-name-line">${esc(line)}</span>`)
       .join('');
@@ -311,7 +317,7 @@
       <h3 data-ha="title">新增 App</h3>
       <label>網址<input data-ha="url" placeholder="例如：venue.html 或 https://…" autocomplete="off" inputmode="url"></label>
       <p class="ha-note" data-ha="urlNote" hidden></p>
-      <label>名稱<input data-ha="name" maxlength="20" placeholder="貼上網址後自動抓取，可修改" autocomplete="off"></label>
+      <label>名稱<textarea data-ha="name" rows="2" maxlength="20" placeholder="按 Shift＋Enter 指定換行" autocomplete="off"></textarea></label>
       <label>圖示<span class="ha-iconrow"><span class="ha-preview" data-ha="preview"></span><input data-ha="icon" maxlength="300" placeholder="自動抓取；也可填 emoji 或圖片網址" autocomplete="off"></span></label>
       <p class="ha-note" data-ha="status" hidden></p>
       <p class="ha-err" data-ha="err" hidden></p>
@@ -392,7 +398,9 @@
     const old = editingId ? apps.find(a => a.id === editingId) : null;
     const hasMenu = !!(old && Array.isArray(old.menu) && old.menu.length);
     if (!hasMenu && safeUrl($('url').value) !== auto.url) { clearTimeout(fetchTimer); await fetchInfo(); }
-    let name = $('name').value.trim().slice(0, 20);
+    const nameLines = $('name').value.split('\n').map(line => line.trim()).filter(Boolean);
+    if (nameLines.length > 2) return showError('App 名稱最多兩行。');
+    let name = nameLines.join('\n');
     const url = hasMenu ? (old.url || '') : safeUrl($('url').value);
     const icon = uploadedIcon || $('icon').value.trim();
     if (!hasMenu && !url) return showError('請輸入網址，例如 venue.html 或 https://example.com');
