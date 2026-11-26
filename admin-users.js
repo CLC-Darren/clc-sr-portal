@@ -65,6 +65,41 @@
     </div>`;
   }
 
+  async function createWithName(ref, data) {
+    const name = $('newName').value.trim();
+    if (!name) return ref.set(data);
+    const batch = window.db.batch();
+    batch.set(ref, data);
+    batch.set(window.db.collection('admin_user_names').doc(ref.id), { name });
+    await batch.commit();
+  }
+
+  async function deleteWithName(ref) {
+    if (!accountNames) return ref.delete();
+    const batch = window.db.batch();
+    batch.delete(ref);
+    batch.delete(window.db.collection('admin_user_names').doc(ref.id));
+    await batch.commit();
+  }
+
+  let accountNames = null;
+  async function loadAccountNames() {
+    try {
+      const snap = await window.db.collection('admin_user_names').get();
+      accountNames = new Map(snap.docs.map(doc => [doc.id, doc.data().name]));
+    } catch (err) {
+      accountNames = null;
+      console.warn('無法讀取姓名備註', err);
+    }
+  }
+
+  function nameMarkup(email, editable) {
+    if (!accountNames) return '';
+    const name = accountNames.get(email) || '';
+    return `<div class="text-sm break-words">姓名：${esc(name || '未填寫')}
+      ${editable ? `<button type="button" class="rounded-md border px-2 py-1 text-xs" data-edit-name="${esc(email)}">編輯姓名</button>` : ''}</div>`;
+  }
+
   function showRows() {
     const { records, loaded } = state;
     const rows = baseRows(records, loaded);
@@ -81,6 +116,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div class="min-w-0">
             <div class="font-semibold break-all">${esc(u.email)}</div>
+          ${nameMarkup(u.email, editable)}
             <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${u.bootstrap ? '🔒 Superuser · 永久保留（不可刪除、不可降權）' : (ROLE_SHORT[role] + (active ? ' · 已啟用' : ' · 已停用'))}</div>
             ${scoped ? `<div class="text-xs mt-1 ${sText ? 'text-teal-700 dark:text-teal-300' : (role === 'leader' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400')}">${sText ? esc(sText) : (role === 'leader' ? '⚠️ 還沒有指派牧區或小組' : '未兼任區長、小組長')}</div>` : ''}
           </div>
@@ -142,7 +178,7 @@
       busy=true;el.disabled=true;
       $('usersListStatus').textContent=`正在刪除 ${email}…`;
       try {
-        await window.db.collection('admin_users').doc(email).delete();
+        await deleteWithName(window.db.collection('admin_users').doc(email));
         await render();
         $('usersListStatus').textContent=`已刪除 ${email} 的權限設定。`;
       }catch(e){
@@ -225,6 +261,7 @@
     $('usersListStatus').textContent='正在讀取 Firestore 權限設定…';
     try {
       const snap=await window.db.collection('admin_users').get();
+      await loadAccountNames();
       const records=new Map(snap.docs.map(d=> {
         const email=d.id.trim().toLowerCase();
         const data = d.data() || {};
@@ -259,6 +296,23 @@
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
+    $('usersList').addEventListener('click', async event => {
+      const button = event.target.closest('[data-edit-name]');
+      if (!button || !accountNames || !canEdit || busy) return;
+      const email = button.dataset.editName;
+      const name = prompt('姓名', accountNames.get(email) || '');
+      if (name === null) return;
+      const value = name.trim();
+      if (value.length > 100) { alert('姓名最多 100 個字元。'); return; }
+      button.disabled = true;
+      try {
+        await window.db.collection('admin_user_names').doc(email).set({ name: value });
+        await render();
+      } catch (err) {
+        alert('姓名儲存失敗：' + err.message);
+        button.disabled = false;
+      }
+    });
     $('addForm').addEventListener('submit',async event=>{
       event.preventDefault();
       if(busy || !canEdit)return;
@@ -280,8 +334,9 @@
           data.scopeGroups=SR.computeScope(data.leadDistricts,data.leadGroups,groups);
           if(newRole==='leader' && !data.scopeGroups.length && !confirm('還沒有勾選負責的牧區或小組，對方登入後會看不到任何組員。要先新增嗎？')) return;
         }
-        await ref.set(data);
+        await createWithName(ref, data);
         input.value='';
+        $('newName').value='';
         $('newScope').querySelectorAll('input[type=checkbox]').forEach(x=>{x.checked=false;});
         await render();
         alert('已新增：'+email+'\n對方可使用此 Google 帳號登入。');

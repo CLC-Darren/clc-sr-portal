@@ -426,7 +426,23 @@ if (window.auth) window.auth.onAuthStateChanged(user => {
     return;
   }
   const email = user.email.toLowerCase().trim();
+  const fillGoogleName = async () => {
+    try {
+      const token = await user.getIdTokenResult();
+      const name = token.claims.name;
+      if (token.signInProvider !== 'google.com' || typeof name !== 'string' || !name.trim() || name.length > 100) return;
+      const ref = window.db.collection('admin_user_names').doc(email);
+      await window.db.runTransaction(async tx => {
+        if (!(await tx.get(ref)).exists) tx.set(ref, { name });
+      });
+    } catch (err) {
+      // Name lookup must never interrupt sign-in.
+      console.warn('無法帶入 Google 姓名', err);
+    }
+  };
+  let nameChecked = false;
   if (window.ADMIN_WHITELIST.includes(email)) {
+    void fillGoogleName();
     applyAdminState(true, email);
     return;
   }
@@ -435,6 +451,7 @@ if (window.auth) window.auth.onAuthStateChanged(user => {
     if (window.auth.currentUser?.uid !== user.uid) return;
     const data = snap.exists ? snap.data() : null;
     const allowed = !!(data && ['admin', 'viewer', 'leader'].includes(data.role) && data.active !== false && (!data.email || data.email === email));
+    if (allowed && !nameChecked && !snap.metadata.fromCache) { nameChecked = true; void fillGoogleName(); }
     applyAdminState(allowed, allowed ? email : '', true, allowed && data.role === 'viewer', allowed && data.role !== 'admin' ? clcLeadInfo(data) : null);
   }, err => {
     console.warn('無法驗證管理員權限：', err);
