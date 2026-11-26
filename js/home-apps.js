@@ -14,11 +14,17 @@
   const CACHE_KEY = 'clc_' + SITE + '_home_apps';
   const MAX_APPS = 24, MIN_SLOTS = 6;
   const DEFAULT_APPS = Array.isArray(window.CLC_HOME_APPS_DEFAULT) ? window.CLC_HOME_APPS_DEFAULT : [];
-  let apps = DEFAULT_APPS;
+  const addition = window.CLC_HOME_APPS_ADDITION;
+  function includeNewApp(items, applied) {
+    if (!addition || applied || items.some(app => app?.id === addition.id || app?.url === addition.url)) return items;
+    return [...items, addition];
+  }
+  let apps = includeNewApp(DEFAULT_APPS);
   let editing = false;
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (Array.isArray(cached)) apps = cached;
+    if (Array.isArray(cached)) apps = includeNewApp(cached);
+    else if (Array.isArray(cached?.items)) apps = includeNewApp(cached.items, cached.addedAppId === addition?.id);
   } catch (_) {}
 
   const css = `
@@ -226,15 +232,20 @@
 
   // ---------- 儲存 ----------
   const settingsRef = () => window.db.collection('system_config').doc('home_apps');
+  function cacheApps(addedAppId) {
+    const value = addition ? { items: apps, addedAppId } : apps;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(value)); } catch (_) {}
+  }
   async function persist(next) {
     if (!window.db || !window.firebase) throw new Error('資料庫尚未載入');
     await settingsRef().set({
       items: next,
+      ...(addition ? { addedAppId: addition.id } : {}),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedBy: String(window.currentAdminEmail || '')
     });
     apps = next;
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(apps)); } catch (_) {}
+    cacheApps(addition?.id);
     render();
   }
   const withPos = () => window.clcSlotGridNormalize(apps);
@@ -372,9 +383,10 @@
   try {
     settingsRef().onSnapshot(snap => {
       finish?.();
-      const items = snap.exists && Array.isArray(snap.data().items) ? snap.data().items : DEFAULT_APPS;
-      apps = items.filter(a => a && a.id && a.name);
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(apps)); } catch (_) {}
+      const config = snap.exists ? snap.data() : {};
+      const items = Array.isArray(config.items) ? config.items : DEFAULT_APPS;
+      apps = includeNewApp(items.filter(a => a && a.id && a.name), config.addedAppId === addition?.id);
+      cacheApps(config.addedAppId);
       render();
     }, err => { finish?.(); console.warn('首頁圖示讀取失敗（沿用快取或預設）', err); });
   } catch (err) {
