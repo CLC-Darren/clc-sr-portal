@@ -47,14 +47,12 @@
     .dark #homeApps .ha-slot { border-color:#334155; color:#64748b; background:rgba(255,255,255,.02); }
     #homeApps .ha-slot.is-admin { cursor:pointer; -webkit-touch-callout:none; font:inherit; font-size:2.25rem; font-weight:300; }
     #homeApps .ha-slot.is-admin:hover { border-color:#007E8A; color:#007E8A; }
-    #homeApps .ha-menu { position:absolute; left:0; right:0; top:100%; margin-top:8px; z-index:50; overflow:hidden; text-align:left; border-radius:1rem; background:#fff; border:1px solid #e2e8f0; box-shadow:0 25px 50px -12px rgba(0,0,0,.25); }
-    .dark #homeApps .ha-menu { background:#161924; border-color:rgba(255,255,255,.1); }
-    #homeApps .ha-menu a { display:flex; align-items:center; gap:8px; padding:12px 16px; font-size:.875rem; font-weight:700; color:#1e293b; text-decoration:none; }
-    .dark #homeApps .ha-menu a { color:#fff; }
-    #homeApps .ha-menu a + a { border-top:1px solid #f1f5f9; }
-    .dark #homeApps .ha-menu a + a { border-top-color:rgba(255,255,255,.05); }
-    #homeApps .ha-menu a:hover { background:#f8fafc; }
-    .dark #homeApps .ha-menu a:hover { background:rgba(255,255,255,.05); }
+    #homeApps .ha-menu { position:absolute; z-index:50; width:max-content; min-width:min(168px, calc(100vw - 16px)); max-width:min(280px, calc(100vw - 16px)); box-sizing:border-box; padding:6px; overflow:hidden; text-align:left; border:1px solid var(--border, #e2e8f0); border-inline-start:3px solid var(--pine, #007E8A); border-radius:14px; background:var(--bg, #fff); box-shadow:0 12px 32px rgba(0,0,0,.22); }
+    .dark #homeApps .ha-menu { background:var(--bg, #161924); border-color:var(--border, #334155); border-inline-start-color:var(--pine, #2dd4bf); }
+    #homeApps .ha-menu a { display:block; padding:10px 12px; border-radius:10px; font-size:14px; font-weight:600; color:var(--text, #1e293b); text-decoration:none; overflow-wrap:anywhere; }
+    .dark #homeApps .ha-menu a { color:var(--text, #fff); }
+    #homeApps .ha-menu a:is(:hover,:focus-visible) { background:var(--btn, #f1f5f9); }
+    .dark #homeApps .ha-menu a:is(:hover,:focus-visible) { background:var(--btn, rgba(255,255,255,.08)); }
     #homeApps .ha-remove { position:absolute; top:-10px; left:-10px; width:36px; height:36px; display:grid; place-content:center; border:0; background:none; padding:0; cursor:pointer; z-index:2; }
     #homeApps .ha-remove span { width:22px; height:22px; border-radius:50%; background:#475569; box-shadow:0 1px 4px rgba(0,0,0,.35); display:grid; place-content:center; }
     #homeApps .ha-remove span::after { content:""; width:10px; height:2px; border-radius:2px; background:#fff; }
@@ -126,19 +124,19 @@
   }, true);
   const caret = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
 
-  let openMenuId = null;
+  let openEntryMenu = null;
   function renderTile(app, editing) {
-    const hasMenu = Array.isArray(app.menu) && app.menu.length > 0;
+    const hasMenu = Array.isArray(app.menu) && app.menu.length > 1;
     const label = `<span class="ha-name">${esc(app.name)}${hasMenu ? caret : ''}</span>`;
     let tile;
     if (hasMenu || editing) {
       tile = document.createElement('button');
       tile.type = 'button';
-      if (hasMenu && !editing) tile.setAttribute('aria-expanded', openMenuId === app.id ? 'true' : 'false');
+      if (hasMenu && !editing) tile.setAttribute('aria-expanded', 'false');
       tile.setAttribute('aria-label', app.name);
     } else {
       tile = document.createElement('a');
-      const href = safeUrl(app.url) || '#';
+      const href = safeUrl(app.menu?.[0]?.url || app.url) || '#';
       tile.href = href;
       if (isExternal(href)) { tile.target = '_blank'; tile.rel = 'noopener'; }
       tile.setAttribute('aria-label', '開啟' + app.name);
@@ -146,12 +144,6 @@
     tile.className = 'ha-tile';
     tile.dataset.appId = app.id;
     tile.innerHTML = iconHtml(app) + label;
-    if (hasMenu && !editing && openMenuId === app.id) {
-      const menu = document.createElement('div');
-      menu.className = 'ha-menu';
-      menu.innerHTML = app.menu.map(m => `<a href="${esc(safeUrl(m.url) || '#')}"><span>${esc(m.icon || '')}</span><span>${esc(m.name)}</span></a>`).join('');
-      queueMicrotask(() => tile.parentElement && tile.parentElement.append(menu));
-    }
     return tile;
   }
   let addPos = null;
@@ -165,24 +157,73 @@
     onAdd: pos => { addPos = pos; openDialog(null); },
     onEdit: id => openDialog(id),
     onRemove: id => removeApp(id),
-    onEditingChange: () => { openMenuId = null; grid.querySelectorAll('.ha-menu').forEach(m => m.remove()); }
+    onEditingChange: () => closeEntryMenu(false)
   });
-  const render = () => slots.render();
+  const render = () => {
+    closeEntryMenu(false);
+    slots.render();
+  };
 
-  // 「週六小組場地」這種選單格：點一下展開、點旁邊收起。
+  const entryMenuMotion = [
+    { opacity: 0, transform: 'translateY(-6px)', clipPath: 'inset(0 0 100% 0 round 14px)' },
+    { opacity: 1, transform: 'translateY(0)', clipPath: 'inset(0 round 14px)' }
+  ];
+  const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function closeEntryMenu(animate = true) {
+    if (!openEntryMenu) return;
+    const { tile, menu } = openEntryMenu;
+    openEntryMenu = null;
+    tile.setAttribute('aria-expanded', 'false');
+    tile.removeAttribute('aria-controls');
+    menu.removeAttribute('id');
+    if (!animate || reduceMotion()) {
+      menu.remove();
+      return;
+    }
+    menu.inert = true;
+    menu.getAnimations().forEach(animation => animation.cancel());
+    menu.animate(entryMenuMotion, { duration: 140, direction: 'reverse', easing: 'ease-in', fill: 'forwards' })
+      .addEventListener('finish', () => menu.remove(), { once: true });
+  }
+
   grid.addEventListener('click', e => {
     if (slots.isEditing() || e.target.closest('.ha-menu a')) return;
-    const tile = e.target.closest('.ha-tile');
-    const app = tile && apps.find(a => a.id === tile.dataset.appId);
-    if (app && Array.isArray(app.menu) && app.menu.length) {
-      e.preventDefault(); e.stopPropagation();
-      openMenuId = openMenuId === app.id ? null : app.id;
-      render();
-    }
+    const tile = e.target.closest('.ha-tile[aria-expanded]');
+    if (!tile) return;
+    const app = apps.find(item => item.id === tile.dataset.appId);
+    if (!app) return;
+    e.preventDefault();
+    const wasOpen = openEntryMenu?.tile === tile;
+    closeEntryMenu();
+    if (wasOpen) return;
+
+    const cell = tile.parentElement;
+    const label = tile.querySelector('.ha-name').getBoundingClientRect();
+    const bounds = cell.getBoundingClientRect();
+    const menu = document.createElement('div');
+    menu.className = 'ha-menu';
+    menu.id = 'home-entry-menu-' + app.id;
+    menu.innerHTML = app.menu.map(item => `<a href="${esc(safeUrl(item.url) || '#')}">${esc(item.name)}</a>`).join('');
+    cell.append(menu);
+    const left = Math.max(8, Math.min(label.left, document.documentElement.clientWidth - menu.offsetWidth - 8));
+    menu.style.left = (left - bounds.left) + 'px';
+    menu.style.top = (label.bottom - bounds.top + 5) + 'px';
+    tile.setAttribute('aria-expanded', 'true');
+    tile.setAttribute('aria-controls', menu.id);
+    openEntryMenu = { tile, menu };
+    if (!reduceMotion()) menu.animate(entryMenuMotion, { duration: 170, easing: 'ease-out' });
   });
   document.addEventListener('click', e => {
-    if (openMenuId && !e.target.closest('#homeApps .ha-cell[data-id="' + CSS.escape(openMenuId) + '"]')) { openMenuId = null; render(); }
+    if (openEntryMenu && !openEntryMenu.tile.contains(e.target) && !openEntryMenu.menu.contains(e.target)) closeEntryMenu();
   });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !openEntryMenu) return;
+    const { tile } = openEntryMenu;
+    closeEntryMenu();
+    tile.focus();
+  });
+  window.addEventListener('resize', () => closeEntryMenu(false));
 
   // ---------- 儲存 ----------
   const settingsRef = () => window.db.collection('system_config').doc('home_apps');
