@@ -150,6 +150,17 @@
       .map(line => `<span class="ha-name-line">${esc(line)}</span>`)
       .join('');
   }
+  function bindHomeLink(link, entry, fromMenu) {
+    const href = safeUrl(entry.url) || '#';
+    const legacy = { href, newTab: !fromMenu && isExternal(href) };
+    const shared = window.clcAppEntries;
+    if (shared?.resolveLink) shared.applyLink(link, shared.resolveLink(entry, href, legacy));
+    else {
+      link.href = href;
+      if (legacy.newTab) { link.target = '_blank'; link.rel = 'noopener'; }
+    }
+  }
+
   function renderTile(app, editing) {
     const hasMenu = Array.isArray(app.menu) && app.menu.length > 1;
     const label = `<span class="ha-name">${renderAppName(app.name)}</span>`;
@@ -161,9 +172,7 @@
       tile.setAttribute('aria-label', app.name);
     } else {
       tile = document.createElement('a');
-      const href = safeUrl(app.menu?.[0]?.url || app.url) || '#';
-      tile.href = href;
-      if (isExternal(href)) { tile.target = '_blank'; tile.rel = 'noopener'; }
+      bindHomeLink(tile, app.menu?.[0] || app, false);
       tile.setAttribute('aria-label', '開啟' + app.name);
     }
     tile.className = 'ha-tile';
@@ -255,7 +264,12 @@
     const menu = document.createElement('div');
     menu.className = 'ha-menu';
     menu.id = 'home-entry-menu-' + app.id;
-    menu.innerHTML = app.menu.map(item => `<a href="${esc(safeUrl(item.url) || '#')}">${esc(item.name)}</a>`).join('');
+    for (const item of app.menu) {
+      const link = document.createElement('a');
+      link.textContent = item.name;
+      bindHomeLink(link, item, true);
+      menu.append(link);
+    }
     cell.append(menu);
     const left = Math.max(8, Math.min(bounds.left + icon.offsetLeft, document.documentElement.clientWidth - menu.offsetWidth - 8));
     menu.style.left = (left - bounds.left) + 'px';
@@ -328,7 +342,7 @@
     </form>`;
   document.body.appendChild(dialog);
   const $ = k => dialog.querySelector('[data-ha="' + k + '"]');
-  let editingId = null, auto = {}, fetchSeq = 0, fetchTimer = 0, uploadedIcon = '';
+  let editingId = null, auto = {}, fetchSeq = 0, fetchTimer = 0, uploadedIcon = '', modeField;
   const placeholderIcon = $('icon').placeholder;
   function setUploaded(icon) {
     uploadedIcon = icon || '';
@@ -354,6 +368,8 @@
     $('title').textContent = app ? '修改 App' : '新增 App';
     $('url').value = app ? (app.url || '') : '';
     $('url').readOnly = hasMenu;
+    modeField?.parentElement.remove();
+    modeField = hasMenu ? null : window.clcAppEntries?.modeField(dialog.querySelector('form'), app, $('urlNote'));
     $('urlNote').hidden = !hasMenu;
     $('urlNote').textContent = hasMenu ? '這一格是選單：' + app.menu.map(m => m.name).join('、') : '';
     $('name').value = app ? app.name : '';
@@ -410,6 +426,7 @@
     if (!name) return showError('請輸入名稱。');
     $('save').disabled = true;
     const patch = { name, url, icon };
+    if (modeField) patch.openMode = window.clcAppEntries.modeValue(modeField, url, old);
     const base = withPos();
     const next = old
       ? base.map(a => a.id === old.id ? Object.assign({}, a, patch) : a)
