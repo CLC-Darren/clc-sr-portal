@@ -137,7 +137,7 @@
         } else if (admin) {
           const b = document.createElement('button');
           b.type = 'button'; b.className = 'slot-empty is-admin ' + (o.emptyClass || '');
-          b.dataset.slot = pos; b.textContent = '+'; b.title = '長按新增'; b.setAttribute('aria-label', '新增到第 ' + (pos + 1) + ' 格');
+          b.dataset.slot = pos; b.textContent = '+'; b.title = o.onManage ? '新增 App' : '長按新增'; b.setAttribute('aria-label', '新增到第 ' + (pos + 1) + ' 格');
           grid.append(b);
         } else {
           const d = document.createElement('div');
@@ -232,7 +232,7 @@
       g.slots = new Map(Array.from(grid.querySelectorAll(':scope > [data-slot]')).map(el => {
         const q = el.getBoundingClientRect(); return [Number(el.dataset.slot), { l: q.left - gr0.left, t: q.top - gr0.top, w: q.width, h: q.height }];
       }));
-      if (!editing) setEditing(true);
+      if (!editing && !o.onManage) setEditing(true);
     }
     function moveDrag(x, y) {
       if (!g.moved && Math.hypot(x - g.x, y - g.y) < MOVE_TOL) return; // 手指小幅晃動不算移動
@@ -296,7 +296,8 @@
         pending.pos.set(moving.id, to);
         if (other) pending.pos.set(other.id, from);
       }
-      render();
+      if (o.onManage) { editing = true; finishEditing(true); }
+      else render();
     }
     // 放開時卡片滑進格子再消失（跟今日待辦一樣）
     function land(f, rect, origin) {
@@ -319,6 +320,7 @@
       if (e.target.closest('.slot-remove')) return;
       const empty = e.target.closest('.slot-empty.is-admin');
       if (empty && grid.contains(empty)) {
+        if (o.onManage) return;
         if (editing) return; // 晃動中點一下「＋」就新增
         g = { cell: empty, empty: true, x, y, touch, at: Date.now(), held: false, dragging: false, target: null };
         empty.classList.add('slot-pressing');
@@ -341,6 +343,7 @@
         g.held = true;
         cell.classList.remove('slot-pressing');
         suppressClickUntil = Date.now() + 600;
+        if (o.onManage) { o.onManage(cell, touch); return; }
         setEditing(true);
         startDrag(); // 長按一到就浮起來（跟今日待辦一樣），放開沒移動就落回原位
       }, LONG_PRESS);
@@ -351,9 +354,10 @@
       if (g.empty) { if (dist >= MOVE_TOL) cancelGesture(); return false; }
       if (!g.dragging) {
         if (dist < MOVE_TOL) return g.held || g.editingAtStart;
-        if (!g.held && !g.editingAtStart) { cancelGesture(); return false; } // 一般捲動或左右滑
+        if (!g.held && !g.editingAtStart && (!o.onManage || g.touch)) { cancelGesture(); return false; } // 一般捲動或左右滑
         clearTimeout(g.timer);
         g.cell.classList.remove('slot-pressing');
+        o.onManageClose?.();
         startDrag();
       }
       moveDrag(x, y);
@@ -389,6 +393,12 @@
     let lastTouch = 0;
     grid.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
     grid.addEventListener('contextmenu', e => {
+      const app = e.target.closest('.slot-cell');
+      if (o.onManage && app && canEdit()) {
+        e.preventDefault();
+        if (Date.now() - lastTouch >= 1500) o.onManage(app, false);
+        return;
+      }
       if ((Date.now() - lastTouch < 1500 || editing) && e.target.closest('.slot-cell, .slot-empty')) e.preventDefault();
     });
 
@@ -402,7 +412,7 @@
         return;
       }
       const empty = e.target.closest('.slot-empty.is-admin');
-      if (empty) { e.preventDefault(); e.stopImmediatePropagation(); if (editing) o.onAdd?.(Number(empty.dataset.slot)); return; }
+      if (empty) { e.preventDefault(); e.stopImmediatePropagation(); if (editing || o.onManage) o.onAdd?.(Number(empty.dataset.slot)); return; }
       const cell = e.target.closest('.slot-cell');
       if (cell && editing) { e.preventDefault(); e.stopImmediatePropagation(); o.onEdit?.(cell.dataset.id); }
     }, true);

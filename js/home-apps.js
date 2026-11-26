@@ -28,19 +28,21 @@
   } catch (_) {}
 
   const css = `
-    #homeApps .ha-cell { position:relative; aspect-ratio:1; }
+    #homeApps { --ha-icon-size:104px; }
+    #homeApps .ha-cell { position:relative; aspect-ratio:auto; min-width:0; }
+    #homeApps[data-site="sr"] .ha-name { font-size:25px; line-height:1.15; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow-wrap:anywhere; min-height:2.3em; }
+    @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:27px; } }
     #homeApps .slot-target { border-radius:1.5rem; }
     .slot-floating .ha-tile { box-shadow:0 24px 50px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.25); }
-    #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
+    #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
     .dark #homeApps .ha-tile { color:var(--text,#f1f5f9); }
     #homeApps .ha-tile:focus-visible { outline:2px solid #2dd4bf; outline-offset:4px; }
-    #homeApps .ha-icon { width:100%; max-width:calc(100% - 26px); aspect-ratio:1; display:grid; place-items:center; overflow:hidden; border-radius:22%; background:var(--pine,#007e8a); color:#fff; font-size:clamp(26px,8vw,44px); line-height:1; transition:transform .2s; }
+    #homeApps .ha-icon { width:min(var(--ha-icon-size),100%); flex:none; aspect-ratio:1; display:grid; place-items:center; overflow:hidden; border-radius:22%; background:var(--pine,#007e8a); color:#fff; font-size:clamp(26px,8vw,44px); line-height:1; transition:transform .2s; }
     #homeApps .ha-tile:hover .ha-icon { transform:scale(1.05); }
     #homeApps .ha-tile:active .ha-icon { transform:scale(.95); }
     .ha-mono { width:100%; height:100%; border-radius:22%; display:grid; place-content:center; color:#fff; font-weight:800; font-size:inherit; line-height:1; }
     #homeApps .ha-icon img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
     #homeApps .ha-name { font-size:12.5px; font-weight:700; line-height:1.25; text-align:center; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    #homeApps .ha-name svg { width:13px; height:13px; margin-inline-start:3px; vertical-align:middle; }
     @media (min-width:640px) { #homeApps .ha-name { font-size:13.5px; } }
     @media (prefers-reduced-motion:reduce) { #homeApps .ha-icon { transition:none; transform:none !important; } }
     .ha-dialog .ha-iconrow { display:flex; gap:10px; align-items:center; }
@@ -48,7 +50,7 @@
     .ha-dialog .ha-preview { width:44px; height:44px; flex:none; display:grid; place-content:center; border-radius:12px; background:#007E8A; }
     .ha-dialog .ha-preview .ha-icon { margin:0; font-size:1.6rem; }
     .ha-dialog .ha-preview .ha-icon img, .ha-dialog .ha-preview .ha-mono { width:36px; height:36px; font-size:1rem; }
-    #homeApps .ha-slot { aspect-ratio:1; border-radius:1.5rem; border:2px dashed #cbd5e1; color:#94a3b8; display:grid; place-content:center; font-size:2.25rem; font-weight:300; line-height:1; background:rgba(248,250,252,.5); user-select:none; -webkit-user-select:none; }
+    #homeApps .ha-slot { width:min(var(--ha-icon-size),100%); aspect-ratio:1; box-sizing:border-box; justify-self:center; align-self:start; border-radius:22%; border:2px dashed #cbd5e1; color:#94a3b8; display:grid; place-content:center; font-size:2.25rem; font-weight:300; line-height:1; background:rgba(248,250,252,.5); user-select:none; -webkit-user-select:none; }
     .dark #homeApps .ha-slot { border-color:#334155; color:#64748b; background:rgba(255,255,255,.02); }
     #homeApps .ha-slot.is-admin { cursor:pointer; -webkit-touch-callout:none; font:inherit; font-size:2.25rem; font-weight:300; }
     #homeApps .ha-slot.is-admin:hover { border-color:#007E8A; color:#007E8A; }
@@ -127,12 +129,11 @@
     const t = e.target;
     if (t.tagName === 'IMG' && t.dataset && t.dataset.mono && t.naturalWidth && t.naturalWidth < 96 && !/\.svg(\?|$)/i.test(t.src)) monoSwap(t);
   }, true);
-  const caret = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
 
   let openEntryMenu = null;
   function renderTile(app, editing) {
     const hasMenu = Array.isArray(app.menu) && app.menu.length > 1;
-    const label = `<span class="ha-name">${esc(app.name)}${hasMenu ? caret : ''}</span>`;
+    const label = `<span class="ha-name">${esc(app.name)}</span>`;
     let tile;
     if (hasMenu || editing) {
       tile = document.createElement('button');
@@ -148,7 +149,9 @@
     }
     tile.className = 'ha-tile';
     tile.dataset.appId = app.id;
+    tile.title = app.name;
     tile.innerHTML = iconHtml(app) + label;
+    if (hasMenu) window.clcAppEntries?.badge(tile.querySelector('.ha-icon'));
     return tile;
   }
   let addPos = null;
@@ -161,6 +164,25 @@
     error: err => alert('排列儲存失敗：' + errorText(err)),
     onAdd: pos => { addPos = pos; openDialog(null); },
     onEdit: id => openDialog(id),
+    onManage: window.clcAppEntries ? (cell, touch) => {
+      const app = apps.find(item => item.id === cell.dataset.id);
+      if (!app || !isAdmin()) return;
+      closeEntryMenu(false);
+      window.clcAppEntries.manage({
+        name: app.name, icon: cell.querySelector('.ha-icon'), touch,
+        actions: [
+          { label: '編輯 App', run: () => openDialog(app.id) },
+          { label: '新增選項', run: () => {
+            window.clcAppEntries.edit(app, app.url, safeUrl, menu => {
+              if (!isAdmin()) throw new Error('需要 Superuser 權限');
+              return persist(withPos().map(item => item.id === app.id ? { ...item, menu } : item));
+            });
+          } }
+        ],
+        remove: () => removeApp(app.id)
+      });
+    } : null,
+    onManageClose: () => window.clcAppEntries?.closeManagement(),
     onRemove: id => removeApp(id),
     onEditingChange: () => closeEntryMenu(false)
   });
@@ -206,6 +228,7 @@
     const cell = tile.parentElement;
     const icon = tile.querySelector('.ha-icon');
     const bounds = cell.getBoundingClientRect();
+    window.clcAppEntries?.pulse(icon);
     const menu = document.createElement('div');
     menu.className = 'ha-menu';
     menu.id = 'home-entry-menu-' + app.id;
@@ -255,6 +278,7 @@
       : '儲存失敗，請稍後再試。';
   }
   async function removeApp(id) {
+    if (!isAdmin()) return;
     const app = apps.find(a => a.id === id);
     if (!app) return; // 編輯模式下按「−」直接移除，不再二次確認（下方有「完成」）
     try { await persist(withPos().filter(a => a.id !== id)); }
