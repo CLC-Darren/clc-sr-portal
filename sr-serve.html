@@ -257,10 +257,21 @@
     #roster-calendar-error { color:#962c23 }
     .roster-settings-note { margin-top:6px;color:#526950 }
     #roster-search {
-      position:fixed;inset:0;margin:auto;width:min(94vw,580px);max-height:88dvh;overflow:auto;
-      border:1px solid #a9c7ad;border-radius:16px;background:#fcfdfb;color:#1e3323;padding:16px;font-size:18px;
+      display:none;margin:8px 12px 2px;border:1px solid #a9c7ad;border-radius:12px;
+      background:#fcfdfb;color:#1e3323;padding:15px;font-size:18px;
     }
-    #roster-search::backdrop { background:#111e16a6 }
+    #roster-search.desktop-open { display:block }
+    @media(min-width:640px) { #roster-search { margin-inline:20px } }
+    @media (max-width:899px), (max-width:1024px) and (orientation:portrait) {
+      #roster-search { display:block }
+      #roster-search-toggle { display:none }
+    }
+    #roster-name-suggestions:empty { display:none }
+    #roster-name-suggestions { display:grid;gap:3px;margin:-3px 0 10px }
+    #roster-name-suggestions button { display:flex;justify-content:space-between;align-items:center;gap:6px;text-align:left }
+    #roster-name-suggestions small { color:#375e40;font-size:13px }
+    #roster-name-suggestions [aria-selected="true"] { background:#d0e8d3;outline:2px solid #3d7a47 }
+    .roster-search-hint { font-size:14px;color:#45624a;line-height:1.4;margin:-3px 0 8px }
     .roster-search-header { display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:12px }
     .roster-search-header h2 { font-size:23px;font-weight:850 }
     .roster-search-header p { font-size:14px }
@@ -334,12 +345,30 @@
         </div>
       </div>
 
-      <button type="button" class="roster-search-button" onclick="openRosterSearch()">搜尋</button>
+      <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
       </div>
     </div>
   </header>
+
+  <section id="roster-search" aria-labelledby="roster-search-title">
+    <header class="roster-search-header">
+      <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
+    </header>
+    <form id="roster-search-form">
+      <label>姓名<input name="member" type="search" placeholder="例如：林家祥" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="roster-name-suggestions" aria-describedby="roster-name-hint"></label>
+      <p class="roster-search-hint" id="roster-name-hint">輸入姓名的部分文字也能搜尋，同音、近音和相關字會顯示提示。</p>
+      <div id="roster-name-suggestions" role="listbox" aria-label="相近姓名"></div>
+      <label>服事項目<select name="role"><option value="">全部服事項目</option></select></label>
+      <div class="roster-search-dates">
+        <label>開始日期<input name="from" type="date"></label>
+        <label>結束日期<input name="to" type="date"></label>
+      </div>
+      <button type="submit">搜尋</button>
+    </form>
+    <div id="roster-search-results" aria-live="polite"></div>
+  </section>
 
   <!-- ===================================================================== -->
   <!-- DESKTOP SPREADSHEET ROSTER                                            -->
@@ -490,22 +519,6 @@
     </div>
   </div>
 
-  <dialog id="roster-search" aria-labelledby="roster-search-title">
-    <header class="roster-search-header">
-      <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
-      <button type="button" id="roster-search-close" aria-label="關閉搜尋">關閉</button>
-    </header>
-    <form id="roster-search-form">
-      <label>姓名<input name="member" type="search" placeholder="輸入姓名，可找近音或錯字" autocomplete="off"></label>
-      <label>服事項目<select name="role"><option value="">全部服事項目</option></select></label>
-      <div class="roster-search-dates">
-        <label>開始日期<input name="from" type="date"></label>
-        <label>結束日期<input name="to" type="date"></label>
-      </div>
-      <button type="submit">搜尋</button>
-    </form>
-    <div id="roster-search-results" aria-live="polite"></div>
-  </dialog>
 
   <!-- Toast Notification -->
   <div id="toast-box" class="fixed bottom-5 right-5 z-50 transition-all duration-300 pointer-events-none translate-y-24 opacity-0">
@@ -1028,7 +1041,7 @@
     };
 
     const SEARCH_ROLES = {
-      worship:'敬拜', musician:'樂手', slides:'投影片', sound:'音控', photo:'攝影',
+      speaker:'講員', worship:'敬拜', musician:'樂手', slides:'投影片', sound:'音控', photo:'攝影',
       usher:'招待', meal:'愛宴', shuttle:'接送', rollcall:'點名', loungeReception:'交誼廳接待',
       loungeBP:'量血壓', exercise:'體操', duty:'值班'
     };
@@ -1193,51 +1206,76 @@
       renderRosterSettings();
     });
 
-    const searchDialog = document.getElementById('roster-search');
+    const searchPanel = document.getElementById('roster-search');
     const searchForm = document.getElementById('roster-search-form');
     const searchResults = document.getElementById('roster-search-results');
     const searchRoles = searchForm.elements.role;
+    const searchName = searchForm.elements.member;
+    const suggestions = document.getElementById('roster-name-suggestions');
     Object.entries(SEARCH_ROLES).forEach(([value,text]) => searchRoles.add(new Option(text,value)));
     const nameSoundCache = new Map();
+    const SEARCH_VARIANTS = { 臺:'台',裏:'裡',峯:'峰',綫:'線',爲:'為' };
+    const MATCH_LABELS = ['完全符合','開頭符合','文字包含','同音','近音','相關字'];
+    let activeSuggestion = -1;
+    let selectedSearchName = '';
+    let endDateEdited = false;
 
-    function nameKey(value) { return value.normalize('NFKC').replace(/\s+/g,'').toLowerCase(); }
+    function nameKey(value) {
+      return value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')
+        .replace(/[臺裏峯綫爲]/g,char => SEARCH_VARIANTS[char]);
+    }
     function nameSounds(value) {
       if (!window.pinyinPro) return [];
       if (nameSoundCache.has(value)) return nameSoundCache.get(value);
-      const result = window.pinyinPro.pinyin(value,{toneType:'none',type:'array',nonZh:'consecutive'});
-      nameSoundCache.set(value,result);
-      return result;
+      const sounds = window.pinyinPro.pinyin(value,{toneType:'none',type:'array',nonZh:'consecutive'});
+      nameSoundCache.set(value,sounds);
+      return sounds;
     }
     function nearSound(value) {
-      return value.replace(/^([zcs])h/,'$1').replace(/^[nl]/,'l').replace(/ng$/,'n');
+      return value.replace(/^([zcs])h/,'$1').replace(/^l/,'n').replace(/^fu/,'hu')
+        .replace(/ing$/,'in').replace(/eng$/,'en');
+    }
+    function syllableContains(query, name) {
+      return query.length >= 2 && name.some((_,index) => query.every((syllable,offset) => name[index+offset] === syllable));
     }
     function differsOnce(a,b) {
       if (Math.abs(a.length-b.length) > 1) return false;
       if (a.length > b.length) return differsOnce(b,a);
       let i = 0;
       while (i < a.length && a[i] === b[i]) i++;
-      if (a.length === b.length) return a.slice(i+1).join('') === b.slice(i+1).join('');
-      return a.slice(i).join('') === b.slice(i+1).join('');
+      return a.slice(i+(a.length === b.length ? 1 : 0)).join('') === b.slice(i+1).join('');
     }
     function nameScore(term, name) {
       const query = nameKey(term), known = nameKey(name);
+      if (!query) return Infinity;
       if (known === query) return 0;
-      if (known.includes(query)) return 1;
+      if (known.startsWith(query)) return 1;
+      if (known.includes(query)) return 2;
       if (query.length < 2) return Infinity;
       const left = nameSounds(query), right = nameSounds(known);
-      if (left.length && right.length && left.join('') === right.join('')) return 2;
-      if (left.length && right.length && left.map(nearSound).join('') === right.map(nearSound).join('')) return 3;
-      if (query.length >= 3 && differsOnce([...query],[...known])) return 4;
+      if (syllableContains(left,right)) return 3;
+      if (syllableContains(left.map(nearSound),right.map(nearSound))) return 4;
+      const queryChars = [...new Set(query)];
+      const shared = queryChars.filter(char => known.includes(char)).length;
+      if ((query.length >= 3 && differsOnce([...query],[...known])) ||
+          (queryChars.length >= 2 && known.length >= 3 && shared >= 2 && shared/queryChars.length >= 2/3)) return 5;
       return Infinity;
     }
+
     function assignments() {
       return quarter().weeks.flatMap(week => {
         const date = isoWeek(week);
         if (!date || weekOverride(week)) return [];
-        return Object.keys(SEARCH_ROLES).flatMap(role => (week[role] || []).flatMap(value => {
+        const rows = Object.keys(SEARCH_ROLES).filter(role => role !== 'speaker').flatMap(role => (week[role] || []).flatMap(value => {
           const name = value.trim();
           return !name || /^[（(]/.test(name) || ['讚美操','健康操'].includes(name) ? [] : [{date,role,name}];
         }));
+        const speaker = week.speaker.trim();
+        const name = speaker.replace(/\s*(牧師|師母|傳道|弟兄|姊妹|姐妹|長老|執事|老師)\s*$/,'').trim();
+        if (name && week.speakerType !== 'outing' && !/(佈道|活動|休會|出遊)$/.test(name)) {
+          rows.push({date,role:'speaker',name,displayName:speaker});
+        }
+        return rows;
       });
     }
     function renderSearch(name, entries) {
@@ -1256,7 +1294,7 @@
         if (!groups.has(entry.date)) groups.set(entry.date,new Map());
         const roles = groups.get(entry.date);
         if (!roles.has(entry.role)) roles.set(entry.role,new Set());
-        roles.get(entry.role).add(entry.name);
+        roles.get(entry.role).add(entry.displayName || entry.name);
       }
       for (const [date,roles] of [...groups].sort(([a],[b]) => a.localeCompare(b))) {
         const section = document.createElement('section');
@@ -1265,57 +1303,137 @@
         const list = document.createElement('ul');
         for (const [role,names] of roles) {
           const li = document.createElement('li');
-          li.textContent = SEARCH_ROLES[role]+(name ? '' : '　'+[...names].join('、'));
+          li.textContent = SEARCH_ROLES[role]+(name && role !== 'speaker' ? '' : '　'+[...names].join('、'));
           list.append(li);
         }
         section.append(headline,list);
         searchResults.append(section);
       }
     }
+
+    function candidatesFor(term) {
+      const names = new Map();
+      for (const {name,displayName} of assignments()) {
+        if (!names.has(name)) names.set(name,new Set([name]));
+        if (displayName) names.get(name).add(displayName);
+      }
+      return [...names].map(([name,aliases]) => ({
+        name,score:Math.min(...[...aliases].map(alias => nameScore(term,alias)))
+      })).filter(item => Number.isFinite(item.score))
+        .sort((a,b) => a.score-b.score || a.name.localeCompare(b.name,'zh-Hant'));
+    }
+    function clearSuggestions() {
+      activeSuggestion = -1;
+      suggestions.replaceChildren();
+      searchName.setAttribute('aria-expanded','false');
+      searchName.removeAttribute('aria-activedescendant');
+    }
+    function renderSuggestions(choices) {
+      clearSuggestions();
+      for (const [index,{name,score}] of choices.slice(0,8).entries()) {
+        const button = document.createElement('button');
+        const reason = document.createElement('small');
+        button.type = 'button';
+        button.tabIndex = -1;
+        button.id = 'roster-name-option-'+index;
+        button.setAttribute('role','option');
+        button.setAttribute('aria-selected','false');
+        reason.textContent = MATCH_LABELS[score];
+        button.append(name,reason);
+        button.onclick = () => {
+          selectedSearchName = name;
+          searchName.value = name;
+          clearSuggestions();
+          runRosterSearch();
+          searchName.focus({preventScroll:true});
+        };
+        suggestions.append(button);
+      }
+      searchName.setAttribute('aria-expanded',String(choices.length > 0));
+    }
     function runRosterSearch() {
-      const term = searchForm.elements.member.value.trim();
+      const term = searchName.value.trim();
       const role = searchRoles.value;
       const from = searchForm.elements.from.value, to = searchForm.elements.to.value;
       if (from && to && from > to) {
         searchResults.textContent = '開始日期需早於或等於結束日期。';
         return;
       }
-      if (!term && !role && !from && !to) {
-        searchResults.textContent = '請輸入姓名、選擇服事項目或日期區間。';
-        return;
-      }
       const data = assignments().filter(item => (!role || item.role === role) &&
         (!from || item.date >= from) && (!to || item.date <= to));
-      if (!term) { renderSearch('',data); return; }
-      const candidates = [...new Set(data.map(item => item.name))]
-        .map(name => ({name,score:nameScore(term,name)})).filter(item => Number.isFinite(item.score))
-        .sort((a,b) => a.score-b.score || a.name.localeCompare(b.name,'zh-Hant'));
-      if (candidates.length === 0) { renderSearch('',[]); return; }
-      if (candidates.length === 1 || candidates[0].score === 0) {
-        const name = candidates[0].name;
-        renderSearch(name,data.filter(item => item.name === name));
-        return;
+      if (!term) { clearSuggestions(); renderSearch('',data); return; }
+      const choices = candidatesFor(term);
+      const exact = choices.filter(choice => choice.score === 0);
+      const picked = selectedSearchName === term ? term : exact.length === 1 ? exact[0].name : choices.length === 1 ? choices[0].name : '';
+      if (picked) {
+        clearSuggestions();
+        renderSearch(picked,data.filter(item => item.name === picked));
+      } else if (!choices.length) {
+        clearSuggestions();
+        renderSearch('',[]);
+      } else {
+        renderSuggestions(choices);
+        searchResults.textContent = '請先從上方提示選擇姓名。';
       }
-      searchResults.textContent = '找到以下可能的姓名，請選擇一位：';
-      const choices = document.createElement('div');
-      choices.className = 'roster-search-choices';
-      for (const {name} of candidates) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.textContent = name;
-        button.onclick = () => renderSearch(name,data.filter(item => item.name === name));
-        choices.append(button);
-      }
-      searchResults.append(choices);
     }
-    function openRosterSearch() {
+    function quarterSearchBounds() {
+      const months = quarter().months;
+      const year = Number(quarter().year);
+      return [new Date(Date.UTC(year,months[0]-1,1)).toISOString().slice(0,10),
+        new Date(Date.UTC(year,months.at(-1),0)).toISOString().slice(0,10)];
+    }
+    function resetRosterSearch() {
+      clearSuggestions();
       searchResults.replaceChildren();
       searchForm.reset();
+      selectedSearchName = '';
+      endDateEdited = false;
+      const [first,last] = quarterSearchBounds();
+      const now = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      for (const date of [searchForm.elements.from,searchForm.elements.to]) {
+        date.min = first;
+        date.max = last;
+      }
+      searchForm.elements.from.value = now >= first && now <= last ? now : first;
+      searchForm.elements.to.value = last;
       document.getElementById('roster-search-quarter').textContent = quarter().year+' 年 '+quarter().title;
-      searchDialog.showModal();
     }
-    searchForm.addEventListener('submit', event => { event.preventDefault(); runRosterSearch(); });
-    document.getElementById('roster-search-close').onclick = () => searchDialog.close();
+    function openRosterSearch() {
+      searchPanel.classList.toggle('desktop-open');
+      const opened = searchPanel.classList.contains('desktop-open');
+      document.getElementById('roster-search-toggle').setAttribute('aria-expanded',String(opened));
+      if (opened) searchName.focus({preventScroll:true});
+      resizeRosterViewport();
+    }
+    function refreshSuggestions(event) {
+      if (event.isComposing) return;
+      selectedSearchName = '';
+      renderSuggestions(candidatesFor(searchName.value));
+      resizeRosterViewport();
+    }
+    searchName.addEventListener('input',refreshSuggestions);
+    searchName.addEventListener('compositionend',refreshSuggestions);
+    searchName.addEventListener('keydown',event => {
+      if (event.isComposing || !suggestions.children.length) return;
+      const count = suggestions.children.length;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        activeSuggestion = activeSuggestion < 0 && step < 0 ? count-1 : (activeSuggestion+step+count)%count;
+        [...suggestions.children].forEach((button,index) => button.setAttribute('aria-selected',String(index === activeSuggestion)));
+        searchName.setAttribute('aria-activedescendant',suggestions.children[activeSuggestion].id);
+      } else if (event.key === 'Escape') {
+        clearSuggestions();
+      } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+        event.preventDefault();
+        suggestions.children[activeSuggestion].click();
+      }
+    });
+    searchForm.elements.to.addEventListener('change',() => { endDateEdited = Boolean(searchForm.elements.to.value); });
+    searchForm.elements.from.addEventListener('change',() => {
+      if (!endDateEdited) searchForm.elements.to.value = quarterSearchBounds()[1];
+    });
+    searchForm.addEventListener('submit',event => { event.preventDefault(); runRosterSearch(); resizeRosterViewport(); });
 
     // =========================================================================
     // 2. QUARTER & MONTH NAVIGATION LOGIC
@@ -1323,6 +1441,7 @@
     function switchQuarter(qKey) {
       currentQuarterKey = qKey;
       renderRosterSettings();
+      resetRosterSearch();
       selectedMonthFilter = 'ALL';
       selectionRange = { startR: 0, startC: 0, endR: 0, endC: 0 };
       updateQuarterHeaderAndTabs();
@@ -2323,10 +2442,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       setVersionStatus(versionStatus, false);
       renderRosterSettings();
+      resetRosterSearch();
       resizeRosterViewport();
       if (typeof ResizeObserver !== 'undefined') {
         const observer = new ResizeObserver(resizeRosterViewport);
-        document.querySelectorAll('body > header, .roster-table thead tr:first-child').forEach(box => observer.observe(box));
+        document.querySelectorAll('body > header, #roster-search, .roster-table thead tr:first-child').forEach(box => observer.observe(box));
       }
       updateQuarterHeaderAndTabs();
       renderDesktopTable();
