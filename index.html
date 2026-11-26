@@ -115,6 +115,10 @@
   <script defer src="js/home-appearance.js"></script>
   <script>
     // 首頁圖示預設值（Firestore 尚未存過時使用）
+    window.CLC_HOME_APPS_ADDITION = {
+      id: 'sr-serve', name: '加樂服事表', url: 'sr-serve.html',
+      icon: new URL('images/sr-serve-apple-touch-icon.png', document.baseURI).href
+    };
     window.CLC_HOME_APPS_DEFAULT = [
       { id: 'hymns', name: '詩歌歌詞下載', icon: '🎵', url: 'hymn-lyrics.html' },
       { id: 'join', name: '新朋友留名單', icon: '🌱', url: 'join.html' },
@@ -129,6 +133,6 @@
   <script src="js/clc-slot-grid.js?v=20261117push"></script>
   <script src="js/clc-icon-upload.js?v=20261116-menu2"></script>
   <script src="https://clc-dx04.pages.dev/verse-wait.js?v=2"></script>
-  <script src="js/home-apps.js?v=20261126-entry-menu"></script>
+  <script src="js/home-apps.js?v=20261126-sr-serve"></script>
 </body>
 </html>
