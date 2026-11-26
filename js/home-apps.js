@@ -29,9 +29,10 @@
 
   const css = `
     #homeApps { --ha-icon-size:104px; }
+    #homeApps[data-site="sr"] .ha-name-line { display:block; }
     #homeApps .ha-cell { position:relative; aspect-ratio:auto; min-width:0; }
-    #homeApps[data-site="sr"] .ha-name { font-size:25px; line-height:1.15; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow-wrap:anywhere; min-height:2.3em; }
-    @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:27px; } }
+    #homeApps[data-site="sr"] .ha-name { font-size:22.5px; line-height:1.15; min-height:2.3em; }
+    @media (min-width:640px) { #homeApps[data-site="sr"] .ha-name { font-size:24.3px; } }
     #homeApps .slot-target { border-radius:1.5rem; }
 
     #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
@@ -131,9 +132,21 @@
   }, true);
 
   let openEntryMenu = null;
+  const nameSegmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter() : null;
+  function renderAppName(name) {
+    const characters = nameSegmenter
+      ? Array.from(nameSegmenter.segment(name), item => item.segment)
+      : Array.from(name);
+    const visible = characters.length > 8 ? [...characters.slice(0, 7), '...'] : characters;
+    const first = visible.slice(0, 4).join('');
+    const second = visible.slice(4).join('');
+    return [first, second].filter(Boolean)
+      .map(line => `<span class="ha-name-line">${esc(line)}</span>`)
+      .join('');
+  }
   function renderTile(app, editing) {
     const hasMenu = Array.isArray(app.menu) && app.menu.length > 1;
-    const label = `<span class="ha-name">${esc(app.name)}</span>`;
+    const label = `<span class="ha-name">${renderAppName(app.name)}</span>`;
     let tile;
     if (hasMenu || editing) {
       tile = document.createElement('button');
