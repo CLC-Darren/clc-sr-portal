@@ -31,24 +31,23 @@
     #homeApps .ha-cell { position:relative; aspect-ratio:1; }
     #homeApps .slot-target { border-radius:1.5rem; }
     .slot-floating .ha-tile { box-shadow:0 24px 50px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.25); }
-    #homeApps .ha-tile { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; border-radius:1.5rem; background:#007E8A; color:#fff; box-shadow:0 10px 15px -3px rgba(0,126,138,.2); transition:transform .2s, background-color .2s; text-decoration:none; border:0; cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; font:inherit; }
-    #homeApps .ha-tile:hover { transform:scale(1.05); } /* 全站統一：滑鼠移上去整個 App 放大 1.05（跟 DX、LF 一樣），按下 0.95 */
-    #homeApps .ha-tile:active { transform:scale(.95); }
-    #homeApps .ha-tile:focus-visible { outline:4px solid #2dd4bf; outline-offset:2px; }
-    #homeApps .ha-icon { font-size:1.875rem; line-height:1; margin-bottom:.5rem; transition:transform .2s; }
-    .ha-mono { width:2.25rem; height:2.25rem; border-radius:22%; display:grid; place-content:center; color:#fff; font-weight:800; font-size:1.1rem; line-height:1; box-shadow:inset 0 0 0 1px rgba(255,255,255,.25); }
-    @media (min-width:640px) { #homeApps .ha-mono { width:2.75rem; height:2.75rem; font-size:1.3rem; } }
-    @media (min-width:1024px) { #homeApps .ha-mono { width:3rem; height:3rem; } }
+    #homeApps .ha-tile { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; background:none; color:var(--text,#1e293b); text-decoration:none; padding:0; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; font:inherit; }
+    .dark #homeApps .ha-tile { color:var(--text,#f1f5f9); }
+    #homeApps .ha-tile:focus-visible { outline:2px solid #2dd4bf; outline-offset:4px; }
+    #homeApps .ha-icon { width:100%; max-width:calc(100% - 26px); aspect-ratio:1; display:grid; place-items:center; overflow:hidden; border-radius:22%; background:var(--pine,#007e8a); color:#fff; font-size:clamp(26px,8vw,44px); line-height:1; transition:transform .2s; }
+    #homeApps .ha-tile:hover .ha-icon { transform:scale(1.05); }
+    #homeApps .ha-tile:active .ha-icon { transform:scale(.95); }
+    .ha-mono { width:100%; height:100%; border-radius:22%; display:grid; place-content:center; color:#fff; font-weight:800; font-size:inherit; line-height:1; }
+    #homeApps .ha-icon img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+    #homeApps .ha-name { font-size:12.5px; font-weight:700; line-height:1.25; text-align:center; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #homeApps .ha-name svg { width:13px; height:13px; margin-inline-start:3px; vertical-align:middle; }
+    @media (min-width:640px) { #homeApps .ha-name { font-size:13.5px; } }
+    @media (prefers-reduced-motion:reduce) { #homeApps .ha-icon { transition:none; transform:none !important; } }
     .ha-dialog .ha-iconrow { display:flex; gap:10px; align-items:center; }
     .ha-dialog .ha-iconrow input { flex:1; min-width:0; }
     .ha-dialog .ha-preview { width:44px; height:44px; flex:none; display:grid; place-content:center; border-radius:12px; background:#007E8A; }
     .ha-dialog .ha-preview .ha-icon { margin:0; font-size:1.6rem; }
     .ha-dialog .ha-preview .ha-icon img, .ha-dialog .ha-preview .ha-mono { width:36px; height:36px; font-size:1rem; }
-    #homeApps .ha-icon img { width:2.25rem; height:2.25rem; border-radius:22%; object-fit:cover; display:block; pointer-events:none; }
-    #homeApps .ha-name { font-size:.875rem; font-weight:800; line-height:1.25; letter-spacing:-.01em; max-width:100%; text-align:center; word-break:keep-all; overflow-wrap:anywhere; display:flex; align-items:center; justify-content:center; }
-    #homeApps .ha-name svg { width:14px; height:14px; margin-left:4px; opacity:.8; flex:none; }
-    @media (min-width:640px) { #homeApps .ha-icon { font-size:2.25rem; margin-bottom:.75rem; } #homeApps .ha-icon img { width:2.75rem; height:2.75rem; } }
-    @media (min-width:1024px) { #homeApps .ha-name { font-size:1rem; } #homeApps .ha-icon { font-size:2.5rem; } #homeApps .ha-icon img { width:3rem; height:3rem; } }
     #homeApps .ha-slot { aspect-ratio:1; border-radius:1.5rem; border:2px dashed #cbd5e1; color:#94a3b8; display:grid; place-content:center; font-size:2.25rem; font-weight:300; line-height:1; background:rgba(248,250,252,.5); user-select:none; -webkit-user-select:none; }
     .dark #homeApps .ha-slot { border-color:#334155; color:#64748b; background:rgba(255,255,255,.02); }
     #homeApps .ha-slot.is-admin { cursor:pointer; -webkit-touch-callout:none; font:inherit; font-size:2.25rem; font-weight:300; }
@@ -205,16 +204,16 @@
     if (wasOpen) return;
 
     const cell = tile.parentElement;
-    const label = tile.querySelector('.ha-name').getBoundingClientRect();
+    const icon = tile.querySelector('.ha-icon');
     const bounds = cell.getBoundingClientRect();
     const menu = document.createElement('div');
     menu.className = 'ha-menu';
     menu.id = 'home-entry-menu-' + app.id;
     menu.innerHTML = app.menu.map(item => `<a href="${esc(safeUrl(item.url) || '#')}">${esc(item.name)}</a>`).join('');
     cell.append(menu);
-    const left = Math.max(8, Math.min(label.left, document.documentElement.clientWidth - menu.offsetWidth - 8));
+    const left = Math.max(8, Math.min(bounds.left + icon.offsetLeft, document.documentElement.clientWidth - menu.offsetWidth - 8));
     menu.style.left = (left - bounds.left) + 'px';
-    menu.style.top = (label.bottom - bounds.top + 5) + 'px';
+    menu.style.top = (icon.offsetTop + icon.offsetHeight + 4) + 'px';
     tile.setAttribute('aria-expanded', 'true');
     tile.setAttribute('aria-controls', menu.id);
     openEntryMenu = { tile, menu };
