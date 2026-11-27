@@ -390,6 +390,7 @@
       </div>
 
       <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
+      <p id="roster-draft-status" role="status" class="text-xs font-bold text-[#46674d]" hidden></p>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
       </div>
@@ -1116,6 +1117,38 @@
     try { localRosterSettings = JSON.parse(localStorage.getItem(CALENDAR_KEY)) || {}; } catch (_) {}
     const quarter = () => quarterStore[currentQuarterKey];
     const canManageRoster = () => window.isSuperuser === true;
+    const DRAFT_QUARTER = '2027-Q1';
+    const DRAFT_STORAGE_KEY = 'clc-sr-roster-2027-q1-draft-v1';
+    const canEditRoster = () => currentQuarterKey === DRAFT_QUARTER || canManageRoster();
+
+    function restoreRosterDraft() {
+      try {
+        const draft = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY));
+        const original = quarterStore[DRAFT_QUARTER].weeks;
+        if (!Array.isArray(draft) || draft.length !== original.length) return;
+        if (draft.some((week,index) => !week || week.id !== original[index].id ||
+          Object.entries(original[index]).some(([key,value]) =>
+            Array.isArray(value) ? !Array.isArray(week[key]) : typeof week[key] !== typeof value ||
+            (value && typeof value === 'object' && !week[key])))) return;
+        quarterStore[DRAFT_QUARTER].weeks = draft;
+      } catch (_) {}
+    }
+
+    function showRosterDraftStatus(message) {
+      const status = document.getElementById('roster-draft-status');
+      status.hidden = currentQuarterKey !== DRAFT_QUARTER;
+      status.textContent = status.hidden ? '' : message || '免登入編輯 · 自動儲存在此瀏覽器';
+    }
+    function saveRosterDraft() {
+      if (currentQuarterKey !== DRAFT_QUARTER) return;
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify(quarter().weeks));
+        showRosterDraftStatus('已自動儲存在此瀏覽器');
+      } catch (_) {
+        showRosterDraftStatus('無法自動儲存，修改只留在目前頁面');
+      }
+    }
+
     const calendar = () => localRosterSettings[currentQuarterKey]?.calendar ?? quarter().calendar ?? (
       currentQuarterKey === '2027-Q1' ? [{date:'2027-02-04',type:'pause',label:'農曆春節休會'}] : []
     );
@@ -1562,6 +1595,7 @@
     // =========================================================================
     function switchQuarter(qKey) {
       currentQuarterKey = qKey;
+      showRosterDraftStatus();
       renderRosterSettings();
       resetRosterSearch();
       selectedMonthFilter = 'ALL';
@@ -1793,7 +1827,8 @@
                 </span>
                 <input type="text"
                   value="${escapeHtml(week.songs[cfg.key])}"
-                  onchange="updateSongField(${realIdx}, '${cfg.key}', this.value)"
+                  ${canEditRoster() ? '' : 'readonly'}
+                  oninput="updateSongField(${realIdx}, '${cfg.key}', this.value)"
                   placeholder="${cfg.placeholder}"
                   class="w-full h-[24px] text-[14px] font-bold text-[#1E3323] bg-transparent px-1 rounded focus:bg-white focus:ring-1 focus:ring-[#3D7A47] focus:outline-none" />
               </div>
@@ -1818,10 +1853,10 @@
           tdUsherTag.className = 'px-0.5 h-[31px] align-middle text-center bg-[#F7FAF7] select-none';
           attachGridCellEvents(tdUsherTag, globalRow, 5, false);
           tdUsherTag.innerHTML = usherTagText
-            ? `<span contenteditable="true"
+            ? `<span contenteditable="${canManageRoster()}"
                 onblur="updateTagArray(${realIdx}, 'usherTags', ${r}, this.innerText)"
                 class="editable-cell inline-flex items-center justify-center w-[54px] h-[22px] text-[11px] font-bold rounded-full border border-[#C5DEC8] bg-[#EEF6EE] text-[#2C5E34] leading-none whitespace-nowrap">${escapeHtml(usherTagText)}</span>`
-            : `<span contenteditable="true"
+            : `<span contenteditable="${canManageRoster()}"
                 onblur="updateTagArray(${realIdx}, 'usherTags', ${r}, this.innerText)"
                 class="editable-cell inline-flex items-center justify-center w-[54px] h-[22px] text-[11px] rounded-full text-transparent"></span>`;
           tr.appendChild(tdUsherTag);
@@ -1854,11 +1889,11 @@
               ? 'border-[#8BC3CB] bg-[#E6F4F6] text-[#1E5B70] font-black text-[10px] leading-[1.06]'
               : 'border-[#C5DEC8] bg-[#EEF6EE] text-[#2C5E34] font-bold text-[11px] leading-none';
 
-            tdCar.innerHTML = `<span contenteditable="true"
+            tdCar.innerHTML = `<span contenteditable="${canManageRoster()}"
               onblur="updateTagArray(${realIdx}, 'shuttleCars', ${r}, this.innerText)"
               class="editable-cell inline-flex flex-col items-center justify-center w-[64px] h-[25px] rounded-lg border px-0.5 text-center ${carBadgeStyle}">${innerCarHtml}</span>`;
           } else {
-            tdCar.innerHTML = `<span contenteditable="true"
+            tdCar.innerHTML = `<span contenteditable="${canManageRoster()}"
               onblur="updateTagArray(${realIdx}, 'shuttleCars', ${r}, this.innerText)"
               class="editable-cell inline-flex items-center justify-center w-[64px] h-[25px] rounded-lg text-transparent"></span>`;
           }
@@ -1934,7 +1969,7 @@
       td.dataset.rowIdx = rowIdx;
       td.dataset.globalRow = globalRow;
       td.dataset.gridCol = gridCol;
-      td.contentEditable = 'true';
+      td.contentEditable = String(canEditRoster());
       td.textContent = value;
 
       td.className = `editable-cell px-0.5 h-[31px] leading-[31px] text-center text-[16px] font-bold tracking-normal whitespace-nowrap ${
@@ -1945,13 +1980,18 @@
             : 'text-[#1E3323]'
       }`;
 
-      attachGridCellEvents(td, globalRow, gridCol, true);
+      attachGridCellEvents(td, globalRow, gridCol, canEditRoster());
 
-      td.onblur = () => {
+      function storeName() {
+        if (!canEditRoster()) return;
         const cleaned = td.textContent.trim();
+        if (weeks[weekIdx][colKey][rowIdx] === cleaned) return;
         weeks[weekIdx][colKey][rowIdx] = cleaned;
-        renderMobileCards();
-      };
+        saveRosterDraft();
+      }
+      td.oninput = event => { if (!event.isComposing) storeName(); };
+      td.oncompositionend = storeName;
+      td.onblur = () => { storeName(); renderMobileCards(); };
 
       td.onpaste = (e) => {
         const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -2148,7 +2188,7 @@
         return;
       }
 
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (canEditRoster() && (e.key === 'Delete' || e.key === 'Backspace')) {
         const { minR, maxR, minC, maxC } = getNormalizedRange();
         const weeks = quarterStore[currentQuarterKey].weeks;
         let cleared = 0;
@@ -2162,6 +2202,7 @@
           }
         }
         if (cleared > 0) {
+          saveRosterDraft();
           e.preventDefault();
           renderDesktopTable();
           renderMobileCards();
@@ -2172,6 +2213,7 @@
 
     // Multi-row & multi-column rectangular paste (automatically skips fixed columns & song rows)
     function applyRectangularPaste(rawText) {
+      if (!canEditRoster()) return;
       const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\n$/, '');
       if (!cleanText) return;
 
@@ -2196,6 +2238,7 @@
       }
 
       if (pastedCount > 0) {
+        saveRosterDraft();
         selectionRange = {
           startR: minR,
           startC: minC,
@@ -2315,14 +2358,17 @@
       const curr = weeks[weekIdx].speakerType || 'church';
       const next = order[(order.indexOf(curr) + 1) % order.length];
       weeks[weekIdx].speakerType = next;
+      saveRosterDraft();
       renderDesktopTable();
       renderMobileCards();
       showToast(`已切換講員分類為「${SPEAKER_STYLES[next].label}」`);
     }
 
     function updateTagArray(weekIdx, arrayKey, rowIdx, rawText) {
+      if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       weeks[weekIdx][arrayKey][rowIdx] = rawText.replace(/\s+/g, ' ').trim();
+      saveRosterDraft();
       renderDesktopTable();
       renderMobileCards();
     }
@@ -2332,12 +2378,15 @@
       const weeks = quarterStore[currentQuarterKey].weeks;
       const cleaned = val.trim();
       weeks[weekIdx][field] = cleaned === '輸入講員' ? '' : cleaned;
+      saveRosterDraft();
       renderMobileCards();
     }
 
     function updateSongField(weekIdx, songKey, val) {
+      if (!canEditRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       weeks[weekIdx].songs[songKey] = val.trim();
+      saveRosterDraft();
       renderMobileCards();
     }
 
@@ -2350,6 +2399,7 @@
       }
       // Prepend so the first existing item stays at the very bottom and new items stack upward
       weeks[weekIdx].events.unshift({ text: '新活動項目', color: 'red' });
+      saveRosterDraft();
       renderDesktopTable();
       renderMobileCards();
     }
@@ -2364,6 +2414,7 @@
       } else {
         weeks[weekIdx].events[evIdx].text = cleaned;
       }
+      saveRosterDraft();
       renderMobileCards();
     }
 
@@ -2373,6 +2424,7 @@
       const curr = weeks[weekIdx].events[evIdx].color || 'red';
       const next = EVENT_COLOR_KEYS[(EVENT_COLOR_KEYS.indexOf(curr) + 1) % EVENT_COLOR_KEYS.length];
       weeks[weekIdx].events[evIdx].color = next;
+      saveRosterDraft();
       renderDesktopTable();
       renderMobileCards();
     }
@@ -2381,6 +2433,7 @@
       if (!canManageRoster()) return;
       const weeks = quarterStore[currentQuarterKey].weeks;
       weeks[weekIdx].events.splice(evIdx, 1);
+      saveRosterDraft();
       renderDesktopTable();
       renderMobileCards();
     }
@@ -2573,6 +2626,11 @@
       renderDesktopTable();
     });
     window.addEventListener('DOMContentLoaded', () => {
+      restoreRosterDraft();
+      const requestedQuarter = new URLSearchParams(location.search).get('quarter');
+      if (requestedQuarter === DRAFT_QUARTER) currentQuarterKey = DRAFT_QUARTER;
+      document.getElementById('quarter-selector').value = currentQuarterKey;
+      showRosterDraftStatus();
       setVersionStatus(versionStatus, false);
       renderRosterSettings();
       resetRosterSearch();
