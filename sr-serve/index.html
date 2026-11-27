@@ -325,27 +325,82 @@
       body.roster-table-view #desktop-table-section { display:block !important }
       body.roster-table-view #mobile-cards-section { display:none !important }
       #header-remark-text { display: none !important; }
-      #roster-view-switch { display:inline-flex;align-items:center;gap:2px }
-      #roster-month-view { display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100% }
-      #roster-month-view #month-filter-tabs,#roster-view-switch {
-        flex:none;padding:3px;border:1px solid #c5dec8;border-radius:10px;background:#eef6ee;
+
+      /* Compact single-row mobile tabs + sliding pill + search button */
+      #roster-nav { flex-wrap: nowrap !important; gap: 4px !important; }
+      .quarter-folder-tabs { padding-right: 6px !important; }
+      .folder-tab-btn {
+        height: 28px !important;
+        padding: 0 11px 0 8px !important;
+        margin-right: -6px !important;
+        font-size: 12px !important;
+        clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 100%, 0 100%) !important;
       }
-      #roster-month-view button {
-        min-height:30px;height:30px;padding:0 clamp(6px,2vw,10px);border:0;border-radius:7px;
-        color:#2c5e34;font-weight:750;font-size:clamp(12px,3.5vw,14px);white-space:nowrap;
-        display:inline-flex;align-items:center;justify-content:center;
+      .folder-tab-btn.is-active {
+        height: 30px !important;
       }
-      #roster-month-view #month-filter-tabs button[aria-pressed="true"],
-      #roster-view-switch button[aria-pressed="true"] { background:#2f6538;color:#fff }
+
+      /* Sliding Pill Switch (卡片 / 表格) without middle divider line */
+      #roster-view-switch {
+        position: relative;
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        padding: 2px;
+        border: 1px solid #B5D2B9;
+        border-radius: 9999px;
+        background: #E8F2E9;
+        height: 30px;
+        box-sizing: border-box;
+      }
+      #roster-view-switch .view-switch-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: calc(50% - 2px);
+        height: calc(100% - 4px);
+        border-radius: 9999px;
+        background: #2F6538;
+        box-shadow: 0 1px 3px rgba(30, 51, 35, 0.22);
+        transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+      }
+      body.roster-table-view #roster-view-switch .view-switch-thumb {
+        transform: translateX(100%);
+      }
+      #roster-view-switch button {
+        position: relative;
+        z-index: 1;
+        min-height: 24px !important;
+        height: 24px !important;
+        padding: 0 8px !important;
+        border: 0 !important;
+        background: transparent !important;
+        border-radius: 9999px;
+        color: #2C5E34;
+        font-weight: 800;
+        font-size: 12px !important;
+        line-height: 1;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.18s ease;
+      }
+      #roster-view-switch button[aria-pressed="true"] {
+        color: #FFFFFF !important;
+      }
+
       #roster-search-toggle {
-        min-height:38px !important;
-        height:38px !important;
-        padding:0 12px !important;
-        border-radius:10px !important;
-        display:inline-flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-        white-space:nowrap !important;
+        min-height: 30px !important;
+        height: 30px !important;
+        padding: 0 8px !important;
+        border-radius: 8px !important;
+        font-size: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
       }
       body.roster-table-view #roster-scroll { touch-action:pan-x pan-y }
     }
@@ -489,9 +544,9 @@
       <div id="roster-brand-line" class="flex items-baseline gap-2 flex-wrap">
         <div class="relative inline-flex items-baseline">
           <select id="year-selector" onchange="switchYear(this.value)" aria-label="選擇年份" title="點擊切換年份"
-            class="appearance-none bg-transparent border-0 p-0 pr-4 text-3xl sm:text-4xl font-black text-[#3D7A47] hover:text-[#2C5E34] tracking-tight leading-none cursor-pointer focus:outline-none">
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
+            class="appearance-none bg-transparent border-0 p-0 pr-4 text-lg sm:text-2xl font-black text-[#3D7A47] hover:text-[#2C5E34] tracking-tight leading-none cursor-pointer focus:outline-none">
+            <option value="2026" class="text-sm font-bold bg-[#FCFDFB] text-[#1E3323]">2026</option>
+            <option value="2027" class="text-sm font-bold bg-[#FCFDFB] text-[#1E3323]">2027</option>
           </select>
           <svg class="w-3.5 h-3.5 text-[#3D7A47] absolute right-0 bottom-0.5 pointer-events-none" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -514,13 +569,16 @@
         </svg>
       </button>
 
-      <!-- Right: Color Legend + Remark -->
+      <!-- Right: Color Legend + Week Count + Remark -->
       <div class="order-3 sm:order-2 flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-auto">
-        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold">
+        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold flex-wrap">
           <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
           <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
           <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
           <span class="px-2 py-0.5 rounded bg-[#BAE6FD] text-[#1E3323] border border-[#8BC3CB]">其他講員</span>
+          <span id="week-count-badge" class="text-xs font-bold text-[#6C8570] ml-1 whitespace-nowrap">
+            共 14 週聚會
+          </span>
         </div>
 
         <span id="header-remark-text" class="text-xs font-bold text-[#4A6650]">
@@ -529,28 +587,24 @@
       </div>
     </div>
 
-    <!-- Folder Quarter Tabs (Left) + Week Count & Search Button (Far Right, Same Row) -->
-    <div id="roster-nav" class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex flex-wrap items-center justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-2">
+    <!-- Single-Row Navigation: Q1 Q2 Q3 Q4 | Sliding Pill (卡片 表格) | 搜尋 -->
+    <div id="roster-nav" class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex items-center justify-between gap-1.5 sm:gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
         <!-- 4 Quarters Folder Tabs: Q1, Q2, Q3, Q4 (Left-aligned, right-click to copy short URL & shortcut) -->
-        <div id="quarter-folder-tabs" class="quarter-folder-tabs" role="tablist" aria-label="季度分頁">
+        <div id="quarter-folder-tabs" class="quarter-folder-tabs shrink-0" role="tablist" aria-label="季度分頁">
           <!-- Rendered dynamically -->
         </div>
 
-        <div id="roster-month-view">
-          <div id="roster-view-switch" role="group" aria-label="卡片/表格顯示方式">
-            <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
-            <span class="text-[#9BBF9F] font-bold text-xs select-none">/</span>
-            <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">表格</button>
-          </div>
+        <!-- Sliding Pill Toggle for Mobile/Tablet (卡片 | 表格, no middle line) -->
+        <div id="roster-view-switch" class="shrink-0" role="group" aria-label="卡片表格顯示方式">
+          <span class="view-switch-thumb" aria-hidden="true"></span>
+          <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
+          <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">表格</button>
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5 ml-auto">
-        <p id="roster-draft-status" role="status" class="text-xs font-bold text-[#46674d]" hidden></p>
-        <div id="week-count-badge" class="text-xs sm:text-sm font-bold text-[#6C8570] whitespace-nowrap">
-          共 14 週聚會
-        </div>
+      <div class="flex items-center gap-2 ml-auto shrink-0">
+        <p id="roster-draft-status" role="status" class="hidden sm:inline text-xs font-bold text-[#46674d]" hidden></p>
         <button type="button" id="roster-search-toggle" class="roster-search-button whitespace-nowrap" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
       </div>
     </div>
@@ -3219,14 +3273,19 @@
       ensureQuarterExists(currentQuarterKey);
       document.getElementById('year-selector').value = currentQuarterKey.split('-')[0];
       showRosterDraftStatus();
-      // Wait briefly if header.js initializes Firebase asynchronously, then subscribe & watch admin state
+      // Connect to Firebase initialized by /header.js as soon as ready
       subscribeQuarterFromFirebase(currentQuarterKey);
       let watchedAuth = initFirebaseAdminWatcher();
-      setTimeout(() => {
+      let fbRetryCount = 0;
+      const fbBootTimer = setInterval(() => {
+        fbRetryCount++;
         if (!firebaseUnsubscribe) subscribeQuarterFromFirebase(currentQuarterKey);
         if (!watchedAuth) watchedAuth = initFirebaseAdminWatcher();
         syncAdminUiState();
-      }, 1200);
+        if ((firebaseUnsubscribe && watchedAuth) || fbRetryCount >= 15) {
+          clearInterval(fbBootTimer);
+        }
+      }, 300);
       setVersionStatus(versionStatus, false);
       renderRosterSettings();
       resetRosterSearch();
@@ -3241,5 +3300,5 @@
     });
   </script>
 
-  <script src="header.js?v=20261126-serve"></script>
+  <script src="/header.js?v=20261126-serve"></script>
 </body></html>
