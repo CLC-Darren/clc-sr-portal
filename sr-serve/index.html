@@ -1,0 +1,3007 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark"><head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#090A0F">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 10-12月加樂團契服事表</title>
+  <link rel="icon" href="images/sr-serve-favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="images/sr-serve-apple-touch-icon.png">
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{extend:{colors:{brand:{teal:'#007E8A',tealHover:'#006C77',surface:'#11131B',card:'#161924',border:'rgba(255,255,255,0.1)',muted:'#8A92A6'}}}}
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    /* The SR header sits above a light roster, so use the solid YA dark surface here. */
+    #clc-header { background-color:#090A0F; color:#f1f5f9 }
+    :root {
+      --bg-cream: #FCFDFB;
+      --forest-green: #3D7A47;
+      --forest-dark: #2C5E34;
+      --sage-light: #EEF6EE;
+      --sage-border: #C5DEC8;
+      --marigold: #F4BD3E;
+      --marigold-soft: #FEF5DC;
+      --teal-sky: #8BC3CB;
+      --teal-soft: #E6F4F6;
+      --coral: #E67A3C;
+      --grass-green: #7EB55C;
+    }
+
+    /* Global Thin Scrollbar (6px) */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #9BBF9F #EEF4EE;
+    }
+    *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    *::-webkit-scrollbar-track {
+      background: #EEF4EE;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: #9BBF9F;
+      border-radius: 9999px;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: #3D7A47;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F6F9F5;
+      color: #1E3323;
+      margin: 0;
+    }
+
+    .font-brand-en {
+      font-family: 'Quicksand', 'Noto Sans TC', sans-serif;
+      letter-spacing: 0.14em;
+    }
+
+    /* Compact 31px Row Height Spreadsheet Table Architecture */
+    .roster-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      width: 100%;
+      min-width: 1230px;
+    }
+
+    .roster-table th {
+      border: 1px solid #B8D1BA;
+      box-sizing: border-box;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .roster-table td {
+      border-left: 1px solid #DCE5DC;
+      border-right: 1px solid #DCE5DC;
+      border-top: none;
+      border-bottom: none;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .roster-row {
+      height: 31px;
+      max-height: 31px;
+      line-height: 31px;
+    }
+
+    /* Fixed-height spreadsheet name cell: Shift+Enter keeps newline inside without expanding row height */
+    .roster-name-cell {
+      height: 31px !important;
+      max-height: 31px !important;
+      overflow: hidden !important;
+      white-space: pre !important;
+      line-height: 1.25 !important;
+      padding-top: 5px !important;
+      padding-bottom: 5px !important;
+      vertical-align: top !important;
+    }
+
+    /* Folder Tabs (4 Quarters like physical folder dividers) */
+    .quarter-folder-tabs {
+      display: inline-flex;
+      align-items: flex-end;
+      padding-top: 2px;
+      padding-right: 12px;
+      user-select: none;
+    }
+    .folder-tab-btn {
+      position: relative;
+      height: 32px;
+      padding: 0 18px 0 15px;
+      margin-right: -10px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-bottom: none;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+      box-shadow: 2px -1px 4px rgba(0, 0, 0, 0.08);
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+    }
+    .folder-tab-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+    }
+    .folder-tab-btn.is-active {
+      height: 35px;
+      z-index: 20 !important;
+      transform: translateY(0);
+      box-shadow: 0 -2px 8px rgba(30, 51, 35, 0.16), 2px 0 5px rgba(0, 0, 0, 0.08);
+      font-weight: 900;
+    }
+    .folder-tab-q1 { background: linear-gradient(180deg, #FDE047 0%, #FACC15 100%); color: #3F3205; z-index: 4; }
+    .folder-tab-q2 { background: linear-gradient(180deg, #FB923C 0%, #F97316 100%); color: #FFFFFF; z-index: 3; }
+    .folder-tab-q3 { background: linear-gradient(180deg, #F472B6 0%, #EC4899 100%); color: #FFFFFF; z-index: 2; }
+    .folder-tab-q4 { background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%); color: #FFFFFF; z-index: 1; }
+
+    /* Right-click Context Menu for Folder Tabs */
+    #folder-tab-context-menu {
+      position: fixed;
+      z-index: 9999;
+      min-width: 240px;
+      background: #FCFDFB;
+      border: 1.5px solid #3D7A47;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(30, 51, 35, 0.22);
+      padding: 6px;
+      color: #1E3323;
+    }
+    #folder-tab-context-menu[hidden] {
+      display: none !important;
+    }
+    #folder-tab-context-menu button {
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background-color 0.1s ease;
+    }
+    #folder-tab-context-menu button:hover {
+      background-color: #EEF6EE;
+    }
+
+    /* Crisp dark full-width week separator (extends through 當週活動 rowspan="6") */
+    .roster-table tr.week-divider td,
+    .roster-table td.week-divider-cell {
+      border-bottom: 1.5px solid #2A4D31 !important;
+    }
+
+    /* Distinct full-width DOUBLE divider line when month changes (extends through 當週活動 rowspan="6") */
+    .roster-table tr.month-divider td,
+    .roster-table td.month-divider-cell {
+      border-bottom: 4px double #1E3323 !important;
+    }
+
+    /* Sticky Header & Sticky First Column (follows page scroll) */
+    .sticky-header-top {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .sticky-header-sub {
+      position: sticky;
+      top: var(--roster-first-row, 34px);
+      z-index: 30;
+    }
+    .sticky-col-left {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      background-color: #FCFDFB;
+      box-shadow: 4px 0 10px -2px rgba(61, 122, 71, 0.12);
+    }
+    .sticky-corner {
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 40;
+      box-shadow: 4px 0 10px -2px rgba(44, 94, 52, 0.25);
+    }
+
+    /* Single-line Vertical Chinese Text for Lounge Labels */
+    .vertical-zh-single {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    /* Harmonious Forest Green & Sage Selection Style (No clashing blue, no border on multi-cell range) */
+    .gs-in-range {
+      background-color: rgba(61, 122, 71, 0.15) !important;
+      user-select: none;
+    }
+    .gs-selected-cell {
+      position: relative;
+      background-color: rgba(61, 122, 71, 0.12) !important;
+      box-shadow: inset 0 0 0 2px #3D7A47 !important;
+      z-index: 10;
+    }
+    .gs-range-corner::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 6px;
+      height: 6px;
+      background-color: #3D7A47;
+      border: 1px solid #FFFFFF;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .editable-cell {
+      outline: none;
+      transition: background-color 0.08s ease;
+    }
+    .editable-cell:focus {
+      background-color: #FFFFFF !important;
+      box-shadow: inset 0 0 0 2px #3D7A47 !important;
+    }
+
+    @keyframes flashSage {
+      0% { background-color: #FDE68A; }
+      100% { background-color: transparent; }
+    }
+    .paste-flash {
+      animation: flashSage 1.0s ease-out;
+    }
+
+    #roster-view-switch { display:none }
+    /* Modern iOS HIG & Android Material 3 Mobile/Tablet Portrait Switch (< 900px or portrait tablet) */
+    @media (max-width:899px), (max-width:1024px) and (orientation:portrait), (max-width:1100px) and (orientation:landscape) and (pointer:coarse) {
+      #desktop-table-section {
+        display: none !important;
+      }
+      #mobile-cards-section {
+        display: block !important;
+      }
+      body.roster-table-view #desktop-table-section { display:block !important }
+      body.roster-table-view #mobile-cards-section { display:none !important }
+      #roster-view-switch { display:inline-flex;gap:3px }
+      #roster-month-view { display:flex;align-items:center;gap:5px;max-width:100% }
+      #roster-month-view #month-filter-tabs,#roster-view-switch {
+        flex:none;padding:3px;border:1px solid #c5dec8;border-radius:10px;background:#eef6ee;
+      }
+      #roster-month-view button {
+        min-height:30px;padding:0 clamp(5px,1.8vw,10px);border:0;border-radius:7px;
+        color:#2c5e34;font-weight:750;font-size:clamp(12px,3.5vw,15px);white-space:nowrap;
+      }
+      #roster-month-view #month-filter-tabs button[aria-pressed="true"],
+      #roster-view-switch button[aria-pressed="true"] { background:#2f6538;color:#fff }
+      body.roster-table-view #roster-scroll { touch-action:pan-x pan-y }
+    }
+    @media (min-width:900px) {
+      #desktop-table-section { display:block }
+      #mobile-cards-section { display:none }
+    }
+    @media (orientation:landscape) and (max-height:560px) and (max-width:1100px) {
+      #roster-header { padding-block:3px }
+      #roster-heading { gap:4px }
+      #roster-brand-line { gap:6px }
+      #header-year-display { font-size:22px }
+      #header-title-display { font-size:16px;line-height:1.2 }
+      #roster-legend,#header-remark-text,#week-count-badge { display:none }
+      #roster-settings-button { width:28px;height:28px }
+      #roster-nav { margin-top:3px;padding-top:3px;gap:3px 7px }
+      #roster-nav > div { gap:4px }
+      #roster-nav button,#year-selector { min-height:27px;padding-block:0 }
+      #desktop-table-section { padding-top:4px }
+      #mobile-cards-section { padding-top:5px }
+    }
+    /* Desktop activity notes share one right-hand column for + and ×. */
+    .desktop-event-stack { position:relative; top:var(--desktop-event-offset, 0px); padding-bottom:7px; }
+    .desktop-event-row {
+      display:grid;
+      grid-template-columns:6px minmax(0,1fr) 16px;
+      gap:3px;
+      align-items:center;
+      min-height:17px;
+    }
+    .desktop-event-text { min-width:0; overflow-wrap:anywhere; }
+    .desktop-event-stack .desktop-event-action {
+      width:16px;
+      height:16px;
+      margin:0;
+      padding:0;
+      text-align:center;
+      line-height:16px;
+    }
+    .desktop-event-stack .desktop-event-add { position:absolute; right:0; top:-16px; }
+    .desktop-event-row:focus-within .desktop-event-action { opacity:1; }
+    #desktop-table-section { box-sizing:border-box;padding:8px 12px 12px }
+    @media (min-width:640px) { #desktop-table-section { padding-inline:20px } }
+    #roster-scroll {
+      max-height:max(180px, calc(100dvh - var(--roster-top, 150px) - 12px));
+      overflow:auto;border:1px solid #c5dec8;border-radius:9px;
+      scrollbar-width:thin;scrollbar-color:#83a98a #edf4eb;
+    }
+    @media (hover:hover) and (pointer:fine) {
+      #roster-scroll:not(:hover):not(:focus-visible) { scrollbar-color:transparent transparent !important }
+      #roster-scroll:hover,#roster-scroll:focus-visible { scrollbar-color:#83a98a transparent !important }
+      #roster-scroll::-webkit-scrollbar { height:6px !important;width:6px !important }
+      #roster-scroll::-webkit-scrollbar-thumb { background:transparent !important }
+      #roster-scroll:hover::-webkit-scrollbar-thumb,#roster-scroll:focus-visible::-webkit-scrollbar-thumb {
+        background:#83a98a !important;
+      }
+    }
+    #roster-scroll:focus-visible { outline:2px solid #3d7a47;outline-offset:2px }
+    .roster-table th,.roster-table td { border-left:0 }
+    .roster-announcement { background:#f8edda;color:#603d21;font-weight:750 }
+    .roster-announcement td { padding:7px 9px;line-height:1.35 }
+    .roster-announcement .sticky-col-left { background:inherit }
+    .roster-announcement.pause,.roster-announcement.pause .sticky-col-left { background:#fae5e4;color:#8a2626 }
+    .roster-announcement.outing,.roster-announcement.outing .sticky-col-left { background:#e5f3e4;color:#285534 }
+    .roster-announcement.special,.roster-announcement.special .sticky-col-left { background:#fbefd4 }
+    .mobile-announcement { padding:12px 14px;border-radius:10px;font-size:18px }
+    .roster-manager-panel { max-height:90dvh;overflow:auto;scrollbar-width:thin }
+    #roster-settings-button[hidden],#roster-tbody button[hidden] { display:none!important }
+    .roster-settings-block { padding:8px 0;border-top:1px solid #c5dec8 }
+    .roster-settings-block summary { color:#2c5e34;font-weight:800;cursor:pointer }
+    .roster-settings-block form { margin-top:8px }
+    .roster-settings-block form[hidden] { display:none }
+    .roster-settings-block label,#roster-search-form label { display:grid;gap:4px;font-weight:700;margin-bottom:8px }
+    .roster-settings-block input,.roster-settings-block select,#roster-search-form input,#roster-search-form select {
+      width:100%;min-width:0;min-height:42px;box-sizing:border-box;border:1px solid #a2bea6;
+      border-radius:8px;background:#fff;color:#203a25;padding:6px 9px;color-scheme:light;
+    }
+    .roster-settings-block button,#roster-search button,.roster-search-button {
+      border:1px solid #9bbd9f;border-radius:8px;background:#eaf4e9;color:#234d2c;
+      padding:5px 10px;min-height:38px;font-weight:750;
+    }
+    #roster-calendar-list li { display:flex;gap:5px;margin-top:5px }
+    #roster-calendar-list button:first-child { flex:1;text-align:left }
+    #roster-calendar-error { color:#962c23 }
+    .roster-settings-note { margin-top:6px;color:#526950 }
+    #roster-search {
+      margin:8px 12px 2px;border:1px solid #a9c7ad;border-radius:12px;
+      background:#fcfdfb;color:#1e3323;padding:15px;font-size:18px;
+    }
+    #roster-search[hidden] { display:none !important }
+    #roster-search-toggle::after { content:" ▾" }
+    #roster-search-toggle[aria-expanded="true"]::after { content:" ▴" }
+    @media(min-width:640px) { #roster-search { margin-inline:20px } }
+    #roster-name-suggestions:empty { display:none }
+    #roster-name-suggestions { display:grid;gap:3px;margin:-3px 0 10px }
+    #roster-name-suggestions button { display:flex;justify-content:space-between;align-items:center;gap:6px;text-align:left }
+    #roster-name-suggestions small { color:#375e40;font-size:13px }
+    #roster-name-suggestions [aria-selected="true"] { background:#d0e8d3;outline:2px solid #3d7a47 }
+    .roster-search-hint { font-size:14px;color:#45624a;line-height:1.4;margin:-3px 0 8px }
+    .roster-search-header { display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:12px }
+    .roster-search-header h2 { font-size:23px;font-weight:850 }
+    .roster-search-header p { font-size:14px }
+    .roster-search-dates { display:grid;grid-template-columns:1fr 1fr;gap:8px }
+    .roster-voice-field { display:flex;align-items:center;gap:6px }
+    .roster-voice-field input { flex:1 }
+    #roster-voice-button { min-width:44px;min-height:44px;display:grid;place-items:center }
+    #roster-voice-button[hidden],#roster-voice-status:empty { display:none }
+    #roster-voice-button[aria-pressed="true"] { background:#fce8e6;color:#a33236;border-color:#c37e7f }
+    #roster-voice-status { color:#45624a;font-size:14px;margin:2px 0 8px }
+    #roster-search-results { margin-top:12px }
+    #roster-search-results section { margin-top:8px;padding:8px 0;border-top:1px solid #d4e4d6 }
+    #roster-search-results h3,#roster-search-results h4 { font-weight:850 }
+    .roster-search-choices { display:flex;flex-wrap:wrap;gap:7px;margin-top:8px }
+    @media(max-width:480px) { #roster-search { padding:12px } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- TOP HEADER & QUARTER / MONTH NAVIGATION BAR                           -->
+  <!-- ===================================================================== -->
+  <header id="clc-header"></header>
+  <header id="roster-header" class="bg-[#FCFDFB] border-b border-[#C5DEC8] px-3 sm:px-5 py-2.5">
+    <div id="roster-heading" class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- Left: Big Year + Title + Version Status Badge -->
+      <div id="roster-brand-line" class="flex items-baseline gap-2.5 flex-wrap">
+        <span id="header-year-display" class="text-3xl sm:text-4xl font-black text-[#3D7A47] tracking-tight leading-none">2026</span>
+        <h1 id="header-title-display" class="text-lg sm:text-2xl font-black text-[#1E3323] tracking-tight">
+          10-12月加樂團契服事表
+        </h1>
+        <span id="version-status-badge" class="px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40">
+          確認版
+        </span>
+      </div>
+
+      <!-- Right: Color Legend + Remark + Super User Gear Button -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
+        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold">
+          <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
+          <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
+          <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
+          <span class="px-2 py-0.5 rounded bg-[#BAE6FD] text-[#1E3323] border border-[#8BC3CB]">其他講員</span>
+        </div>
+
+        <span id="header-remark-text" class="text-xs font-bold text-[#4A6650]">
+          *師母講道時間確認後要 email 通知心怡。
+        </span>
+
+        <!-- Super User Settings Gear Button -->
+        <button id="roster-settings-button" hidden type="button" onclick="toggleSuperUserModal(true)" title="管理設定"
+          class="w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Year Selector + Folder Quarter Tabs & Month Selector Strip -->
+    <div id="roster-nav" class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Year Selector Only -->
+        <div class="relative inline-flex items-center">
+          <select id="year-selector" onchange="switchYear(this.value)" aria-label="選擇年份"
+            class="appearance-none bg-[#EEF6EE] hover:bg-[#dcecdc] text-[#2C5E34] font-black text-xs sm:text-sm rounded-xl pl-3.5 pr-8 py-1.5 border border-[#C5DEC8] focus:outline-none focus:ring-2 focus:ring-[#3D7A47]/30 cursor-pointer">
+            <option value="2026">2026 年</option>
+            <option value="2027">2027 年</option>
+          </select>
+          <svg class="w-4 h-4 text-[#2C5E34] absolute right-2.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- 4 Quarters Folder Tabs (Right-click to copy URL & shortcut path) -->
+        <div id="quarter-folder-tabs" class="quarter-folder-tabs" role="tablist" aria-label="季度分頁">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div id="roster-month-view">
+          <div id="month-filter-tabs" class="inline-flex items-center bg-[#F4F8F4] p-1 rounded-xl border border-[#C5DEC8] gap-1">
+            <!-- Rendered dynamically -->
+          </div>
+          <div id="roster-view-switch" role="group" aria-label="服事表顯示方式">
+            <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
+            <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">電腦</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
+      <p id="roster-draft-status" role="status" class="text-xs font-bold text-[#46674d]" hidden></p>
+      <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
+        共 14 週聚會
+      </div>
+    </div>
+  </header>
+
+  <!-- Folder Tab Right-Click Context Menu -->
+  <div id="folder-tab-context-menu" hidden role="menu" aria-label="季度分頁網址與捷徑選單">
+    <div id="folder-tab-menu-header" class="px-2.5 py-1 text-[11px] font-black text-[#3D7A47] border-b border-[#E3EDE4] mb-1">
+      2026 年 第4季 (10-12月)
+    </div>
+    <button type="button" id="ctx-copy-full-url" role="menuitem">
+      <span>🔗 複製此季度完整網址</span>
+      <span id="ctx-full-url-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[260px]"></span>
+    </button>
+    <button type="button" id="ctx-copy-shortcut-path" role="menuitem">
+      <span>📂 複製捷徑路徑</span>
+      <span id="ctx-shortcut-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[260px]"></span>
+    </button>
+  </div>
+
+  <section id="roster-search" hidden aria-labelledby="roster-search-title">
+    <header class="roster-search-header">
+      <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
+    </header>
+    <form id="roster-search-form">
+      <label for="roster-search-name">姓名</label>
+      <div class="roster-voice-field">
+        <input id="roster-search-name" name="member" type="search" placeholder="例如：林家祥" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="roster-name-suggestions" aria-describedby="roster-name-hint">
+        <button id="roster-voice-button" type="button" aria-label="語音輸入姓名" aria-pressed="false" title="語音輸入姓名" hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-3 0h6"/>
+          </svg>
+        </button>
+      </div>
+      <p id="roster-voice-status" role="status"></p>
+
+      <p class="roster-search-hint" id="roster-name-hint">輸入姓名的部分文字也能搜尋，同音、近音和相關字會顯示提示。</p>
+      <div id="roster-name-suggestions" role="listbox" aria-label="相近姓名"></div>
+      <label>服事項目<select name="role"><option value="">全部服事項目</option></select></label>
+      <div class="roster-search-dates">
+        <label>開始日期<input name="from" type="date"></label>
+        <label>結束日期<input name="to" type="date"></label>
+      </div>
+    </form>
+    <div id="roster-search-results" aria-live="polite"></div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- DESKTOP SPREADSHEET ROSTER                                            -->
+  <!-- ===================================================================== -->
+  <main id="desktop-table-section" class="w-full flex-1">
+    <div id="roster-scroll" class="bg-[#FCFDFB]" tabindex="0" aria-label="可上下左右捲動的服事表">
+      <table class="roster-table">
+        <colgroup>
+          <col style="width: 15.3%; min-width: 188px;" /> <!-- 當週活動 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 敬拜 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 樂手 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 投影片 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 音控 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 攝影 -->
+          <col style="width: 4.8%; min-width: 58px;" />   <!-- 招待-位置 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 招待-姓名 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 愛宴 -->
+          <col style="width: 5.6%; min-width: 68px;" />   <!-- 接送-車輛 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 接送-駕駛 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 點名 -->
+          <col style="width: 2.2%; min-width: 26px;" />   <!-- 交誼廳接待直書 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 交誼廳接待姓名 -->
+          <col style="width: 2.2%; min-width: 26px;" />   <!-- 量血壓直書 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 量血壓姓名 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 體操 -->
+          <col style="width: 5.2%; min-width: 64px;" />   <!-- 值班 -->
+        </colgroup>
+        <thead>
+          <tr class="bg-[#3D7A47] text-white text-center font-bold text-[14px] h-[34px]">
+            <th rowspan="2" class="sticky-corner bg-[#2C5E34] px-2 py-1 text-center align-middle">
+              <div class="text-base font-black tracking-widest text-[#FEF5DC]">當週活動</div>
+            </th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">敬拜</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">樂手</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">投影片</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">音控</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">攝影</th>
+            <th colspan="2" class="sticky-header-top bg-[#3D7A47] py-1">招待</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">愛宴</th>
+            <th colspan="2" class="sticky-header-top bg-[#3D7A47] py-1">接送</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">點名</th>
+            <th colspan="4" class="sticky-header-top bg-[#3D7A47] py-1">交誼廳</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">體操</th>
+            <th class="sticky-header-top bg-[#3D7A47] py-1">值班</th>
+          </tr>
+          <tr class="bg-[#EEF6EE] text-[#2C5E34] text-center text-xs font-bold h-[26px]">
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">佳珍</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">琮玲</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">品頤</th>
+            <th data-roster-leader colspan="2" class="sticky-header-sub bg-[#EEF6EE] py-0.5">振隆</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">翊婕</th>
+            <th data-roster-leader colspan="4" class="sticky-header-sub bg-[#EEF6EE] py-0.5">惠玲</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">夢凌</th>
+            <th data-roster-leader class="sticky-header-sub bg-[#EEF6EE] py-0.5">培榮</th>
+          </tr>
+        </thead>
+        <tbody id="roster-tbody" class="bg-[#FCFDFB]"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MOBILE & TABLET PORTRAIT VIEW: MODERN iOS / MATERIAL 3 ELDER DESIGN   -->
+  <!-- ===================================================================== -->
+  <section id="mobile-cards-section" class="w-full px-3.5 py-4 pb-12">
+    <div class="max-w-xl mx-auto space-y-4">
+      <!-- Weekly Cards Feed -->
+      <div id="mobile-cards-list" class="space-y-5"></div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SUPER USER SETTINGS MODAL (TRIGGERED BY TOP-RIGHT GEAR ICON)          -->
+  <!-- ===================================================================== -->
+  <div id="superuser-modal" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div class="bg-[#FCFDFB] w-full max-w-md rounded-2xl border-2 border-[#3D7A47] shadow-2xl roster-manager-panel">
+      <div class="bg-[#3D7A47] text-white px-5 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2 font-black text-lg">
+          <span>⚙️ 管理設定</span>
+        </div>
+        <button type="button" onclick="toggleSuperUserModal(false)" class="text-white/80 hover:text-white text-xl font-bold leading-none">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-5 text-sm">
+        <!-- 1. Version Status Selector (確認版 vs 初稿) -->
+        <div>
+          <label class="block font-black text-[#2C5E34] mb-2">1. 服事表版本狀態</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" id="opt-status-confirmed" onclick="setVersionStatus('確認版')" class="py-2.5 px-3 rounded-xl font-black border-2 border-[#3D7A47] bg-[#3D7A47] text-white transition-all">
+              ✓ 確認版
+            </button>
+            <button type="button" id="opt-status-draft" onclick="setVersionStatus('初稿')" class="py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all">
+              ✎ 初稿
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Top-Right Remark Editor -->
+        <div>
+          <label for="input-header-remark" class="block font-black text-[#2C5E34] mb-1.5">2. 右上角備註文字</label>
+          <input id="input-header-remark" type="text" value="*師母講道時間確認後要 email 通知心怡。" oninput="updateHeaderRemark(this.value)" class="w-full px-3 py-2 rounded-xl border border-[#C5DEC8] focus:border-[#3D7A47] focus:outline-none font-medium text-[#1E3323]">
+        </div>
+
+        <details class="roster-settings-block">
+          <summary>表頭與負責人</summary>
+          <form id="roster-leader-settings" hidden>
+            <details><summary>欄位標題</summary><div id="roster-heading-settings"></div></details>
+            <p class="roster-settings-note">負責人</p>
+            <label>敬拜／樂手<input maxlength="20"></label>
+            <label>投影片／音控<input maxlength="20"></label>
+            <label>攝影<input maxlength="20"></label>
+            <label>招待<input maxlength="20"></label>
+            <label>愛宴<input maxlength="20"></label>
+            <label>接送<input maxlength="20"></label>
+            <label>點名<input maxlength="20"></label>
+            <label>交誼廳<input maxlength="20"></label>
+            <label>體操<input maxlength="20"></label>
+            <label>值班<input maxlength="20"></label>
+            <button type="submit">儲存表頭與負責人</button>
+          </form>
+        </details>
+        <details class="roster-settings-block">
+          <summary>休會、出遊與特別活動</summary>
+          <form id="roster-calendar-form" hidden>
+            <label>日期<input type="date" name="date" required></label>
+            <label>類型<select name="type"><option value="pause">休會</option><option value="outing">出遊</option><option value="special">特別活動</option></select></label>
+            <label>原因或活動名稱<input name="label" maxlength="100" required></label>
+            <p id="roster-calendar-error" role="alert"></p>
+            <button type="submit">儲存活動</button>
+          </form>
+          <ul id="roster-calendar-list"></ul>
+          <p class="roster-settings-note">活動與負責人設定先保存在此瀏覽器。可下載 HTML 備份。</p>
+        </details>
+
+        <div class="pt-1 flex items-center justify-between gap-3">
+          <button type="button" onclick="downloadSelfHtml()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#F4BD3E] hover:bg-[#eab02b] text-[#1E3323] font-black shadow-xs transition-colors flex items-center justify-center gap-1.5">
+            <span>⬇️ 下載最新 HTML 檔案</span>
+          </button>
+          <button type="button" onclick="toggleSuperUserModal(false)" class="py-2.5 px-4 rounded-xl bg-[#EEF6EE] hover:bg-[#dcecdc] text-[#2C5E34] font-bold">
+            完成
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast Notification -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 transition-all duration-300 pointer-events-none translate-y-24 opacity-0">
+    <div class="bg-[#2C5E34] text-white px-4 py-2.5 rounded-xl shadow-lg border border-[#7EB55C] flex items-center gap-2 text-sm font-bold">
+      <span class="w-2 h-2 rounded-full bg-[#F4BD3E]"></span>
+      <span id="toast-text">已複製 12 列 × 8 欄矩形資料</span>
+    </div>
+  </div>
+
+  <script src="https://clc-sr-portal.pages.dev/js/vendor/pinyin-pro-3.29.5.js"></script>
+  <script id="roster-seed-script">
+    // =========================================================================
+    // 1. MULTI-QUARTER ROSTER STORE (2026 Q1-Q4 + 2027 Q1-Q4 WITH MONTHLY PRESETS)
+    // =========================================================================
+    const EVENT_COLORS = {
+      red: { label: '紅字強調', cls: 'text-[#C53030] font-bold', dot: 'bg-[#C53030]', badgeBg: 'bg-[#FDECEC] text-[#B83232]' },
+      green: { label: '森綠常態', cls: 'text-[#2C5E34] font-semibold', dot: 'bg-[#3D7A47]', badgeBg: 'bg-[#EEF6EE] text-[#2C5E34]' },
+      amber: { label: '暖金提醒', cls: 'text-[#9A6700] font-bold', dot: 'bg-[#D97706]', badgeBg: 'bg-[#FEF5DC] text-[#9A6700]' },
+      blue: { label: '湖藍資訊', cls: 'text-[#1E5B70] font-bold', dot: 'bg-[#0284C7]', badgeBg: 'bg-[#E6F4F6] text-[#1E5B70]' },
+      purple: { label: '紫羅蘭註記', cls: 'text-[#6B21A8] font-bold', dot: 'bg-[#7E22CE]', badgeBg: 'bg-[#F3E8FF] text-[#6B21A8]' }
+    };
+    const EVENT_COLOR_KEYS = ['red', 'green', 'amber', 'blue', 'purple'];
+
+    const QUARTER_DEFS = [
+      { q: 'Q1', label: '1-3月', title: '1-3月加樂團契服事表', months: [1, 2, 3], colorCls: 'folder-tab-q1' },
+      { q: 'Q2', label: '4-6月', title: '4-6月加樂團契服事表', months: [4, 5, 6], colorCls: 'folder-tab-q2' },
+      { q: 'Q3', label: '7-9月', title: '7-9月加樂團契服事表', months: [7, 8, 9], colorCls: 'folder-tab-q3' },
+      { q: 'Q4', label: '10-12月', title: '10-12月加樂團契服事表', months: [10, 11, 12], colorCls: 'folder-tab-q4' }
+    ];
+
+    // Build default bottom-aligned special events per week-of-month (1st, 2nd, 3rd week)
+    function getDefaultMonthEvents(weekOfMonth) {
+      if (weekOfMonth === 1) {
+        return [
+          { text: '講座、慶生', color: 'red' },
+          { text: '社福諮詢站：佳穎、靖珍', color: 'green' }
+        ];
+      }
+      if (weekOfMonth === 2) {
+        return [{ text: '樂齡活動', color: 'red' }];
+      }
+      if (weekOfMonth === 3) {
+        return [{ text: '手作 DIY', color: 'red' }];
+      }
+      return [];
+    }
+
+    function createBlankWeek(id, month, dateStr, weekOfMonth = 4) {
+      return {
+        id,
+        month,
+        date: dateStr,
+        speakerType: 'church',
+        speaker: '',
+        topic: '',
+        events: getDefaultMonthEvents(weekOfMonth),
+        songs: { fast: '', slow1: '', slow2: '' },
+        worship: ['', '', ''],
+        musician: ['', '', ''],
+        slides: ['', '', ''],
+        sound: ['', '', ''],
+        photo: ['', '', '', '', '', ''],
+        usher: ['', '', '', '', '', ''],
+        usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+        meal: ['', '', '', '', '', ''],
+        shuttle: ['', '', '', '', '', ''],
+        shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+        rollcall: ['', '', '', '', '', ''],
+        loungeReception: ['', '', '', '', '', ''],
+        loungeBP: ['', '', '', '', '', ''],
+        exercise: ['', '', '', '', '', ''],
+        duty: ['', '', '', '', '', ''],
+        changedCells: {}
+      };
+    }
+
+    function buildGeneratedQuarter(year, qDef) {
+      const weeks = [];
+      let wIdx = 1;
+      for (const month of qDef.months) {
+        let weekOfMonth = 1;
+        const daysInMonth = new Date(Date.UTC(Number(year), month, 0)).getUTCDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dow = new Date(Date.UTC(Number(year), month - 1, day)).getUTCDay();
+          if (dow === 4) {
+            weeks.push(createBlankWeek(`${year}-${qDef.q.toLowerCase()}-w${wIdx++}`, month, `${month}月${day}日`, weekOfMonth++));
+          }
+        }
+      }
+      return {
+        year: String(year),
+        title: qDef.title,
+        months: qDef.months.slice(),
+        weeks
+      };
+    }
+
+    function ensureQuarterExists(qKey) {
+      if (quarterStore[qKey]) return quarterStore[qKey];
+      const match = /^(\d{4})-(Q[1-4])$/.exec(qKey);
+      if (!match) return quarterStore[currentQuarterKey];
+      const [, year, qCode] = match;
+      const qDef = QUARTER_DEFS.find(item => item.q === qCode) || QUARTER_DEFS[0];
+      quarterStore[qKey] = buildGeneratedQuarter(year, qDef);
+      return quarterStore[qKey];
+    }
+
+    const INITIAL_QUARTER_STORE = {
+      '2026-Q4': {
+        year: '2026',
+        title: '10-12月加樂團契服事表',
+        months: [10, 11, 12],
+        weeks: [
+          {
+            id: 'w1',
+            month: 10,
+            date: '10月1日',
+            speakerType: 'external',
+            speaker: '林家祥弟兄',
+            topic: '生命超 Change！教會 APP 輕鬆上手',
+            events: [
+              { text: '講座、慶生', color: 'red' },
+              { text: '社福諮詢站：佳穎、靖珍', color: 'green' }
+            ],
+            songs: { fast: '好心情', slow1: '永遠不分離', slow2: '' },
+            worship: ['李夢凌', '胡春梅', '卓美鈴'],
+            musician: ['陳立馨', '李語潔', ''],
+            slides: ['麗足', '', ''],
+            sound: ['佳珍', '', ''],
+            photo: ['宗豫', '小燕子', '', '', '', ''],
+            usher: ['黃惠珍', '黃秀珠', '程島芳', '廖瑞英', '詹玉琴', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '', '靖文', '蔡佩蓁', ''],
+            shuttle: ['游信義', '孫藝綾', '劉姿利', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '陳月嬌', '季芳', '', '', ''],
+            loungeReception: ['黎家玲', '王秀嬿', '張麗月', '徐秀芬', '楊佳穎', ''],
+            loungeBP: ['方翌靜', '洪菡翎', '', '', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['陳文泉', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w2',
+            month: 10,
+            date: '10月8日',
+            speakerType: 'church',
+            speaker: '林漢威牧師',
+            topic: '',
+            events: [
+              { text: '樂齡活動', color: 'red' }
+            ],
+            songs: { fast: '真正好(台)', slow1: '野地的花', slow2: '我的心你要稱謝耶和華' },
+            worship: ['吳淑慎', '高明玉', '洪菡翎'],
+            musician: ['王韶華', '李夢凌', ''],
+            slides: ['芳櫻', '', ''],
+            sound: ['琮玲', '', ''],
+            photo: ['琮玲', '玉琴', '', '', '', ''],
+            usher: ['林來好', '林瑞香', '邱麗琴', '黃淑貞', '李卉蓁', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '怡君', '茹心', '', ''],
+            shuttle: ['塗達成', '', '吳永盛', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['紀麗足', '胡春梅', '', '', '', ''],
+            loungeReception: ['林彥均', '陳美燕', '李雪海', '周雅瑟', '楊雲羽', ''],
+            loungeBP: ['陳淑娟', '', '', '林曉艾', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['鄭水龍', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w3',
+            month: 10,
+            date: '10月15日',
+            speakerType: 'church',
+            speaker: '宋瑞賢傳道',
+            topic: '',
+            events: [
+              { text: '手作 DIY', color: 'red' }
+            ],
+            songs: { fast: '我要全心讚美', slow1: '活出愛', slow2: '主你是我力量' },
+            worship: ['盧佳珍', '戴茹心', '陳品秀'],
+            musician: ['陳立馨', '李夢凌', ''],
+            slides: ['宜芬', '', ''],
+            sound: ['玉琴', '', ''],
+            photo: ['玲惠', '美鈴', '', '', '', ''],
+            usher: ['巫文寶', '廖桂貞', '沈秀喜', '高瑞瑩', '葉志榮', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '莊淑芬', '郭秀梅', '怡君', ''],
+            shuttle: ['胡偉立', '', '王枝海', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '余佳美', '季芳', '', '', ''],
+            loungeReception: ['黃鈺卿', '周克立', '柯喜玉', '陳綉華', '吳秀花', ''],
+            loungeBP: ['徐子晴', '', '', '陳惠玲', '', ''],
+            exercise: ['美鈴', '', '', '', '', ''],
+            duty: ['李培榮', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w4',
+            month: 10,
+            date: '10月22日',
+            speakerType: 'church',
+            speaker: '范麗娟師母',
+            topic: '',
+            events: [],
+            songs: { fast: '向耶和華唱新歌', slow1: '愛能遮掩', slow2: '跟隨你' },
+            worship: ['許淑美', '張芝瑜', '劉徑倫'],
+            musician: ['李語潔', '劉榮中', ''],
+            slides: ['佳珍', '', ''],
+            sound: ['佩玲', '', ''],
+            photo: ['瑞雪', '小燕子', '', '', '', ''],
+            usher: ['林美喜', '黃惠珍', '黃秀珠', '程島芳', '廖瑞英', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '吳靜芳', '', '', ''],
+            shuttle: ['塗達成', '吳永盛', '游信義', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['陳月嬌', '吳翊婕', '顏新梅', '', '', ''],
+            loungeReception: ['林彥均', '陳純如', '陳秋芬', '姚美蘭', '周珈宣', ''],
+            loungeBP: ['陳惠玲', '', '', '鄭瑞君', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['黃瑞隆', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w5',
+            month: 10,
+            date: '10月29日',
+            speakerType: 'church',
+            speaker: '林漢威牧師',
+            topic: '',
+            events: [],
+            songs: { fast: '再一次', slow1: '愛中相遇', slow2: '永遠敬拜' },
+            worship: ['陳小燕', '黎家玲', '方翌靜'],
+            musician: ['梁香梅', '袁玫理', ''],
+            slides: ['佩玲', '', ''],
+            sound: ['玉琴', '', ''],
+            photo: ['琮玲', '美鈴', '', '', '', ''],
+            usher: ['林瑞香', '邱麗琴', '黃淑貞', '李卉蓁', '林來好', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '小清', '茹心', '靖文', ''],
+            shuttle: ['李宗豫', '', '胡孝明', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '胡春梅', '余佳美', '', '', ''],
+            loungeReception: ['周克立', '柯雪玉', '吳秀花', '陳綉華', '柯梅', ''],
+            loungeBP: ['', '', '', '陳惠玲', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['陳智豪', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w6',
+            month: 11,
+            date: '11月5日',
+            speakerType: 'external',
+            speaker: '黃琬夏姊妹',
+            topic: '',
+            events: [
+              { text: '講座、慶生', color: 'red' },
+              { text: '社福諮詢站：佳穎、靖珍', color: 'green' }
+            ],
+            songs: { fast: '牽著手', slow1: '你的恩典夠我用', slow2: '' },
+            worship: ['卓美鈴', '吳淑慎', '胡春梅'],
+            musician: ['王韶華', '李夢凌', ''],
+            slides: ['芳櫻', '', ''],
+            sound: ['琮玲', '', ''],
+            photo: ['宗豫', '玲惠', '', '', '', ''],
+            usher: ['高瑞瑩', '詹玉琴', '巫文寶', '廖桂貞', '沈秀喜', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '茹心', '郭秀梅', '(訂便當)', ''],
+            shuttle: ['胡偉立', '', '王枝海', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['紀麗足', '陳月嬌', '季芳', '', '', ''],
+            loungeReception: ['黎家玲', '王秀嬿', '張麗月', '徐秀芬', '楊佳穎', ''],
+            loungeBP: ['方翌靜', '洪菡翎', '', '', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['陳文泉', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w7',
+            month: 11,
+            date: '11月12日',
+            speakerType: 'church',
+            speaker: '宋瑞賢傳道',
+            topic: '',
+            events: [
+              { text: '樂齡活動', color: 'red' }
+            ],
+            songs: { fast: '在這裡', slow1: '我要見到你', slow2: '恩典的記號' },
+            worship: ['李夢凌', '高明玉', '戴茹心'],
+            musician: ['黃意珊', '劉榮中', ''],
+            slides: ['佩玲', '', ''],
+            sound: ['佳珍', '', ''],
+            photo: ['玉琴', '小燕子', '', '', '', ''],
+            usher: ['葉志榮', '林美喜', '黃惠珍', '黃秀珠', '程島芳', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '孫藝綾', '吳靜芳', '蔡佩蓁', ''],
+            shuttle: ['李宗豫', '', '游信義', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '吳翊婕', '余佳美', '', '', ''],
+            loungeReception: ['林彥均', '陳美燕', '李雪海', '周雅瑟', '楊雲羽', ''],
+            loungeBP: ['陳淑娟', '', '', '林曉艾', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['鄭水龍', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w8',
+            month: 11,
+            date: '11月19日',
+            speakerType: 'church',
+            speaker: '林永健牧師',
+            topic: '',
+            events: [
+              { text: '手作 DIY', color: 'red' }
+            ],
+            songs: { fast: '每天的禱告', slow1: '因與同在', slow2: '被神祝福的人' },
+            worship: ['陳小燕', '張芝瑜', '黎家玲'],
+            musician: ['梁香梅', '李夢凌', ''],
+            slides: ['麗足', '', ''],
+            sound: ['玉琴', '', ''],
+            photo: ['琮玲', '美鈴', '', '', '', ''],
+            usher: ['黃淑貞', '李卉蓁', '林來好', '林瑞香', '邱麗琴', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '莊淑芬', '怡君', '(訂便當)', ''],
+            shuttle: ['塗達成', '', '楊淑珠', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['紀麗足', '胡春梅', '時屏', '', '', ''],
+            loungeReception: ['黃鈺卿', '周克立', '柯喜玉', '陳綉華', '吳秀花', ''],
+            loungeBP: ['徐子晴', '', '', '陳惠玲', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['李培榮', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w9',
+            month: 11,
+            date: '11月26日',
+            speakerType: 'church',
+            speaker: '林漢威牧師',
+            topic: '',
+            events: [],
+            songs: { fast: '我們的神要來掌權', slow1: '你信實的愛(台)', slow2: '我靈要敬拜' },
+            worship: ['許淑美', '方翌靜', '劉徑倫'],
+            musician: ['李語潔', '袁玫理', ''],
+            slides: ['宜芬', '', ''],
+            sound: ['佩玲', '', ''],
+            photo: ['瑞雪', '玲惠', '', '', '', ''],
+            usher: ['詹玉琴', '巫文寶', '廖桂貞', '沈秀喜', '高瑞瑩', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '靖文', '胡孝明', '小清', ''],
+            shuttle: ['劉姿利', '', '胡孝明', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '余佳美', '顏新梅', '', '', ''],
+            loungeReception: ['林彥均', '陳純如', '陳秋芬', '姚美蘭', '周珈宣', ''],
+            loungeBP: ['陳惠玲', '', '', '鄭瑞君', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['黃瑞隆', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w10',
+            month: 12,
+            date: '12月3日',
+            speakerType: 'external',
+            speaker: '',
+            topic: '',
+            events: [
+              { text: '講座、慶生', color: 'red' },
+              { text: '社福諮詢站：佳穎、靖珍', color: 'green' }
+            ],
+            songs: { fast: '幸福', slow1: '謝謝你的愛和恩典', slow2: '' },
+            worship: ['吳淑慎', '高明玉', '鄭品心'],
+            musician: ['陳立馨', '李夢凌', ''],
+            slides: ['玉琴', '', ''],
+            sound: ['佳珍', '', ''],
+            photo: ['宗豫', '美鈴', '', '', '', ''],
+            usher: ['林美喜', '黃惠珍', '黃秀珠', '程島芳', '廖瑞英', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '郭秀梅', '蔡佩蓁', '', ''],
+            shuttle: ['胡偉立', '', '游信義', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['紀麗足', '陳月嬌', '季芳', '', '', ''],
+            loungeReception: ['黎家玲', '王秀嬿', '張麗月', '徐秀芬', '楊佳穎', ''],
+            loungeBP: ['方翌靜', '洪菡翎', '', '', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['陳智豪', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w11',
+            month: 12,
+            date: '12月10日',
+            speakerType: 'outing',
+            speaker: '加樂聖誕佈道',
+            topic: '聖誕福音會(新莊)',
+            events: [
+              { text: '樂齡活動', color: 'red' }
+            ],
+            songs: { fast: '到各山嶺去傳揚', slow1: '主一直都在', slow2: '' },
+            worship: ['李夢凌', '卓美鈴', '許淑美'],
+            musician: ['王韶華', '劉榮中', ''],
+            slides: ['佳珍', '', ''],
+            sound: ['琮玲', '', ''],
+            photo: ['琮玲', '玉琴', '', '', '', ''],
+            usher: ['林來好', '林瑞香', '邱麗琴', '黃淑貞', '李卉蓁', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['', '', '', '', '', ''],
+            shuttle: ['', '劉姿利', '王枝海', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '吳翊婕', '時屏', '', '', ''],
+            loungeReception: ['林彥均', '陳美燕', '李雪海', '周雅瑟', '楊雲羽', ''],
+            loungeBP: ['徐子晴', '', '', '林曉艾', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['陳文泉', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w12',
+            month: 12,
+            date: '12月17日',
+            speakerType: 'church',
+            speaker: '林漢威牧師',
+            topic: '聖誕佈道信息',
+            events: [
+              { text: '手作 DIY', color: 'red' }
+            ],
+            songs: { fast: '主的喜樂是我力量', slow1: '住在你裡面', slow2: '深觸我心' },
+            worship: ['盧佳珍', '洪菡翎', '黎家玲'],
+            musician: ['陳立馨', '李夢凌', ''],
+            slides: ['麗足', '', ''],
+            sound: ['佩玲', '', ''],
+            photo: ['小燕子', '玲惠', '', '', '', ''],
+            usher: ['巫文寶', '廖桂貞', '沈秀喜', '高瑞瑩', '葉志榮', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '莊淑芬', '茹心', '孫藝綾', ''],
+            shuttle: ['吳永盛', '', '胡孝明', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['陳月嬌', '吳翊婕', '顏新梅', '', '', ''],
+            loungeReception: ['黃鈺卿', '周克立', '柯喜玉', '陳綉華', '吳秀花', ''],
+            loungeBP: ['陳淑娟', '', '', '陳惠玲', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['鄭水龍', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w13',
+            month: 12,
+            date: '12月24日',
+            speakerType: 'church',
+            speaker: '宋瑞賢傳道',
+            topic: '',
+            events: [],
+            songs: { fast: '好喜歡與你在一起', slow1: '最美的禮物', slow2: '在耶穌的腳前' },
+            worship: ['卓美鈴', '張芝瑜', '李夢凌'],
+            musician: ['黃意珊', '袁玫理', ''],
+            slides: ['宜芬', '', ''],
+            sound: ['玉琴', '', ''],
+            photo: ['瑞雪', '琮玲', '', '', '', ''],
+            usher: ['程島芳', '廖瑞英', '林美喜', '黃惠珍', '黃秀珠', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '怡君', '小清', '吳靜芳', ''],
+            shuttle: ['劉振隆', '', '吳永盛', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['方桂香', '胡春梅', '余佳美', '', '', ''],
+            loungeReception: ['林彥均', '陳純如', '陳秋芬', '姚美蘭', '周珈宣', ''],
+            loungeBP: ['陳惠玲', '', '', '鄭瑞君', '', ''],
+            exercise: ['美鈴', '讚美操', '', '', '', ''],
+            duty: ['李培榮', '', '', '', '', ''],
+            changedCells: {}
+          },
+          {
+            id: 'w14',
+            month: 12,
+            date: '12月31日',
+            speakerType: 'church',
+            speaker: '林漢威牧師',
+            topic: '',
+            events: [],
+            songs: { fast: '信耶穌真有福氣(台)', slow1: '陪我走過春夏秋冬', slow2: '雲上太陽' },
+            worship: ['陳小燕', '劉徑倫', '方翌靜'],
+            musician: ['李語潔', '李夢凌', ''],
+            slides: ['佩玲', '', ''],
+            sound: ['琮玲', '', ''],
+            photo: ['玉琴', '小燕子', '', '', '', ''],
+            usher: ['黃淑貞', '李卉蓁', '林來好', '林瑞香', '邱麗琴', ''],
+            usherTags: ['一樓', '中間', 'B1大廳', '會堂入口', '電梯機動', ''],
+            meal: ['品頤', '楊証忠', '蔡佩蓁', '郭秀梅', '(訂便當)', ''],
+            shuttle: ['李宗豫', '', '楊淑珠', '', '', ''],
+            shuttleCars: ['教會車 AWF-7019', '自用車-1', '自用車-2', '', '', ''],
+            rollcall: ['紀麗足', '陳月嬌', '余佳美', '', '', ''],
+            loungeReception: ['周克立', '柯雪玉', '吳秀花', '陳綉華', '柯梅', ''],
+            loungeBP: ['', '', '', '陳惠玲', '', ''],
+            exercise: ['夢凌', '健康操', '', '', '', ''],
+            duty: ['黃瑞隆', '', '', '', '', ''],
+            changedCells: {}
+          }
+        ]
+      },
+      '2027-Q1': {
+        year: '2027',
+        title: '1-3月加樂團契服事表',
+        months: [1, 2, 3],
+        weeks: [
+          // 2027 January Thursdays (自動套用每月1/2/3週預設活動並靠底對齊)
+          createBlankWeek('2027-w1', 1, '1月7日', 1),
+          createBlankWeek('2027-w2', 1, '1月14日', 2),
+          createBlankWeek('2027-w3', 1, '1月21日', 3),
+          createBlankWeek('2027-w4', 1, '1月28日', 4),
+          // February Thursdays
+          createBlankWeek('2027-w5', 2, '2月4日', 1),
+          createBlankWeek('2027-w6', 2, '2月11日', 2),
+          createBlankWeek('2027-w7', 2, '2月18日', 3),
+          createBlankWeek('2027-w8', 2, '2月25日', 4),
+          // March Thursdays
+          createBlankWeek('2027-w9', 3, '3月4日', 1),
+          createBlankWeek('2027-w10', 3, '3月11日', 2),
+          createBlankWeek('2027-w11', 3, '3月18日', 3),
+          createBlankWeek('2027-w12', 3, '3月25日', 4)
+        ]
+      }
+    };
+
+    let quarterStore = JSON.parse(JSON.stringify(INITIAL_QUARTER_STORE));
+    let currentQuarterKey = '2026-Q4';
+    let selectedMonthFilter = 'ALL';
+    let versionStatus = '確認版';
+    // Rectangular selection state across the entire 17-column grid (editable + fixed columns)
+    let selectionRange = { startR: 0, startC: 12, endR: 0, endC: 12 };
+    let isDraggingSelection = false;
+
+    // Exact 17-column mapping matching the 17 body columns (after 當週活動 rowspan="6")
+    const GRID_COLS = [
+      { idx: 0, type: 'editable', key: 'worship', maxRow: 3 },
+      { idx: 1, type: 'editable', key: 'musician', maxRow: 3 },
+      { idx: 2, type: 'editable', key: 'slides', maxRow: 3 },
+      { idx: 3, type: 'editable', key: 'sound', maxRow: 3 },
+      { idx: 4, type: 'editable', key: 'photo', maxRow: 6 },
+      { idx: 5, type: 'fixed', label: '招待位置' },
+      { idx: 6, type: 'editable', key: 'usher', maxRow: 6 },
+      { idx: 7, type: 'editable', key: 'meal', maxRow: 6 },
+      { idx: 8, type: 'fixed', label: '接送車輛' },
+      { idx: 9, type: 'editable', key: 'shuttle', maxRow: 6 },
+      { idx: 10, type: 'editable', key: 'rollcall', maxRow: 6 },
+      { idx: 11, type: 'fixed', label: '交誼廳接待標籤' },
+      { idx: 12, type: 'editable', key: 'loungeReception', maxRow: 6 },
+      { idx: 13, type: 'fixed', label: '量血壓標籤' },
+      { idx: 14, type: 'editable', key: 'loungeBP', maxRow: 6 },
+      { idx: 15, type: 'editable', key: 'exercise', maxRow: 6 },
+      { idx: 16, type: 'editable', key: 'duty', maxRow: 6 }
+    ];
+
+    const SPEAKER_STYLES = {
+      church: { label: '教會講員', cls: 'bg-[#FDE68A] border-[#F4BD3E] text-[#1E3323]' },
+      external: { label: '其他講員', cls: 'bg-[#BAE6FD] border-[#8BC3CB] text-[#1E3323]' },
+      outing: { label: '加樂出遊', cls: 'bg-[#BBF7D0] border-[#7EB55C] text-[#1E3323]' }
+    };
+
+    const SEARCH_ROLES = {
+      speaker:'講員', worship:'敬拜', musician:'樂手', slides:'投影片', sound:'音控', photo:'攝影',
+      usher:'招待', meal:'愛宴', shuttle:'接送', rollcall:'點名', loungeReception:'交誼廳接待',
+      loungeBP:'量血壓', exercise:'體操', duty:'值班'
+    };
+    const CALENDAR_LABELS = { pause:'休會', outing:'出遊', special:'特別活動' };
+    const CALENDAR_KEY = 'clc-sr-roster-calendar-v1';
+    const titleElements = [...document.querySelectorAll('.roster-table thead tr:first-child th')]
+      .map(cell => cell.querySelector('div') || cell);
+    const defaultTitles = ['當週活動','敬拜','樂手','投影片','音控','攝影','招待','愛宴','接送','點名','交誼廳','體操','值班'];
+    const headingInputs = defaultTitles.map(title => {
+      const row = document.createElement('label');
+      const input = document.createElement('input');
+      input.maxLength = 20;
+      row.append(title,input);
+      document.getElementById('roster-heading-settings').append(row);
+      return input;
+    });
+    const DEFAULT_LEADERS = ['夢凌','佳珍','琮玲','培榮','品頤','振隆','翊婕','惠玲','夢凌','培榮'];
+    let localRosterSettings = {};
+    try { localRosterSettings = JSON.parse(localStorage.getItem(CALENDAR_KEY)) || {}; } catch (_) {}
+    const quarter = () => ensureQuarterExists(currentQuarterKey);
+    const canManageRoster = () => window.isSuperuser === true;
+    const DRAFT_QUARTER = '2027-Q1';
+    const DRAFT_STORAGE_KEY = 'clc-sr-roster-2027-q1-draft-v1';
+    const canEditRoster = () => currentQuarterKey === DRAFT_QUARTER || canManageRoster();
+
+    function restoreRosterDraft() {
+      try {
+        const draft = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY));
+        const original = quarterStore[DRAFT_QUARTER].weeks;
+        if (!Array.isArray(draft) || draft.length !== original.length) return;
+        if (draft.some((week,index) => !week || week.id !== original[index].id ||
+          Object.entries(original[index]).some(([key,value]) =>
+            Array.isArray(value) ? !Array.isArray(week[key]) : typeof week[key] !== typeof value ||
+            (value && typeof value === 'object' && !week[key])))) return;
+        quarterStore[DRAFT_QUARTER].weeks = draft;
+      } catch (_) {}
+    }
+
+    function showRosterDraftStatus(message) {
+      const status = document.getElementById('roster-draft-status');
+      status.hidden = currentQuarterKey !== DRAFT_QUARTER;
+      status.textContent = status.hidden ? '' : message || '免登入編輯 · 自動儲存在此瀏覽器';
+    }
+    function saveRosterDraft() {
+      if (currentQuarterKey !== DRAFT_QUARTER) return;
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify(quarter().weeks));
+        showRosterDraftStatus('已自動儲存在此瀏覽器');
+      } catch (_) {
+        showRosterDraftStatus('無法自動儲存，修改只留在目前頁面');
+      }
+    }
+
+    const calendar = () => localRosterSettings[currentQuarterKey]?.calendar ?? quarter().calendar ?? (
+      currentQuarterKey === '2027-Q1' ? [{date:'2027-02-04',type:'pause',label:'農曆春節休會'}] : []
+    );
+    const leaders = () => localRosterSettings[currentQuarterKey]?.leaders ?? quarter().leaders ?? DEFAULT_LEADERS;
+    const titles = () => localRosterSettings[currentQuarterKey]?.titles ?? quarter().titles ?? defaultTitles;
+
+    function isoWeek(week) {
+      const match = /^(\d{1,2})月\s*(\d{1,2})日$/.exec(week.date.trim());
+      return match ? quarter().year+'-'+match[1].padStart(2,'0')+'-'+match[2].padStart(2,'0') : '';
+    }
+    function displayDate(iso) {
+      return Number(iso.slice(5,7))+'月'+Number(iso.slice(8))+'日';
+    }
+    function weekOverride(week) {
+      return calendar().find(entry => entry.date === isoWeek(week) && entry.type !== 'special');
+    }
+    function rosterSchedule() {
+      const entries = getActiveWeeks().map(item => ({
+        ...item,date:isoWeek(item.week),month:item.week.month,announcement:weekOverride(item.week)
+      }));
+      for (const entry of calendar()) {
+        const month = Number(entry.date.slice(5,7));
+        if (entry.type === 'special' && (selectedMonthFilter === 'ALL' || Number(selectedMonthFilter) === month)) {
+          entries.push({date:entry.date,month,announcement:entry});
+        }
+      }
+      return entries.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+    }
+
+    function renderDesktopAnnouncement(item, monthEnd) {
+      const row = document.createElement('tr');
+      row.className = 'roster-announcement '+item.announcement.type+' '+(monthEnd ? 'month-divider' : 'week-divider');
+      const date = row.insertCell();
+      date.className = 'sticky-col-left';
+      date.textContent = displayDate(item.date);
+      const label = row.insertCell();
+      label.colSpan = GRID_COLS.length;
+      label.textContent = CALENDAR_LABELS[item.announcement.type]+' '+item.announcement.label;
+      return row;
+    }
+    function renderMobileAnnouncement(item) {
+      const card = document.createElement('div');
+      card.className = 'roster-announcement mobile-announcement '+item.announcement.type;
+      card.textContent = displayDate(item.date)+' '+CALENDAR_LABELS[item.announcement.type]+' '+item.announcement.label;
+      return card;
+    }
+
+    function saveRosterSetting(patch) {
+      localRosterSettings[currentQuarterKey] = { ...(localRosterSettings[currentQuarterKey] || {}),...patch };
+      try {
+        localStorage.setItem(CALENDAR_KEY,JSON.stringify(localRosterSettings));
+        return '已儲存在此瀏覽器';
+      } catch (_) { return '已套用到目前頁面'; }
+    }
+
+    const calendarForm = document.getElementById('roster-calendar-form');
+    const calendarList = document.getElementById('roster-calendar-list');
+    function renderRosterSettings() {
+      const granted = canManageRoster();
+      document.getElementById('roster-settings-button').hidden = !granted;
+      document.getElementById('roster-leader-settings').hidden = !granted;
+      calendarForm.hidden = !granted;
+      calendarList.replaceChildren();
+      document.querySelectorAll('[data-roster-leader]').forEach((cell,index) => {
+        cell.textContent = leaders()[index] || '—';
+      });
+      titleElements.forEach((element,index) => { element.textContent = titles()[index] || defaultTitles[index]; });
+      if (!granted) return;
+      headingInputs.forEach((input,index) => { input.value = titles()[index] || defaultTitles[index]; });
+      const date = calendarForm.elements.date;
+      const months = quarter().months;
+      const firstMonth = Number(months[0]);
+      const lastMonth = Number(months[months.length-1]);
+      date.min = quarter().year+'-'+String(firstMonth).padStart(2,'0')+'-01';
+      date.max = new Date(Date.UTC(quarter().year,lastMonth,0)).toISOString().slice(0,10);
+      date.value = '';
+      calendarForm.elements.label.value = '';
+      renderCalendarList();
+      document.querySelectorAll('#roster-leader-settings > label input').forEach((input,index) => {
+        input.value = leaders()[index] || '';
+      });
+    }
+
+    function renderCalendarList() {
+      calendarList.replaceChildren();
+      const ordered = [...calendar()].sort((a,b) => a.date.localeCompare(b.date));
+      for (const entry of ordered) {
+        const row = document.createElement('li');
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.textContent = displayDate(entry.date)+' '+CALENDAR_LABELS[entry.type]+' '+entry.label;
+        edit.onclick = () => {
+          if (!canManageRoster()) return;
+          calendarForm.elements.date.value = entry.date;
+          calendarForm.elements.type.value = entry.type;
+          calendarForm.elements.label.value = entry.label;
+          calendarForm.elements.label.focus();
+        };
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = entry.type === 'special' ? '移除' : '恢復聚會';
+        remove.onclick = () => {
+          if (!canManageRoster()) return;
+          updateCalendar(calendar().filter(item => item !== entry));
+        };
+        row.append(edit,remove);
+        calendarList.append(row);
+      }
+    }
+    function updateCalendar(entries) {
+      const status = saveRosterSetting({calendar:entries});
+      selectionRange = {startR:0,startC:0,endR:0,endC:0};
+      updateQuarterHeaderAndTabs();
+      renderDesktopTable();
+      renderMobileCards();
+      renderCalendarList();
+      showToast(status);
+    }
+    calendarForm.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!canManageRoster()) return;
+      const date = calendarForm.elements.date.value;
+      const type = calendarForm.elements.type.value;
+      const label = calendarForm.elements.label.value.trim();
+      if (!label || !date || !calendarForm.checkValidity()) return;
+      if (type !== 'special' && !quarter().weeks.some(week => isoWeek(week) === date)) {
+        document.getElementById('roster-calendar-error').textContent = '休會或出遊請選目前班表已有的聚會日期。其他日期可選「特別活動」。';
+        return;
+      }
+      document.getElementById('roster-calendar-error').textContent = '';
+      const entries = calendar().filter(item => item.date !== date || (item.type === 'special') !== (type === 'special'));
+      updateCalendar([...entries,{date,type,label}]);
+      calendarForm.reset();
+    });
+    document.getElementById('roster-leader-settings').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!canManageRoster()) return;
+      const names = Array.from(event.currentTarget.querySelectorAll(':scope > label input'),input => input.value.trim());
+      const headingNames = headingInputs.map((input,index) => input.value.trim() || defaultTitles[index]);
+      showToast(saveRosterSetting({leaders:names,titles:headingNames}));
+      renderRosterSettings();
+    });
+
+    const searchPanel = document.getElementById('roster-search');
+    const searchForm = document.getElementById('roster-search-form');
+    const searchResults = document.getElementById('roster-search-results');
+    const searchRoles = searchForm.elements.role;
+    const searchName = searchForm.elements.member;
+    const suggestions = document.getElementById('roster-name-suggestions');
+    Object.entries(SEARCH_ROLES).forEach(([value,text]) => searchRoles.add(new Option(text,value)));
+    const nameSoundCache = new Map();
+    const SEARCH_VARIANTS = { 臺:'台',裏:'裡',峯:'峰',綫:'線',爲:'為' };
+    const MATCH_LABELS = ['完全符合','開頭符合','文字包含','同音','近音','相關字'];
+    let activeSuggestion = -1;
+    let selectedSearchName = '';
+    let endDateEdited = false;
+
+    function nameKey(value) {
+      return value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')
+        .replace(/[臺裏峯綫爲]/g,char => SEARCH_VARIANTS[char]);
+    }
+    function nameSounds(value) {
+      if (!window.pinyinPro) return [];
+      if (nameSoundCache.has(value)) return nameSoundCache.get(value);
+      const sounds = window.pinyinPro.pinyin(value,{toneType:'none',type:'array',nonZh:'consecutive'});
+      nameSoundCache.set(value,sounds);
+      return sounds;
+    }
+    function nearSound(value) {
+      return value.replace(/^([zcs])h/,'$1').replace(/^l/,'n').replace(/^fu/,'hu')
+        .replace(/ing$/,'in').replace(/eng$/,'en');
+    }
+    function syllableContains(query, name) {
+      return query.length >= 2 && name.some((_,index) => query.every((syllable,offset) => name[index+offset] === syllable));
+    }
+    function differsOnce(a,b) {
+      if (Math.abs(a.length-b.length) > 1) return false;
+      if (a.length > b.length) return differsOnce(b,a);
+      let i = 0;
+      while (i < a.length && a[i] === b[i]) i++;
+      return a.slice(i+(a.length === b.length ? 1 : 0)).join('') === b.slice(i+1).join('');
+    }
+    function nameScore(term, name) {
+      const query = nameKey(term), known = nameKey(name);
+      if (!query) return Infinity;
+      if (known === query) return 0;
+      if (known.startsWith(query)) return 1;
+      if (known.includes(query)) return 2;
+      if (query.length < 2) return Infinity;
+      const left = nameSounds(query), right = nameSounds(known);
+      if (syllableContains(left,right)) return 3;
+      if (syllableContains(left.map(nearSound),right.map(nearSound))) return 4;
+      const queryChars = [...new Set(query)];
+      const shared = queryChars.filter(char => known.includes(char)).length;
+      if ((query.length >= 3 && differsOnce([...query],[...known])) ||
+          (queryChars.length >= 2 && known.length >= 3 && shared >= 2 && shared/queryChars.length >= 2/3)) return 5;
+      return Infinity;
+    }
+
+    function assignments() {
+      return quarter().weeks.flatMap(week => {
+        const date = isoWeek(week);
+        if (!date || weekOverride(week)) return [];
+        const rows = Object.keys(SEARCH_ROLES).filter(role => role !== 'speaker').flatMap(role => (week[role] || []).flatMap(value => {
+          const name = value.trim();
+          return !name || /^[（(]/.test(name) || ['讚美操','健康操'].includes(name) ? [] : [{date,role,name}];
+        }));
+        const speaker = week.speaker.trim();
+        const name = speaker.replace(/\s*(牧師|師母|傳道|弟兄|姊妹|姐妹|長老|執事|老師)\s*$/,'').trim();
+        if (name && week.speakerType !== 'outing' && !/(佈道|活動|休會|出遊)$/.test(name)) {
+          rows.push({date,role:'speaker',name,displayName:speaker});
+        }
+        return rows;
+      });
+    }
+    function renderSearch(name, entries) {
+      searchResults.replaceChildren();
+      if (!entries.length) {
+        searchResults.textContent = '這個範圍內沒有符合的服事。';
+        return;
+      }
+      if (name) {
+        const heading = document.createElement('h3');
+        heading.textContent = name+'的服事';
+        searchResults.append(heading);
+      }
+      const groups = new Map();
+      for (const entry of entries) {
+        if (!groups.has(entry.date)) groups.set(entry.date,new Map());
+        const roles = groups.get(entry.date);
+        if (!roles.has(entry.role)) roles.set(entry.role,new Set());
+        roles.get(entry.role).add(entry.displayName || entry.name);
+      }
+      for (const [date,roles] of [...groups].sort(([a],[b]) => a.localeCompare(b))) {
+        const section = document.createElement('section');
+        const headline = document.createElement('h4');
+        headline.textContent = displayDate(date);
+        const list = document.createElement('ul');
+        for (const [role,names] of roles) {
+          const li = document.createElement('li');
+          li.textContent = SEARCH_ROLES[role]+(name && role !== 'speaker' ? '' : ' '+[...names].join('、'));
+          list.append(li);
+        }
+        section.append(headline,list);
+        searchResults.append(section);
+      }
+    }
+
+    function candidatesFor(term) {
+      const names = new Map();
+      for (const {name,displayName} of assignments()) {
+        if (!names.has(name)) names.set(name,new Set([name]));
+        if (displayName) names.get(name).add(displayName);
+      }
+      return [...names].map(([name,aliases]) => ({
+        name,score:Math.min(...[...aliases].map(alias => nameScore(term,alias)))
+      })).filter(item => Number.isFinite(item.score))
+        .sort((a,b) => a.score-b.score || a.name.localeCompare(b.name,'zh-Hant'));
+    }
+    function clearSuggestions() {
+      activeSuggestion = -1;
+      suggestions.replaceChildren();
+      searchName.setAttribute('aria-expanded','false');
+      searchName.removeAttribute('aria-activedescendant');
+    }
+    function renderSuggestions(choices) {
+      clearSuggestions();
+      for (const [index,{name,score}] of choices.slice(0,8).entries()) {
+        const button = document.createElement('button');
+        const reason = document.createElement('small');
+        button.type = 'button';
+        button.tabIndex = -1;
+        button.id = 'roster-name-option-'+index;
+        button.setAttribute('role','option');
+        button.setAttribute('aria-selected','false');
+        reason.textContent = MATCH_LABELS[score];
+        button.append(name,reason);
+        button.onclick = () => {
+          selectedSearchName = name;
+          searchName.value = name;
+          clearSuggestions();
+          runRosterSearch();
+          searchName.focus({preventScroll:true});
+        };
+        suggestions.append(button);
+      }
+      searchName.setAttribute('aria-expanded',String(choices.length > 0));
+    }
+    function runRosterSearch(showSuggestions = false) {
+      const term = searchName.value.trim();
+      const role = searchRoles.value;
+      const from = searchForm.elements.from.value, to = searchForm.elements.to.value;
+      if (from && to && from > to) {
+        searchResults.textContent = '開始日期需早於或等於結束日期。';
+        return;
+      }
+      const data = assignments().filter(item => (!role || item.role === role) &&
+        (!from || item.date >= from) && (!to || item.date <= to));
+      if (!term) { clearSuggestions(); renderSearch('',data); return; }
+      const choices = candidatesFor(term);
+      const exact = choices.filter(choice => choice.score === 0);
+      const picked = selectedSearchName === term ? term : exact.length === 1 ? exact[0].name : choices.length === 1 ? choices[0].name : '';
+      if (picked) {
+        if (showSuggestions) renderSuggestions(choices);
+        else clearSuggestions();
+        renderSearch(picked,data.filter(item => item.name === picked));
+      } else if (!choices.length) {
+        clearSuggestions();
+        renderSearch('',[]);
+      } else {
+        renderSuggestions(choices);
+        const names = new Set(choices.slice(0,8).map(choice => choice.name));
+        renderSearch('',data.filter(item => names.has(item.name)));
+        const instruction = document.createElement('p');
+        instruction.textContent = '以下是可能符合的服事。點上方姓名可縮小範圍。';
+        searchResults.prepend(instruction);
+      }
+    }
+    function quarterSearchBounds() {
+      const months = quarter().months;
+      const year = Number(quarter().year);
+      return [new Date(Date.UTC(year,months[0]-1,1)).toISOString().slice(0,10),
+        new Date(Date.UTC(year,months.at(-1),0)).toISOString().slice(0,10)];
+    }
+    function resetRosterSearch() {
+      cancelRosterVoice();
+      clearSuggestions();
+      searchResults.replaceChildren();
+      searchForm.reset();
+      selectedSearchName = '';
+      endDateEdited = false;
+      const [first,last] = quarterSearchBounds();
+      const now = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      for (const date of [searchForm.elements.from,searchForm.elements.to]) {
+        date.min = first;
+        date.max = last;
+      }
+      searchForm.elements.from.value = now >= first && now <= last ? now : first;
+      searchForm.elements.to.value = last;
+      document.getElementById('roster-search-quarter').textContent = quarter().year+' 年 '+quarter().title;
+    }
+    function setRosterSearchOpen(open) {
+      if (!open) cancelRosterVoice();
+      searchPanel.hidden = !open;
+      document.getElementById('roster-search-toggle').setAttribute('aria-expanded',String(open));
+      resizeRosterViewport();
+    }
+    function openRosterSearch() { setRosterSearchOpen(searchPanel.hidden); }
+    function refreshSuggestions(event) {
+      if (event.isComposing) return;
+      selectedSearchName = '';
+      runRosterSearch(true);
+      resizeRosterViewport();
+    }
+    searchName.addEventListener('input',refreshSuggestions);
+    searchName.addEventListener('compositionend',refreshSuggestions);
+    searchName.addEventListener('keydown',event => {
+      if (event.isComposing || !suggestions.children.length) return;
+      const count = suggestions.children.length;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        activeSuggestion = activeSuggestion < 0 && step < 0 ? count-1 : (activeSuggestion+step+count)%count;
+        [...suggestions.children].forEach((button,index) => button.setAttribute('aria-selected',String(index === activeSuggestion)));
+        searchName.setAttribute('aria-activedescendant',suggestions.children[activeSuggestion].id);
+      } else if (event.key === 'Escape') {
+        clearSuggestions();
+      } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+        event.preventDefault();
+        suggestions.children[activeSuggestion].click();
+      }
+    });
+    searchForm.addEventListener('change', event => {
+      if (event.target === searchName) return;
+      if (event.target === searchForm.elements.to) endDateEdited = Boolean(event.target.value);
+      if (event.target === searchForm.elements.from && !endDateEdited) {
+        searchForm.elements.to.value = quarterSearchBounds()[1];
+      }
+      runRosterSearch();
+      resizeRosterViewport();
+    });
+    searchForm.addEventListener('submit',event => { event.preventDefault(); runRosterSearch(); resizeRosterViewport(); });
+    const voiceButton = document.getElementById('roster-voice-button');
+    const voiceStatus = document.getElementById('roster-voice-status');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rosterVoice;
+
+    function rosterVoiceState(active, message = '') {
+      voiceButton.setAttribute('aria-pressed',String(active));
+      voiceButton.setAttribute('aria-label',active ? '停止語音輸入' : '語音輸入姓名');
+      voiceButton.title = active ? '停止語音輸入' : '語音輸入姓名';
+      voiceStatus.textContent = message;
+    }
+    function cancelRosterVoice() {
+      if (!rosterVoice) return;
+      const active = rosterVoice;
+      rosterVoice = null;
+      active.abort();
+      rosterVoiceState(false);
+    }
+    if (SpeechRecognition) {
+      voiceButton.hidden = false;
+      voiceButton.addEventListener('click',() => {
+        if (rosterVoice) { rosterVoice.stop(); return; }
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'zh-TW';
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
+          recognition.onresult = event => {
+            if (rosterVoice !== recognition) return;
+            const text = Array.from(event.results,result => result[0].transcript).join('')
+              .replace(/[。，,.！!？?\s]+$/u,'').trim();
+            if (!text) return;
+            searchName.value = text;
+            searchName.dispatchEvent(new Event('input',{bubbles:true}));
+          };
+          recognition.onerror = event => {
+            if (rosterVoice !== recognition) return;
+            rosterVoice = null;
+            const message = ['not-allowed','service-not-allowed'].includes(event.error)
+              ? '請允許瀏覽器使用麥克風，或直接輸入姓名。'
+              : event.error === 'no-speech' ? '沒有聽到聲音，請再按一次麥克風。'
+              : '語音輸入暫時無法使用，請直接輸入姓名。';
+            rosterVoiceState(false,message);
+          };
+          recognition.onend = () => {
+            if (rosterVoice !== recognition) return;
+            rosterVoice = null;
+            rosterVoiceState(false);
+          };
+          rosterVoice = recognition;
+          recognition.start();
+          rosterVoiceState(true,'聆聽中，請說出姓名。');
+        } catch (_) {
+          rosterVoice = null;
+          rosterVoiceState(false,'語音輸入暫時無法使用，請直接輸入姓名。');
+        }
+      });
+    }
+
+    // =========================================================================
+    // 2. YEAR, FOLDER QUARTER TABS & MONTH NAVIGATION LOGIC
+    // =========================================================================
+    function getQuarterUrlInfo(qKey) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('quarter', qKey);
+      return {
+        fullUrl: url.toString(),
+        shortcutPath: `${url.pathname}?quarter=${qKey}`
+      };
+    }
+
+    function updateUrlQuarterParam(qKey) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('quarter', qKey);
+        window.history.replaceState(null, '', url.toString());
+      } catch (_) {}
+    }
+
+    function switchYear(yearVal) {
+      const qCode = currentQuarterKey.split('-')[1] || 'Q1';
+      switchQuarter(`${yearVal}-${qCode}`);
+    }
+
+    function switchQuarter(qKey, syncUrl = true) {
+      ensureQuarterExists(qKey);
+      currentQuarterKey = qKey;
+      const yearPart = qKey.split('-')[0];
+      const yearSel = document.getElementById('year-selector');
+      if (yearSel) yearSel.value = yearPart;
+      if (syncUrl) updateUrlQuarterParam(qKey);
+
+      showRosterDraftStatus();
+      renderRosterSettings();
+      resetRosterSearch();
+      selectedMonthFilter = 'ALL';
+      selectionRange = { startR: 0, startC: 0, endR: 0, endC: 0 };
+      updateQuarterHeaderAndTabs();
+      renderDesktopTable();
+      renderMobileCards();
+      const q = quarterStore[qKey];
+      showToast(`已切換至 ${q.year} 年 ${q.title}`);
+    }
+
+    function renderQuarterFolderTabs() {
+      const container = document.getElementById('quarter-folder-tabs');
+      if (!container) return;
+      const yearPart = currentQuarterKey.split('-')[0];
+      container.innerHTML = '';
+
+      QUARTER_DEFS.forEach(qDef => {
+        const qKey = `${yearPart}-${qDef.q}`;
+        const isActive = currentQuarterKey === qKey;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.role = 'tab';
+        btn.setAttribute('aria-selected', String(isActive));
+        btn.className = `folder-tab-btn ${qDef.colorCls}${isActive ? ' is-active' : ''}`;
+        btn.title = `${yearPart} 年 ${qDef.q} (${qDef.label}) — 點擊切換，按右鍵可複製網址與捷徑`;
+        btn.innerHTML = `<span>${qDef.q}</span><span class="opacity-90 text-[12px]">(${qDef.label})</span>`;
+
+        btn.onclick = () => {
+          closeFolderTabContextMenu();
+          if (currentQuarterKey !== qKey) {
+            switchQuarter(qKey);
+          }
+        };
+
+        btn.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          openFolderTabContextMenu(e.clientX, e.clientY, qKey, `${yearPart} 年 ${qDef.q} (${qDef.label})`);
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    const folderMenu = document.getElementById('folder-tab-context-menu');
+    let contextMenuTargetQKey = '';
+
+    function openFolderTabContextMenu(x, y, qKey, labelText) {
+      contextMenuTargetQKey = qKey;
+      const { fullUrl, shortcutPath } = getQuarterUrlInfo(qKey);
+      document.getElementById('folder-tab-menu-header').textContent = labelText;
+      document.getElementById('ctx-full-url-preview').textContent = fullUrl;
+      document.getElementById('ctx-shortcut-preview').textContent = shortcutPath;
+
+      folderMenu.hidden = false;
+      const rect = folderMenu.getBoundingClientRect();
+      const left = Math.min(x, window.innerWidth - rect.width - 10);
+      const top = Math.min(y, window.innerHeight - rect.height - 10);
+      folderMenu.style.left = `${Math.max(8, left)}px`;
+      folderMenu.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function closeFolderTabContextMenu() {
+      if (folderMenu) folderMenu.hidden = true;
+    }
+
+    function copyToClipboardWithFeedback(text, message) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(message)).catch(() => {
+          copyTextFallback(text);
+          showToast(message);
+        });
+      } else {
+        copyTextFallback(text);
+        showToast(message);
+      }
+    }
+
+    document.getElementById('ctx-copy-full-url').addEventListener('click', () => {
+      if (!contextMenuTargetQKey) return;
+      const { fullUrl } = getQuarterUrlInfo(contextMenuTargetQKey);
+      copyToClipboardWithFeedback(fullUrl, `已複製網址：${fullUrl}`);
+      closeFolderTabContextMenu();
+    });
+
+    document.getElementById('ctx-copy-shortcut-path').addEventListener('click', () => {
+      if (!contextMenuTargetQKey) return;
+      const { shortcutPath } = getQuarterUrlInfo(contextMenuTargetQKey);
+      copyToClipboardWithFeedback(shortcutPath, `已複製捷徑路徑：${shortcutPath}`);
+      closeFolderTabContextMenu();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (folderMenu && !folderMenu.hidden && !folderMenu.contains(e.target)) {
+        closeFolderTabContextMenu();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeFolderTabContextMenu();
+    });
+
+    function setMonthFilter(monthVal) {
+      selectedMonthFilter = monthVal;
+      selectionRange = { startR: 0, startC: 0, endR: 0, endC: 0 };
+      updateQuarterHeaderAndTabs();
+      renderDesktopTable();
+      renderMobileCards();
+    }
+
+    function getActiveWeeks() {
+      const q = quarter();
+      return q.weeks
+        .map((week, realIdx) => ({ week, realIdx }))
+        .filter(item => selectedMonthFilter === 'ALL' || item.week.month === Number(selectedMonthFilter));
+    }
+
+    function updateQuarterHeaderAndTabs() {
+      const q = quarter();
+      document.getElementById('header-year-display').textContent = q.year;
+      document.getElementById('header-title-display').textContent = q.title;
+      document.title = `${q.year} ${q.title}`;
+      renderQuarterFolderTabs();
+
+      const tabsContainer = document.getElementById('month-filter-tabs');
+      const allBtnActive = selectedMonthFilter === 'ALL';
+
+      let html = `
+        <button type="button" onclick="setMonthFilter('ALL')" aria-pressed="${allBtnActive}"
+          class="px-3.5 py-1 rounded-lg text-xs sm:text-sm font-black transition-all ${
+            allBtnActive
+              ? 'bg-[#3D7A47] text-white shadow-2xs'
+              : 'text-[#2C5E34] hover:bg-white/70'
+          }">
+          全季
+        </button>
+      `;
+
+      q.months.forEach(m => {
+        const isActive = Number(selectedMonthFilter) === m;
+        html += `
+          <button type="button" onclick="setMonthFilter(${m})" aria-pressed="${isActive}"
+            class="px-3 py-1 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              isActive
+                ? 'bg-[#3D7A47] text-white shadow-2xs'
+                : 'text-[#2C5E34] hover:bg-white/70'
+            }">
+            ${m}月
+          </button>
+        `;
+      });
+
+      tabsContainer.innerHTML = html;
+
+      const activeWeeks = rosterSchedule().filter(item => !item.announcement);
+      document.getElementById('week-count-badge').textContent = `共 ${activeWeeks.length} 週聚會`;
+    }
+
+    // =========================================================================
+    // 3. RENDER COMPACT DESKTOP SPREADSHEET TABLE
+    // =========================================================================
+    let desktopEventObserver;
+
+    function alignDesktopEvents(weeks) {
+      for (const {activityCell, lastSongCell} of weeks) {
+        if (!lastSongCell.getClientRects().length) continue;
+        const stack = activityCell.querySelector('.desktop-event-stack');
+        const anchor = stack.querySelector('.desktop-event-row:last-child') ||
+          stack.querySelector('.desktop-event-add');
+        const song = lastSongCell.getBoundingClientRect();
+        const note = anchor.getBoundingClientRect();
+        const previous = parseFloat(stack.style.getPropertyValue('--desktop-event-offset')) || 0;
+        const offset = previous + (song.top + song.height/2) - (note.top + note.height/2);
+        if (Math.abs(offset-previous) > 0.25) {
+          stack.style.setProperty('--desktop-event-offset', offset+'px');
+        }
+      }
+    }
+
+    function renderDesktopTable() {
+      const tbody = document.getElementById('roster-tbody');
+      desktopEventObserver?.disconnect();
+      tbody.innerHTML = '';
+      const weekCells = [];
+
+      const visibleItems = rosterSchedule();
+      let gridWeekIndex = 0;
+      visibleItems.forEach((item, index) => {
+        const nextItem = visibleItems[index + 1];
+        const isMonthEnd = nextItem && nextItem.month !== item.month;
+        if (item.announcement) {
+          tbody.append(renderDesktopAnnouncement(item,isMonthEnd));
+          return;
+        }
+        const {week,realIdx} = item;
+        const displayIdx = gridWeekIndex++;
+        const spStyle = SPEAKER_STYLES[week.speakerType] || SPEAKER_STYLES.church;
+        const hasSpeaker = Boolean((week.speaker || '').trim());
+        let activityCell;
+
+        for (let r = 0; r < 6; r++) {
+          const tr = document.createElement('tr');
+          let rowClasses = ['roster-row'];
+          if (r === 5) {
+            rowClasses.push(isMonthEnd ? 'month-divider' : 'week-divider');
+          }
+          tr.className = rowClasses.join(' ');
+
+          // -----------------------------------------------------------------
+          // COLUMN 1: 當週活動 (Row 0 spans all 6 rows: rowspan="6")
+          // Bottom-aligned special events stack upward when '+' is clicked
+          // -----------------------------------------------------------------
+          if (r === 0) {
+            const tdActivity = document.createElement('td');
+            activityCell = tdActivity;
+            tdActivity.rowSpan = 6;
+            const dividerCellClass = isMonthEnd ? 'month-divider-cell' : 'week-divider-cell';
+            tdActivity.className = `sticky-col-left ${dividerCellClass} align-top px-2 pt-1.5 pb-0 leading-normal`;
+
+            const eventsList = Array.isArray(week.events) ? week.events : [];
+            const eventsHtml = eventsList.map((ev, evIdx) => {
+              const colorCfg = EVENT_COLORS[ev.color] || EVENT_COLORS.red;
+              return `
+                <div class="group/ev desktop-event-row leading-tight">
+                  <button type="button" ${canManageRoster() ? '' : 'disabled'} onclick="cycleEventColor(${realIdx}, ${evIdx})"
+                    title="點擊切換文字顏色（${colorCfg.label}）"
+                    class="w-1.5 h-1.5 rounded-full ${colorCfg.dot} shrink-0 opacity-75 hover:opacity-100 hover:scale-125 transition-all"></button>
+                  <div contenteditable="${canManageRoster()}"
+                    data-placeholder="輸入活動..."
+                    onblur="updateEventItem(${realIdx}, ${evIdx}, this.innerText)"
+                    class="editable-cell desktop-event-text text-[12px] ${colorCfg.cls} px-0.5 py-0 rounded leading-tight min-h-[15px]">${escapeHtml(ev.text)}</div>
+                  <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="removeEventItem(${realIdx}, ${evIdx})"
+                    title="刪除此列"
+                    class="desktop-event-action opacity-0 group-hover/ev:opacity-100 text-[11px] font-bold text-[#6C8570] hover:text-[#C53030] transition-opacity">×</button>
+                </div>
+              `;
+            }).join('');
+
+            tdActivity.innerHTML = `
+              <div class="h-[180px] flex flex-col justify-between relative">
+                <!-- Top Stacked Block: Line 1 Date -> Line 2 Speaker -> Line 3 Topic -->
+                <div class="space-y-1">
+                  <!-- Line 1: Month & Day -->
+                  <div>
+                    <span contenteditable="${canManageRoster()}"
+                      onblur="updateActivityField(${realIdx}, 'date', this.innerText)"
+                      class="editable-cell inline-block text-[16px] font-black text-[#2C5E34] px-1 rounded leading-tight">${escapeHtml(week.date)}</span>
+                  </div>
+
+                  <!-- Line 2: Speaker -->
+                  <div>
+                    <div class="inline-flex items-center max-w-full rounded-lg border-2 px-1.5 py-0 shadow-2xs ${spStyle.cls}">
+                      <span contenteditable="${canManageRoster()}"
+                        data-placeholder="輸入講員..."
+                        onblur="updateActivityField(${realIdx}, 'speaker', this.innerText)"
+                        class="editable-cell text-[16px] font-extrabold tracking-wide px-0.5 rounded leading-tight min-w-[74px] ${
+                          hasSpeaker ? '' : 'text-[#5C7260]/60'
+                        }">${hasSpeaker ? escapeHtml(week.speaker) : '輸入講員'}</span>
+                      <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="cycleSpeakerType(${realIdx})"
+                        title="切換講員分類底色（${spStyle.label}）"
+                        class="ml-1 w-4 h-4 rounded-full bg-white/85 hover:bg-white border border-[#3D7A47]/40 flex items-center justify-center text-[10px] font-black text-[#2C5E34] shrink-0">
+                        ↻
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Line 3: Topic -->
+                  <div contenteditable="${canManageRoster()}"
+                    onblur="updateActivityField(${realIdx}, 'topic', this.innerText)"
+                    class="editable-cell text-[13px] font-bold text-[#2B5D82] leading-snug px-1 rounded min-h-[18px]">${escapeHtml(week.topic)}</div>
+                </div>
+
+                <!-- Bottom-Aligned Special Events (Flush with bottom border; '+' stacks upward) -->
+                <div class="desktop-event-stack">
+                  <div class="space-y-0.5">
+                    ${eventsHtml}
+                  </div>
+                  <button type="button" ${canManageRoster() ? '' : 'hidden'} onclick="addEventItemUpward(${realIdx})"
+                    title="新增特別事件（從最底下往上疊加）"
+                    class="desktop-event-action desktop-event-add text-[#3D7A47] hover:text-[#1E3323] text-xs font-black transition-colors">
+                    +
+                  </button>
+                </div>
+              </div>
+            `;
+            tr.appendChild(tdActivity);
+          }
+
+          const globalRow = displayIdx * 6 + r;
+
+          // -----------------------------------------------------------------
+          // COLUMNS 2-5: 敬拜(0), 樂手(1), 投影片(2), 音控(3) + 條列式三首詩歌
+          // -----------------------------------------------------------------
+          if (r < 3) {
+            [
+              { colKey: 'worship', gridCol: 0 },
+              { colKey: 'musician', gridCol: 1 },
+              { colKey: 'slides', gridCol: 2 },
+              { colKey: 'sound', gridCol: 3 }
+            ].forEach(({ colKey, gridCol }) => {
+              tr.appendChild(createNameCell(realIdx, colKey, r, week[colKey][r] || '', globalRow, gridCol));
+            });
+          } else {
+            const songConfigs = {
+              3: { key: 'fast', label: '快歌', badgeCls: 'bg-[#FEF5DC] text-[#9A6700] border-[#F4BD3E]', placeholder: '輸入快歌...' },
+              4: { key: 'slow1', label: '慢歌', badgeCls: 'bg-[#E6F4F6] text-[#1E5B70] border-[#8BC3CB]', placeholder: '輸入慢歌一...' },
+              5: { key: 'slow2', label: '慢歌', badgeCls: 'bg-[#E6F4F6] text-[#1E5B70] border-[#8BC3CB]', placeholder: '輸入慢歌二...' }
+            };
+            const cfg = songConfigs[r];
+            const tdSongRow = document.createElement('td');
+            tdSongRow.colSpan = 4;
+            tdSongRow.dataset.globalRow = globalRow;
+            tdSongRow.dataset.gridColStart = 0;
+            tdSongRow.dataset.gridColEnd = 3;
+            tdSongRow.className = 'bg-[#F4F9F4] px-1.5 h-[31px] leading-[31px] align-middle';
+            attachGridCellEvents(tdSongRow, globalRow, 0, false);
+            tdSongRow.innerHTML = `
+              <div class="flex items-center gap-1 h-full">
+                <span class="inline-flex items-center justify-center text-[11px] font-black px-1.5 py-0.5 rounded border shrink-0 leading-none ${cfg.badgeCls}">
+                  ${cfg.label}
+                </span>
+                <input type="text"
+                  data-song-row="${globalRow}"
+                  value="${escapeHtml(week.songs[cfg.key])}"
+                  ${canEditRoster() ? '' : 'readonly'}
+                  oninput="updateSongField(${realIdx}, '${cfg.key}', this.value)"
+                  placeholder="${cfg.placeholder}"
+                  class="w-full h-[24px] text-[14px] font-bold text-[#1E3323] bg-transparent px-1 rounded focus:bg-white focus:ring-1 focus:ring-[#3D7A47] focus:outline-none" />
+              </div>
+            `;
+            const songInput = tdSongRow.querySelector('input');
+            songInput.addEventListener('keydown', (e) => {
+              if (e.isComposing || e.key !== 'Enter') return;
+              if (e.shiftKey) return;
+              e.preventDefault();
+              let nextRow = globalRow + 1;
+              if (nextRow % 6 === 0) nextRow += 3;
+              const nextInput = document.querySelector(`input[data-song-row="${nextRow}"]`);
+              if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+              } else {
+                songInput.blur();
+              }
+            });
+            tr.appendChild(tdSongRow);
+            if (r === 5) weekCells.push({activityCell,lastSongCell:tdSongRow});
+          }
+
+          // -----------------------------------------------------------------
+          // COLUMN 6: 攝影 (gridCol = 4)
+          // -----------------------------------------------------------------
+          tr.appendChild(createNameCell(realIdx, 'photo', r, week.photo[r] || '', globalRow, 4));
+
+          // -----------------------------------------------------------------
+          // COLUMN 7: 招待 — Fixed Position Pill (gridCol = 5) + Name (gridCol = 6)
+          // -----------------------------------------------------------------
+          const tdUsherTag = document.createElement('td');
+          const usherTagText = (week.usherTags[r] || '').trim();
+          tdUsherTag.dataset.globalRow = globalRow;
+          tdUsherTag.dataset.gridCol = 5;
+          tdUsherTag.dataset.isFixed = 'true';
+          tdUsherTag.className = 'px-0.5 h-[31px] align-middle text-center bg-[#F7FAF7] select-none';
+          attachGridCellEvents(tdUsherTag, globalRow, 5, false);
+          tdUsherTag.innerHTML = usherTagText
+            ? `<span contenteditable="${canManageRoster()}"
+                onblur="updateTagArray(${realIdx}, 'usherTags', ${r}, this.innerText)"
+                class="editable-cell inline-flex items-center justify-center w-[54px] h-[22px] text-[11px] font-bold rounded-full border border-[#C5DEC8] bg-[#EEF6EE] text-[#2C5E34] leading-none whitespace-nowrap">${escapeHtml(usherTagText)}</span>`
+            : `<span contenteditable="${canManageRoster()}"
+                onblur="updateTagArray(${realIdx}, 'usherTags', ${r}, this.innerText)"
+                class="editable-cell inline-flex items-center justify-center w-[54px] h-[22px] text-[11px] rounded-full text-transparent"></span>`;
+          tr.appendChild(tdUsherTag);
+          tr.appendChild(createNameCell(realIdx, 'usher', r, week.usher[r] || '', globalRow, 6));
+
+          // -----------------------------------------------------------------
+          // COLUMN 8: 愛宴 (gridCol = 7)
+          // -----------------------------------------------------------------
+          tr.appendChild(createNameCell(realIdx, 'meal', r, week.meal[r] || '', globalRow, 7));
+
+          // -----------------------------------------------------------------
+          // COLUMN 9: 接送 — Fixed Vehicle Pill (gridCol = 8) + Name (gridCol = 9)
+          // -----------------------------------------------------------------
+          const tdCar = document.createElement('td');
+          const carLabel = (week.shuttleCars[r] || '').trim();
+          const isChurchCar = carLabel.includes('教會車');
+          tdCar.dataset.globalRow = globalRow;
+          tdCar.dataset.gridCol = 8;
+          tdCar.dataset.isFixed = 'true';
+          tdCar.className = 'px-0.5 h-[31px] align-middle text-center bg-[#F7FAF7] select-none';
+          attachGridCellEvents(tdCar, globalRow, 8, false);
+
+          if (carLabel) {
+            let innerCarHtml = escapeHtml(carLabel);
+            if (isChurchCar && carLabel.includes(' ')) {
+              const parts = carLabel.split(/\s+/);
+              innerCarHtml = `${escapeHtml(parts[0])}<br/>${escapeHtml(parts.slice(1).join(' '))}`;
+            }
+            const carBadgeStyle = isChurchCar
+              ? 'border-[#8BC3CB] bg-[#E6F4F6] text-[#1E5B70] font-black text-[10px] leading-[1.06]'
+              : 'border-[#C5DEC8] bg-[#EEF6EE] text-[#2C5E34] font-bold text-[11px] leading-none';
+
+            tdCar.innerHTML = `<span contenteditable="${canManageRoster()}"
+              onblur="updateTagArray(${realIdx}, 'shuttleCars', ${r}, this.innerText)"
+              class="editable-cell inline-flex flex-col items-center justify-center w-[64px] h-[25px] rounded-lg border px-0.5 text-center ${carBadgeStyle}">${innerCarHtml}</span>`;
+          } else {
+            tdCar.innerHTML = `<span contenteditable="${canManageRoster()}"
+              onblur="updateTagArray(${realIdx}, 'shuttleCars', ${r}, this.innerText)"
+              class="editable-cell inline-flex items-center justify-center w-[64px] h-[25px] rounded-lg text-transparent"></span>`;
+          }
+          tr.appendChild(tdCar);
+          tr.appendChild(createNameCell(realIdx, 'shuttle', r, week.shuttle[r] || '', globalRow, 9));
+
+          // -----------------------------------------------------------------
+          // COLUMN 10: 點名 (gridCol = 10)
+          // -----------------------------------------------------------------
+          tr.appendChild(createNameCell(realIdx, 'rollcall', r, week.rollcall[r] || '', globalRow, 10));
+
+          // -----------------------------------------------------------------
+          // COLUMN 11: 交誼廳 — Vertical Label (gridCol = 11) + Reception (gridCol = 12)
+          //                     Vertical Label (gridCol = 13) + BP (gridCol = 14)
+          // -----------------------------------------------------------------
+          if (r === 0) {
+            const tdVerticalRecLabel = document.createElement('td');
+            tdVerticalRecLabel.rowSpan = 6;
+            tdVerticalRecLabel.dataset.globalRowStart = displayIdx * 6;
+            tdVerticalRecLabel.dataset.globalRowEnd = displayIdx * 6 + 5;
+            tdVerticalRecLabel.dataset.gridCol = 11;
+            tdVerticalRecLabel.dataset.isFixed = 'true';
+            tdVerticalRecLabel.className = 'bg-[#EEF6EE] text-[#2C5E34] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#DCECDC] leading-none';
+            attachGridCellEvents(tdVerticalRecLabel, displayIdx * 6, 11, false);
+            tdVerticalRecLabel.innerHTML = `<div class="vertical-zh-single mx-auto">交誼廳接待</div>`;
+            tr.appendChild(tdVerticalRecLabel);
+          }
+          tr.appendChild(createNameCell(realIdx, 'loungeReception', r, week.loungeReception[r] || '', globalRow, 12));
+
+          if (r === 0) {
+            const tdVerticalBpLabel = document.createElement('td');
+            tdVerticalBpLabel.rowSpan = 6;
+            tdVerticalBpLabel.dataset.globalRowStart = displayIdx * 6;
+            tdVerticalBpLabel.dataset.globalRowEnd = displayIdx * 6 + 5;
+            tdVerticalBpLabel.dataset.gridCol = 13;
+            tdVerticalBpLabel.dataset.isFixed = 'true';
+            tdVerticalBpLabel.className = 'bg-[#E6F4F6] text-[#23626E] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#D3ECF0] leading-none';
+            attachGridCellEvents(tdVerticalBpLabel, displayIdx * 6, 13, false);
+            tdVerticalBpLabel.innerHTML = `<div class="vertical-zh-single mx-auto">量血壓</div>`;
+            tr.appendChild(tdVerticalBpLabel);
+          }
+          tr.appendChild(createNameCell(realIdx, 'loungeBP', r, week.loungeBP[r] || '', globalRow, 14));
+
+          // -----------------------------------------------------------------
+          // COLUMN 12 & 13: 體操 (gridCol = 15) & 值班 (gridCol = 16)
+          // -----------------------------------------------------------------
+          tr.appendChild(createNameCell(realIdx, 'exercise', r, week.exercise[r] || '', globalRow, 15));
+          tr.appendChild(createNameCell(realIdx, 'duty', r, week.duty[r] || '', globalRow, 16));
+
+          tbody.appendChild(tr);
+        }
+      });
+
+      alignDesktopEvents(weekCells);
+      if (typeof ResizeObserver !== 'undefined') {
+        desktopEventObserver = new ResizeObserver(() => alignDesktopEvents(weekCells));
+        for (const {activityCell,lastSongCell} of weekCells) {
+          desktopEventObserver.observe(activityCell);
+          desktopEventObserver.observe(lastSongCell);
+        }
+      }
+      updateSelectionVisuals();
+    }
+
+    function focusEditableCell(td) {
+      if (!td) return;
+      td.focus();
+      const range = document.createRange();
+      range.selectNodeContents(td);
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    function insertNewlineInCell() {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const textNode = document.createTextNode('\n');
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function moveToNextEditableCellInColumn(globalRow, gridCol) {
+      const colSpec = GRID_COLS[gridCol];
+      if (!colSpec || colSpec.type !== 'editable') return null;
+
+      let candidateRow = globalRow + 1;
+      // For 3-row columns (worship/musician/slides/sound), skip song rows 3..5 to next week's row 0
+      if (colSpec.maxRow === 3 && (candidateRow % 6) >= 3) {
+        candidateRow = (Math.floor(globalRow / 6) + 1) * 6;
+      }
+
+      const nextTd = document.querySelector(
+        `#roster-tbody td[data-global-row="${candidateRow}"][data-grid-col="${gridCol}"][contenteditable="true"]`
+      );
+      if (nextTd) {
+        selectionRange = { startR: candidateRow, startC: gridCol, endR: candidateRow, endC: gridCol };
+        updateSelectionVisuals();
+        focusEditableCell(nextTd);
+      }
+      return nextTd;
+    }
+
+    function createNameCell(weekIdx, colKey, rowIdx, value, globalRow, gridCol) {
+      const weeks = quarter().weeks;
+      const td = document.createElement('td');
+      const isChanged = weeks[weekIdx].changedCells[`${colKey}:${rowIdx}`];
+      const isPraiseExerciseNote = colKey === 'exercise' && (value === '讚美操' || value === '健康操');
+
+      td.dataset.weekIdx = weekIdx;
+      td.dataset.colKey = colKey;
+      td.dataset.rowIdx = rowIdx;
+      td.dataset.globalRow = globalRow;
+      td.dataset.gridCol = gridCol;
+      td.contentEditable = String(canEditRoster());
+      td.textContent = value;
+
+      td.className = `editable-cell roster-name-cell px-0.5 text-center text-[16px] font-bold tracking-normal ${
+        isChanged
+          ? 'bg-[#E53E3E] text-white font-black'
+          : isPraiseExerciseNote
+            ? 'text-[#C83E6B] font-bold'
+            : 'text-[#1E3323]'
+      }`;
+
+      attachGridCellEvents(td, globalRow, gridCol, canEditRoster());
+
+      function storeName() {
+        if (!canEditRoster()) return;
+        // Preserve internal newlines created by Shift+Enter while stripping trailing empty lines
+        const cleaned = td.innerText.replace(/\r\n/g, '\n').replace(/\n+$/, '');
+        if (weeks[weekIdx][colKey][rowIdx] === cleaned) return;
+        weeks[weekIdx][colKey][rowIdx] = cleaned;
+        saveRosterDraft();
+      }
+      td.oninput = event => { if (!event.isComposing) storeName(); };
+      td.oncompositionend = storeName;
+      td.onblur = () => { storeName(); renderMobileCards(); };
+
+      td.addEventListener('keydown', (e) => {
+        if (e.isComposing) return;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            // Shift + Enter: insert newline inside cell (fixed 31px height clips overflow)
+            if (canEditRoster()) {
+              insertNewlineInCell();
+              storeName();
+            }
+          } else {
+            // Enter: save and move directly to next cell without inserting newline
+            storeName();
+            const moved = moveToNextEditableCellInColumn(globalRow, gridCol);
+            if (!moved) td.blur();
+          }
+        }
+      });
+
+      td.onpaste = (e) => {
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (text && (text.includes('\n') || text.includes('\t'))) {
+          e.preventDefault();
+          applyRectangularPaste(text);
+        }
+      };
+
+      return td;
+    }
+
+    // =========================================================================
+    // 4. GOOGLE SHEETS RECTANGULAR MULTI-CELL SELECTION, CTRL+C & CTRL+V
+    // =========================================================================
+    function attachGridCellEvents(td, globalRow, gridCol, isEditableName) {
+      td.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        // Double-click enters inline text editing mode for that single cell
+        if (e.detail >= 2 && isEditableName) return;
+
+        // Prevent native browser blue text highlight on grid selection
+        e.preventDefault();
+        const winSel = window.getSelection();
+        if (winSel) winSel.removeAllRanges();
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
+
+        if (e.shiftKey) {
+          selectionRange.endR = globalRow;
+          selectionRange.endC = gridCol;
+          updateSelectionVisuals();
+          return;
+        }
+
+        // Start a fresh rectangular selection
+        selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+        isDraggingSelection = true;
+        updateSelectionVisuals();
+      });
+
+      td.addEventListener('mouseenter', () => {
+        if (!isDraggingSelection) return;
+        selectionRange.endR = globalRow;
+        selectionRange.endC = gridCol;
+        updateSelectionVisuals();
+      });
+    }
+
+    document.addEventListener('mouseup', () => {
+      if (isDraggingSelection) {
+        isDraggingSelection = false;
+      }
+    });
+
+    function getNormalizedRange() {
+      return {
+        minR: Math.min(selectionRange.startR, selectionRange.endR),
+        maxR: Math.max(selectionRange.startR, selectionRange.endR),
+        minC: Math.min(selectionRange.startC, selectionRange.endC),
+        maxC: Math.max(selectionRange.startC, selectionRange.endC)
+      };
+    }
+
+    function updateSelectionVisuals() {
+      const { minR, maxR, minC, maxC } = getNormalizedRange();
+      const isSingleCell = minR === maxR && minC === maxC;
+
+      document.querySelectorAll('#roster-tbody td').forEach(td => {
+        td.classList.remove(
+          'gs-in-range',
+          'gs-selected-cell',
+          'gs-range-corner'
+        );
+
+        let rStart, rEnd, cStart, cEnd;
+        if (td.dataset.globalRow !== undefined && td.dataset.gridCol !== undefined) {
+          rStart = rEnd = Number(td.dataset.globalRow);
+          cStart = cEnd = Number(td.dataset.gridCol);
+        } else if (td.dataset.globalRowStart !== undefined && td.dataset.gridCol !== undefined) {
+          rStart = Number(td.dataset.globalRowStart);
+          rEnd = Number(td.dataset.globalRowEnd);
+          cStart = cEnd = Number(td.dataset.gridCol);
+        } else if (td.dataset.globalRow !== undefined && td.dataset.gridColStart !== undefined) {
+          rStart = rEnd = Number(td.dataset.globalRow);
+          cStart = Number(td.dataset.gridColStart);
+          cEnd = Number(td.dataset.gridColEnd);
+        } else {
+          return;
+        }
+
+        const intersects = !(rEnd < minR || rStart > maxR || cEnd < minC || cStart > maxC);
+        if (!intersects) return;
+
+        if (isSingleCell && rStart === minR && rEnd === maxR && cStart === minC && cEnd === maxC) {
+          // Single cell: clean 2px Forest Green border + corner handle
+          td.classList.add('gs-selected-cell', 'gs-range-corner');
+        } else {
+          // Multi-cell range: pure soft sage background only, NO outer border lines
+          td.classList.add('gs-in-range');
+        }
+      });
+    }
+
+    // Resolve a (globalRow, gridCol) coordinate to an editable cell or null if fixed/skipped
+    function resolveGridCoordinate(globalRow, gridCol) {
+      const colSpec = GRID_COLS[gridCol];
+      if (!colSpec || colSpec.type !== 'editable') return null;
+
+      const visibleItems = rosterSchedule().filter(item => !item.announcement);
+      const displayIdx = Math.floor(globalRow / 6);
+      const rowInWeek = globalRow % 6;
+      if (displayIdx < 0 || displayIdx >= visibleItems.length) return null;
+      if (rowInWeek >= colSpec.maxRow) return null; // Skip song rows under worship/musician/slides/sound
+
+      return {
+        weekIdx: visibleItems[displayIdx].realIdx,
+        colKey: colSpec.key,
+        rowIdx: rowInWeek
+      };
+    }
+
+    function buildSelectedRangeTsv() {
+      const { minR, maxR, minC, maxC } = getNormalizedRange();
+      const weeks = quarter().weeks;
+      const tsvRows = [];
+
+      for (let r = minR; r <= maxR; r++) {
+        const rowVals = [];
+        for (let c = minC; c <= maxC; c++) {
+          const target = resolveGridCoordinate(r, c);
+          if (!target) {
+            rowVals.push('');
+          } else {
+            rowVals.push(weeks[target.weekIdx][target.colKey][target.rowIdx] || '');
+          }
+        }
+        tsvRows.push(rowVals.join('\t'));
+      }
+      return {
+        tsvText: tsvRows.join('\n'),
+        rowCount: maxR - minR + 1,
+        colCount: maxC - minC + 1
+      };
+    }
+
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {}
+      document.body.removeChild(ta);
+    }
+
+    // Standard Ctrl+C / Cmd+C for rectangular selection (copies full selected rectangle)
+    document.addEventListener('copy', (e) => {
+      const desktopSection = document.getElementById('desktop-table-section');
+      if (!desktopSection || desktopSection.offsetParent === null) return;
+      if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+      // Only defer to native copy if user double-clicked into a cell and highlighted specific text
+      const winSel = window.getSelection();
+      if (winSel && winSel.toString().length > 0 && document.activeElement && document.activeElement.isContentEditable) {
+        return;
+      }
+
+      const { tsvText, rowCount, colCount } = buildSelectedRangeTsv();
+      e.preventDefault();
+      if (e.clipboardData) {
+        e.clipboardData.setData('text/plain', tsvText);
+      } else {
+        copyTextFallback(tsvText);
+      }
+      showToast(`已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+    });
+
+    // Ensure Ctrl+C / Cmd+C & Enter work when a grid cell is selected (not yet in inline edit mode)
+    document.addEventListener('keydown', (e) => {
+      const desktopSection = document.getElementById('desktop-table-section');
+      if (!desktopSection || desktopSection.offsetParent === null) return;
+      if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+      if (document.activeElement && document.activeElement.isContentEditable) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        const { tsvText, rowCount, colCount } = buildSelectedRangeTsv();
+        copyTextFallback(tsvText);
+        showToast(`已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+        return;
+      }
+
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const { minR, minC } = getNormalizedRange();
+        const moved = moveToNextEditableCellInColumn(minR, minC);
+        if (moved) e.preventDefault();
+        return;
+      }
+
+      if (canEditRoster() && (e.key === 'Delete' || e.key === 'Backspace')) {
+        const { minR, maxR, minC, maxC } = getNormalizedRange();
+        const weeks = quarter().weeks;
+        let cleared = 0;
+
+        for (let r = minR; r <= maxR; r++) {
+          for (let c = minC; c <= maxC; c++) {
+            const target = resolveGridCoordinate(r, c);
+            if (!target) continue;
+            weeks[target.weekIdx][target.colKey][target.rowIdx] = '';
+            cleared++;
+          }
+        }
+        if (cleared > 0) {
+          saveRosterDraft();
+          e.preventDefault();
+          renderDesktopTable();
+          renderMobileCards();
+          showToast(`已清除選取範圍內 ${cleared} 格姓名`);
+        }
+      }
+    });
+
+    // Multi-row & multi-column rectangular paste (automatically skips fixed columns & song rows)
+    function applyRectangularPaste(rawText) {
+      if (!canEditRoster()) return;
+      const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\n$/, '');
+      if (!cleanText) return;
+
+      const matrix = cleanText.split('\n').map(row => row.split('\t'));
+      const { minR, minC } = getNormalizedRange();
+      const weeks = quarter().weeks;
+      const flashedCoords = [];
+      let pastedCount = 0;
+
+      for (let rOff = 0; rOff < matrix.length; rOff++) {
+        for (let cOff = 0; cOff < matrix[rOff].length; cOff++) {
+          const targetR = minR + rOff;
+          const targetC = minC + cOff;
+          const target = resolveGridCoordinate(targetR, targetC);
+          if (!target) continue; // Automatically skip fixed labels & song rows
+
+          const val = (matrix[rOff][cOff] || '').trim();
+          weeks[target.weekIdx][target.colKey][target.rowIdx] = val;
+          flashedCoords.push(target);
+          pastedCount++;
+        }
+      }
+
+      if (pastedCount > 0) {
+        saveRosterDraft();
+        selectionRange = {
+          startR: minR,
+          startC: minC,
+          endR: minR + matrix.length - 1,
+          endC: minC + Math.max(...matrix.map(r => r.length)) - 1
+        };
+        renderDesktopTable();
+        renderMobileCards();
+
+        flashedCoords.forEach(t => {
+          const cell = document.querySelector(
+            `td[data-week-idx="${t.weekIdx}"][data-col-key="${t.colKey}"][data-row-idx="${t.rowIdx}"]`
+          );
+          if (cell) cell.classList.add('paste-flash');
+        });
+        showToast(`已貼上 ${pastedCount} 格資料（自動跳過固定欄位）`);
+      }
+    }
+
+    document.addEventListener('paste', (e) => {
+      const desktopSection = document.getElementById('desktop-table-section');
+      if (!desktopSection || desktopSection.offsetParent === null) return;
+      if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+      if (document.activeElement && document.activeElement.isContentEditable) return;
+
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      if (text) {
+        e.preventDefault();
+        applyRectangularPaste(text);
+      }
+    });
+
+    // =========================================================================
+    // 5. SUPER USER SETTINGS & HTML EXPORT
+    // =========================================================================
+    function toggleSuperUserModal(show) {
+      if (show && !canManageRoster()) return;
+      if (show) renderRosterSettings();
+      const modal = document.getElementById('superuser-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function setVersionStatus(status, notify = true) {
+      versionStatus = status;
+      const badge = document.getElementById('version-status-badge');
+      const btnConfirmed = document.getElementById('opt-status-confirmed');
+      const btnDraft = document.getElementById('opt-status-draft');
+
+      badge.textContent = status;
+      if (status === '確認版') {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40';
+        btnConfirmed.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#3D7A47] bg-[#3D7A47] text-white transition-all';
+        btnDraft.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all';
+      } else {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E]';
+        btnDraft.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#F4BD3E] bg-[#F4BD3E] text-[#1E3323] transition-all';
+        btnConfirmed.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all';
+      }
+      if (notify) showToast(`已切換狀態為「${status}」`);
+    }
+
+    function updateHeaderRemark(val) {
+      document.getElementById('header-remark-text').textContent = val;
+    }
+
+    function downloadSelfHtml() {
+      const clonedDoc = document.documentElement.cloneNode(true);
+      const modal = clonedDoc.querySelector('#superuser-modal');
+      if (modal) modal.classList.add('hidden');
+
+      const scriptEl = clonedDoc.querySelector('#roster-seed-script');
+      if (scriptEl) {
+        let code = scriptEl.textContent;
+        const exported = Object.fromEntries(Object.entries(quarterStore).map(([key,value]) => [
+          key,{...value,...(localRosterSettings[key] || {})}
+        ]));
+        code = code.replace(
+          /const INITIAL_QUARTER_STORE = \{[\s\S]*?\n    \};/,
+          () => `const INITIAL_QUARTER_STORE = ${JSON.stringify(exported, null, 6).replace(/</g, '\\u003c')};`
+        );
+        code = code.replace(
+          /let currentQuarterKey = '.*?';/,
+          `let currentQuarterKey = '${currentQuarterKey}';`
+        );
+        code = code.replace(
+          /let versionStatus = '.*?';/,
+          `let versionStatus = '${versionStatus}';`
+        );
+        scriptEl.textContent = code;
+      }
+
+      const q = quarter();
+      const fullHtml = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${q.year}_${q.title}_${versionStatus}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`已下載「${q.year}_${q.title}_${versionStatus}.html」`);
+    }
+
+    // =========================================================================
+    // 6. INTERACTIVE FIELD EDITING HELPERS
+    // =========================================================================
+    function cycleSpeakerType(weekIdx) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      const order = ['church', 'external', 'outing'];
+      const curr = weeks[weekIdx].speakerType || 'church';
+      const next = order[(order.indexOf(curr) + 1) % order.length];
+      weeks[weekIdx].speakerType = next;
+      saveRosterDraft();
+      renderDesktopTable();
+      renderMobileCards();
+      showToast(`已切換講員分類為「${SPEAKER_STYLES[next].label}」`);
+    }
+
+    function updateTagArray(weekIdx, arrayKey, rowIdx, rawText) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      weeks[weekIdx][arrayKey][rowIdx] = rawText.replace(/\s+/g, ' ').trim();
+      saveRosterDraft();
+      renderDesktopTable();
+      renderMobileCards();
+    }
+
+    function updateActivityField(weekIdx, field, val) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      const cleaned = val.trim();
+      weeks[weekIdx][field] = cleaned === '輸入講員' ? '' : cleaned;
+      saveRosterDraft();
+      renderMobileCards();
+    }
+
+    function updateSongField(weekIdx, songKey, val) {
+      if (!canEditRoster()) return;
+      const weeks = quarter().weeks;
+      weeks[weekIdx].songs[songKey] = val.trim();
+      saveRosterDraft();
+      renderMobileCards();
+    }
+
+    // Bottom-up special event stack helpers (first item at bottom, '+' stacks upward)
+    function addEventItemUpward(weekIdx) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      if (!Array.isArray(weeks[weekIdx].events)) {
+        weeks[weekIdx].events = [];
+      }
+      // Prepend so the first existing item stays at the very bottom and new items stack upward
+      weeks[weekIdx].events.unshift({ text: '新活動項目', color: 'red' });
+      saveRosterDraft();
+      renderDesktopTable();
+      renderMobileCards();
+    }
+
+    function updateEventItem(weekIdx, evIdx, val) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      const cleaned = val.trim();
+      if (!cleaned) {
+        weeks[weekIdx].events.splice(evIdx, 1);
+        renderDesktopTable();
+      } else {
+        weeks[weekIdx].events[evIdx].text = cleaned;
+      }
+      saveRosterDraft();
+      renderMobileCards();
+    }
+
+    function cycleEventColor(weekIdx, evIdx) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      const curr = weeks[weekIdx].events[evIdx].color || 'red';
+      const next = EVENT_COLOR_KEYS[(EVENT_COLOR_KEYS.indexOf(curr) + 1) % EVENT_COLOR_KEYS.length];
+      weeks[weekIdx].events[evIdx].color = next;
+      saveRosterDraft();
+      renderDesktopTable();
+      renderMobileCards();
+    }
+
+    function removeEventItem(weekIdx, evIdx) {
+      if (!canManageRoster()) return;
+      const weeks = quarter().weeks;
+      weeks[weekIdx].events.splice(evIdx, 1);
+      saveRosterDraft();
+      renderDesktopTable();
+      renderMobileCards();
+    }
+
+    // =========================================================================
+    // 7. RENDER MODERN iOS HIG / MATERIAL DESIGN 3 MOBILE ELDER CARDS (>= 16PX)
+    // =========================================================================
+    function renderMobileCards() {
+      const container = document.getElementById('mobile-cards-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const visibleItems = rosterSchedule();
+      visibleItems.forEach((item, displayIdx) => {
+        if (item.announcement) {
+          container.append(renderMobileAnnouncement(item));
+          return;
+        }
+        const {week} = item;
+        const prevItem = visibleItems[displayIdx - 1];
+        if (prevItem && prevItem.month !== week.month) {
+          const divider = document.createElement('div');
+          divider.className = 'pt-3 pb-1';
+          divider.innerHTML = `
+            <div class="flex items-center gap-3">
+              <div class="h-[2px] flex-1 bg-[#3D7A47]/30"></div>
+              <span class="text-[17px] font-black text-[#2C5E34] bg-white px-4 py-1.5 rounded-full border-2 border-[#3D7A47] shadow-2xs">
+                📅 ${week.month} 月份服事
+              </span>
+              <div class="h-[2px] flex-1 bg-[#3D7A47]/30"></div>
+            </div>
+          `;
+          container.appendChild(divider);
+        }
+
+        const roleDefs = [
+          { key: 'worship', label: '敬拜', icon: '🎤' },
+          { key: 'musician', label: '樂手', icon: '🎹' },
+          { key: 'slides', label: '投影片', icon: '🖥️' },
+          { key: 'sound', label: '音控', icon: '🎚️' },
+          { key: 'photo', label: '攝影', icon: '📷' },
+          { key: 'usher', label: '招待', icon: '🤝', tagKey: 'usherTags' },
+          { key: 'meal', label: '愛宴', icon: '🍱' },
+          { key: 'shuttle', label: '接送', icon: '🚐', tagKey: 'shuttleCars' },
+          { key: 'rollcall', label: '點名', icon: '📋' },
+          { key: 'loungeReception', label: '交誼廳接待', icon: '☕' },
+          { key: 'loungeBP', label: '量血壓', icon: '🩺' },
+          { key: 'exercise', label: '體操', icon: '🤸' },
+          { key: 'duty', label: '值班', icon: '🔔' }
+        ];
+
+        const roleBlocks = [];
+
+        roleDefs.forEach(def => {
+          const names = week[def.key] || [];
+          const tags = def.tagKey ? (week[def.tagKey] || []) : [];
+          const items = [];
+
+          names.forEach((rawName, idx) => {
+            const name = (rawName || '').trim();
+            if (!name) return;
+            items.push({
+              name,
+              tag: (tags[idx] || '').trim(),
+              isChanged: !!week.changedCells[`${def.key}:${idx}`]
+            });
+          });
+
+          if (items.length > 0) {
+            roleBlocks.push({ label: def.label, icon: def.icon, items });
+          }
+        });
+
+        const spStyle = SPEAKER_STYLES[week.speakerType] || SPEAKER_STYLES.church;
+        const eventsList = Array.isArray(week.events) ? week.events : [];
+        const card = document.createElement('article');
+        card.className = 'bg-white rounded-[26px] border border-[#D4E4D6] shadow-sm overflow-hidden';
+
+        // Special events pills (all >= 16px)
+        const eventsHtml = eventsList.length > 0
+          ? `<div class="pt-2.5 flex flex-wrap gap-2">
+              ${eventsList.map(ev => {
+                const cCfg = EVENT_COLORS[ev.color] || EVENT_COLORS.red;
+                return `<span class="text-[16px] font-bold px-3 py-1 rounded-xl ${cCfg.badgeBg}">${escapeHtml(ev.text)}</span>`;
+              }).join('')}
+            </div>`
+          : '';
+
+        // Roles list in clean iOS Inset Grouped / Material 3 List style (all >= 16px)
+        const rolesHtml = roleBlocks.length > 0
+          ? roleBlocks.map(block => {
+              const peopleHtml = block.items.map(it => {
+                const tagBadge = it.tag
+                  ? `<span class="inline-block ml-1.5 px-2.5 py-0.5 rounded-lg bg-[#EEF6EE] text-[#2C5E34] border border-[#C5DEC8] text-[16px] font-bold">${escapeHtml(it.tag)}</span>`
+                  : '';
+                if (it.isChanged) {
+                  return `<span class="inline-flex items-center flex-wrap bg-[#E53E3E] text-white px-2.5 py-0.5 rounded-xl text-[17px] font-black">${escapeHtml(it.name)}・異動</span>${tagBadge}`;
+                }
+                return `<span class="inline-flex items-center flex-wrap"><span class="text-[18px] font-bold text-[#1E3323]">${escapeHtml(it.name)}</span>${tagBadge}</span>`;
+              }).join('<span class="text-[17px] text-[#9BBF9F] mx-1.5">、</span>');
+
+              return `
+                <div class="py-3.5 px-4 border-b border-[#EDF3EE] last:border-b-0 flex flex-col gap-1.5">
+                  <div class="flex items-center gap-2 text-[16px] font-black text-[#3D7A47]">
+                    <span>${block.icon}</span>
+                    <span>${block.label}</span>
+                  </div>
+                  <div class="pl-7 leading-relaxed">${peopleHtml}</div>
+                </div>
+              `;
+            }).join('')
+          : `<div class="py-6 text-center text-[17px] text-[#6C8570] font-bold">本週尚無同工排班名單</div>`;
+
+        card.innerHTML = `
+          <!-- Card Header: Date + Speaker + Topic + Events -->
+          <div class="p-5 bg-[#FCFDFB] border-b border-[#E3EDE4] space-y-2.5">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-[24px] font-black text-[#2C5E34] tracking-tight">${escapeHtml(week.date)}</span>
+              <span class="text-[18px] font-black px-3.5 py-1 rounded-2xl border-2 ${spStyle.cls}">
+                ${escapeHtml(week.speaker) || '講員待定'}
+              </span>
+            </div>
+            ${week.topic ? `<div class="text-[18px] font-bold text-[#1E5B70] leading-snug">${escapeHtml(week.topic)}</div>` : ''}
+            ${eventsHtml}
+          </div>
+
+          <!-- Worship Songs Surface Card -->
+          <div class="bg-[#F2F7F2] px-5 py-3.5 border-b border-[#E3EDE4] space-y-2">
+            <div class="text-[16px] font-black text-[#2C5E34]">🎵 敬拜詩歌</div>
+            <div class="space-y-1.5">
+              <div class="flex items-baseline gap-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E] font-black text-[16px] shrink-0">快歌</span>
+                <span class="text-[17px] font-bold text-[#1E3323]">${escapeHtml(week.songs.fast) || '—'}</span>
+              </div>
+              <div class="flex items-baseline gap-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-[#E6F4F6] text-[#1E5B70] border border-[#8BC3CB] font-black text-[16px] shrink-0">慢歌</span>
+                <span class="text-[17px] font-bold text-[#1E3323]">${escapeHtml(week.songs.slow1) || '—'}</span>
+              </div>
+              <div class="flex items-baseline gap-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-[#E6F4F6] text-[#1E5B70] border border-[#8BC3CB] font-black text-[16px] shrink-0">慢歌</span>
+                <span class="text-[17px] font-bold text-[#1E3323]">${escapeHtml(week.songs.slow2) || '—'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grouped Ministry Roster Rows -->
+          <div class="divide-y divide-[#EDF3EE]">
+            ${rolesHtml}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      document.getElementById('toast-text').textContent = msg;
+      box.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        box.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    const viewSwitch = document.getElementById('roster-view-switch');
+    viewSwitch.addEventListener('click',event => {
+      const button = event.target.closest('[data-roster-view]');
+      if (!button) return;
+      document.body.classList.toggle('roster-table-view',button.dataset.rosterView === 'table');
+      for (const choice of viewSwitch.querySelectorAll('button')) {
+        choice.setAttribute('aria-pressed',String(choice === button));
+      }
+      setRosterSearchOpen(false);
+    });
+
+    function resizeRosterViewport() {
+      const viewport = document.getElementById('roster-scroll');
+      const firstRow = viewport.querySelector('thead tr');
+      viewport.style.setProperty('--roster-top',Math.max(0,viewport.getBoundingClientRect().top)+'px');
+      if (firstRow.offsetHeight) viewport.style.setProperty('--roster-first-row',firstRow.getBoundingClientRect().height+'px');
+    }
+    window.addEventListener('resize',resizeRosterViewport);
+    window.addEventListener('clc-admin-changed', () => {
+      if (!canManageRoster()) toggleSuperUserModal(false);
+      renderRosterSettings();
+      renderDesktopTable();
+    });
+    window.addEventListener('DOMContentLoaded', () => {
+      restoreRosterDraft();
+      const requestedQuarter = new URLSearchParams(location.search).get('quarter');
+      if (requestedQuarter && /^202[67]-Q[1-4]$/.test(requestedQuarter)) {
+        currentQuarterKey = requestedQuarter;
+      }
+      ensureQuarterExists(currentQuarterKey);
+      document.getElementById('year-selector').value = currentQuarterKey.split('-')[0];
+      showRosterDraftStatus();
+      setVersionStatus(versionStatus, false);
+      renderRosterSettings();
+      resetRosterSearch();
+      resizeRosterViewport();
+      if (typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(resizeRosterViewport);
+        document.querySelectorAll('body > header, #roster-search, .roster-table thead tr:first-child').forEach(box => observer.observe(box));
+      }
+      updateQuarterHeaderAndTabs();
+      renderDesktopTable();
+      renderMobileCards();
+    });
+  </script>
+
+  <script src="header.js?v=20261126-serve"></script>
+</body></html>
