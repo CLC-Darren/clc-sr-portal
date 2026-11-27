@@ -186,7 +186,7 @@
 
     #roster-view-switch { display:none }
     /* Modern iOS HIG & Android Material 3 Mobile/Tablet Portrait Switch (< 900px or portrait tablet) */
-    @media (max-width: 899px), (max-width: 1024px) and (orientation: portrait) {
+    @media (max-width:899px), (max-width:1024px) and (orientation:portrait), (max-width:1100px) and (orientation:landscape) and (pointer:coarse) {
       #desktop-table-section {
         display: none !important;
       }
@@ -195,24 +195,36 @@
       }
       body.roster-table-view #desktop-table-section { display:block !important }
       body.roster-table-view #mobile-cards-section { display:none !important }
-      #roster-view-switch {
-        display:inline-flex;gap:3px;padding:3px;border:1px solid #c5dec8;
-        border-radius:10px;background:#eef6ee;
+      #roster-view-switch { display:inline-flex;gap:3px }
+      #roster-month-view { display:flex;align-items:center;gap:5px;max-width:100% }
+      #roster-month-view #month-filter-tabs,#roster-view-switch {
+        flex:none;padding:3px;border:1px solid #c5dec8;border-radius:10px;background:#eef6ee;
       }
-      #roster-view-switch button {
-        min-height:44px;padding:0 11px;border:0;border-radius:7px;
-        color:#2c5e34;font-weight:750;font-size:15px;
+      #roster-month-view button {
+        min-height:30px;padding:0 clamp(5px,1.8vw,10px);border:0;border-radius:7px;
+        color:#2c5e34;font-weight:750;font-size:clamp(12px,3.5vw,15px);white-space:nowrap;
       }
+      #roster-month-view #month-filter-tabs button[aria-pressed="true"],
       #roster-view-switch button[aria-pressed="true"] { background:#2f6538;color:#fff }
       body.roster-table-view #roster-scroll { touch-action:pan-x pan-y }
     }
-    @media (min-width: 900px) and (not ((max-width: 1024px) and (orientation: portrait))) {
-      #desktop-table-section {
-        display: block !important;
-      }
-      #mobile-cards-section {
-        display: none !important;
-      }
+    @media (min-width:900px) {
+      #desktop-table-section { display:block }
+      #mobile-cards-section { display:none }
+    }
+    @media (orientation:landscape) and (max-height:560px) and (max-width:1100px) {
+      #roster-header { padding-block:3px }
+      #roster-heading { gap:4px }
+      #roster-brand-line { gap:6px }
+      #header-year-display { font-size:22px }
+      #header-title-display { font-size:16px;line-height:1.2 }
+      #roster-legend,#header-remark-text,#week-count-badge { display:none }
+      #roster-settings-button { width:28px;height:28px }
+      #roster-nav { margin-top:3px;padding-top:3px;gap:3px 7px }
+      #roster-nav > div { gap:4px }
+      #roster-nav button,#quarter-selector { min-height:27px;padding-block:0 }
+      #desktop-table-section { padding-top:4px }
+      #mobile-cards-section { padding-top:5px }
     }
     /* Desktop activity notes share one right-hand column for + and ×. */
     .desktop-event-stack { position:relative; top:var(--desktop-event-offset, 0px); padding-bottom:7px; }
@@ -240,6 +252,15 @@
       max-height:max(180px, calc(100dvh - var(--roster-top, 150px) - 12px));
       overflow:auto;border:1px solid #c5dec8;border-radius:9px;
       scrollbar-width:thin;scrollbar-color:#83a98a #edf4eb;
+    }
+    @media (hover:hover) and (pointer:fine) {
+      #roster-scroll:not(:hover):not(:focus-visible) { scrollbar-color:transparent transparent !important }
+      #roster-scroll:hover,#roster-scroll:focus-visible { scrollbar-color:#83a98a transparent !important }
+      #roster-scroll::-webkit-scrollbar { height:6px !important;width:6px !important }
+      #roster-scroll::-webkit-scrollbar-thumb { background:transparent !important }
+      #roster-scroll:hover::-webkit-scrollbar-thumb,#roster-scroll:focus-visible::-webkit-scrollbar-thumb {
+        background:#83a98a !important;
+      }
     }
     #roster-scroll:focus-visible { outline:2px solid #3d7a47;outline-offset:2px }
     .roster-table th,.roster-table td { border-left:0 }
@@ -270,15 +291,13 @@
     #roster-calendar-error { color:#962c23 }
     .roster-settings-note { margin-top:6px;color:#526950 }
     #roster-search {
-      display:none;margin:8px 12px 2px;border:1px solid #a9c7ad;border-radius:12px;
+      margin:8px 12px 2px;border:1px solid #a9c7ad;border-radius:12px;
       background:#fcfdfb;color:#1e3323;padding:15px;font-size:18px;
     }
-    #roster-search.desktop-open { display:block }
+    #roster-search[hidden] { display:none !important }
+    #roster-search-toggle::after { content:" ▾" }
+    #roster-search-toggle[aria-expanded="true"]::after { content:" ▴" }
     @media(min-width:640px) { #roster-search { margin-inline:20px } }
-    @media (max-width:899px), (max-width:1024px) and (orientation:portrait) {
-      #roster-search { display:block }
-      #roster-search-toggle { display:none }
-    }
     #roster-name-suggestions:empty { display:none }
     #roster-name-suggestions { display:grid;gap:3px;margin:-3px 0 10px }
     #roster-name-suggestions button { display:flex;justify-content:space-between;align-items:center;gap:6px;text-align:left }
@@ -302,10 +321,10 @@
   <!-- TOP HEADER & QUARTER / MONTH NAVIGATION BAR                           -->
   <!-- ===================================================================== -->
   <header id="clc-header"></header>
-  <header class="bg-[#FCFDFB] border-b border-[#C5DEC8] px-3 sm:px-5 py-2.5">
-    <div class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-2">
+  <header id="roster-header" class="bg-[#FCFDFB] border-b border-[#C5DEC8] px-3 sm:px-5 py-2.5">
+    <div id="roster-heading" class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-2">
       <!-- Left: Big Year + Title + Version Status Badge -->
-      <div class="flex items-baseline gap-2.5 flex-wrap">
+      <div id="roster-brand-line" class="flex items-baseline gap-2.5 flex-wrap">
         <span id="header-year-display" class="text-3xl sm:text-4xl font-black text-[#3D7A47] tracking-tight leading-none">2026</span>
         <h1 id="header-title-display" class="text-lg sm:text-2xl font-black text-[#1E3323] tracking-tight">
           10-12月加樂團契服事表
@@ -317,7 +336,7 @@
 
       <!-- Right: Color Legend + Remark + Super User Gear Button -->
       <div class="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
-        <div class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold">
+        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold">
           <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
           <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
           <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
@@ -340,7 +359,7 @@
     </div>
 
     <!-- Year / Quarter & Month Selector Strip -->
-    <div class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex flex-wrap items-center justify-between gap-2">
+    <div id="roster-nav" class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap items-center gap-2">
         <div class="relative inline-flex items-center">
           <select id="quarter-selector" onchange="switchQuarter(this.value)"
@@ -353,23 +372,25 @@
           </svg>
         </div>
 
-        <div id="month-filter-tabs" class="inline-flex items-center bg-[#F4F8F4] p-1 rounded-xl border border-[#C5DEC8] gap-1">
-          <!-- Rendered dynamically -->
+        <div id="roster-month-view">
+          <div id="month-filter-tabs" class="inline-flex items-center bg-[#F4F8F4] p-1 rounded-xl border border-[#C5DEC8] gap-1">
+            <!-- Rendered dynamically -->
+          </div>
+          <div id="roster-view-switch" role="group" aria-label="服事表顯示方式">
+            <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
+            <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">電腦</button>
+          </div>
         </div>
       </div>
 
       <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
-      <div id="roster-view-switch" role="group" aria-label="服事表顯示方式">
-        <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
-        <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">電腦表格</button>
-      </div>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
       </div>
     </div>
   </header>
 
-  <section id="roster-search" aria-labelledby="roster-search-title">
+  <section id="roster-search" hidden aria-labelledby="roster-search-title">
     <header class="roster-search-header">
       <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
     </header>
@@ -1415,13 +1436,12 @@
       searchForm.elements.to.value = last;
       document.getElementById('roster-search-quarter').textContent = quarter().year+' 年 '+quarter().title;
     }
-    function openRosterSearch() {
-      searchPanel.classList.toggle('desktop-open');
-      const opened = searchPanel.classList.contains('desktop-open');
-      document.getElementById('roster-search-toggle').setAttribute('aria-expanded',String(opened));
-      if (opened) searchName.focus({preventScroll:true});
+    function setRosterSearchOpen(open) {
+      searchPanel.hidden = !open;
+      document.getElementById('roster-search-toggle').setAttribute('aria-expanded',String(open));
       resizeRosterViewport();
     }
+    function openRosterSearch() { setRosterSearchOpen(searchPanel.hidden); }
     function refreshSuggestions(event) {
       if (event.isComposing) return;
       selectedSearchName = '';
@@ -1493,7 +1513,7 @@
       const allBtnActive = selectedMonthFilter === 'ALL';
 
       let html = `
-        <button type="button" onclick="setMonthFilter('ALL')"
+        <button type="button" onclick="setMonthFilter('ALL')" aria-pressed="${allBtnActive}"
           class="px-3.5 py-1 rounded-lg text-xs sm:text-sm font-black transition-all ${
             allBtnActive
               ? 'bg-[#3D7A47] text-white shadow-2xs'
@@ -1506,7 +1526,7 @@
       q.months.forEach(m => {
         const isActive = Number(selectedMonthFilter) === m;
         html += `
-          <button type="button" onclick="setMonthFilter(${m})"
+          <button type="button" onclick="setMonthFilter(${m})" aria-pressed="${isActive}"
             class="px-3 py-1 rounded-lg text-xs sm:text-sm font-bold transition-all ${
               isActive
                 ? 'bg-[#3D7A47] text-white shadow-2xs'
@@ -2452,7 +2472,7 @@
       for (const choice of viewSwitch.querySelectorAll('button')) {
         choice.setAttribute('aria-pressed',String(choice === button));
       }
-      resizeRosterViewport();
+      setRosterSearchOpen(false);
     });
 
     function resizeRosterViewport() {
