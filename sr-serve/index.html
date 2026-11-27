@@ -2800,8 +2800,7 @@
           tsvRows.push(rowVals.join('	'));
         }
         return {
-          tsvText: tsvRows.join('
-'),
+          tsvText: tsvRows.join('\n'),
           rowCount: maxR - minR + 1,
           colCount: maxC - minC + 1
         };
@@ -2830,8 +2829,7 @@
         tsvRows.push(rowVals.join('	'));
       }
       return {
-        tsvText: tsvRows.join('
-'),
+        tsvText: tsvRows.join('\n'),
         rowCount: maxR - minR + 1,
         colCount: maxC - minC + 1,
         selectedCount
