@@ -91,24 +91,63 @@
       overflow: hidden;
     }
 
-    .roster-row {
+    .roster-table tbody tr.roster-row {
       height: 31px !important;
       max-height: 31px !important;
-      line-height: 31px;
     }
 
-    /* Fixed-height spreadsheet name cell: strictly uniform 31px across all rows & weeks */
+    .roster-table tbody tr.roster-row > td {
+      height: 31px !important;
+      max-height: 31px !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      vertical-align: middle !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Decouple rowspan="6" activity cell from pushing row 0 height */
+    .roster-table tbody tr.roster-row > td.activity-span-cell {
+      position: sticky !important;
+      left: 0;
+      height: 186px !important;
+      max-height: 186px !important;
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .activity-span-inner {
+      position: absolute;
+      inset: 5px 8px 2px 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Fixed-height spreadsheet name cell & inner editor: never expands on focus or Shift+Enter */
     .roster-name-cell {
       height: 31px !important;
       max-height: 31px !important;
       min-height: 31px !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    .roster-name-editor {
+      display: block;
+      width: 100%;
+      height: 31px !important;
+      max-height: 31px !important;
+      min-height: 31px !important;
+      line-height: 31px !important;
+      padding: 0 2px;
       overflow: hidden !important;
       white-space: pre !important;
-      line-height: 21px !important;
-      padding-top: 5px !important;
-      padding-bottom: 5px !important;
-      vertical-align: middle !important;
-      box-sizing: border-box !important;
+      text-align: center;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .roster-name-editor:focus {
+      background-color: #FFFFFF !important;
+      box-shadow: inset 0 0 0 2px #3D7A47 !important;
     }
 
     /* Folder Tabs harmonized with site Forest Green & Sage palette */
@@ -285,17 +324,29 @@
       }
       body.roster-table-view #desktop-table-section { display:block !important }
       body.roster-table-view #mobile-cards-section { display:none !important }
-      #roster-view-switch { display:inline-flex;gap:3px }
-      #roster-month-view { display:flex;align-items:center;gap:5px;max-width:100% }
+      #header-remark-text { display: none !important; }
+      #roster-view-switch { display:inline-flex;align-items:center;gap:2px }
+      #roster-month-view { display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100% }
       #roster-month-view #month-filter-tabs,#roster-view-switch {
         flex:none;padding:3px;border:1px solid #c5dec8;border-radius:10px;background:#eef6ee;
       }
       #roster-month-view button {
-        min-height:30px;padding:0 clamp(5px,1.8vw,10px);border:0;border-radius:7px;
-        color:#2c5e34;font-weight:750;font-size:clamp(12px,3.5vw,15px);white-space:nowrap;
+        min-height:30px;height:30px;padding:0 clamp(6px,2vw,10px);border:0;border-radius:7px;
+        color:#2c5e34;font-weight:750;font-size:clamp(12px,3.5vw,14px);white-space:nowrap;
+        display:inline-flex;align-items:center;justify-content:center;
       }
       #roster-month-view #month-filter-tabs button[aria-pressed="true"],
       #roster-view-switch button[aria-pressed="true"] { background:#2f6538;color:#fff }
+      #roster-search-toggle {
+        min-height:38px !important;
+        height:38px !important;
+        padding:0 12px !important;
+        border-radius:10px !important;
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        white-space:nowrap !important;
+      }
       body.roster-table-view #roster-scroll { touch-action:pan-x pan-y }
     }
     @media (min-width:900px) {
@@ -430,8 +481,17 @@
         </span>
       </div>
 
-      <!-- Right: Color Legend + Remark + Super User Gear Button -->
-      <div class="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
+      <!-- Top-Right Super User Gear Button (Always pinned top-right when admin logged in) -->
+      <button id="roster-settings-button" hidden type="button" onclick="toggleSuperUserModal(true)" title="管理設定"
+        class="order-2 sm:order-3 self-start ml-auto sm:ml-2 w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+
+      <!-- Right: Color Legend + Remark -->
+      <div class="order-3 sm:order-2 flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-auto">
         <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold">
           <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
           <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
@@ -442,15 +502,6 @@
         <span id="header-remark-text" class="text-xs font-bold text-[#4A6650]">
           *師母講道時間確認後要 email 通知心怡。
         </span>
-
-        <!-- Super User Settings Gear Button -->
-        <button id="roster-settings-button" hidden type="button" onclick="toggleSuperUserModal(true)" title="管理設定"
-          class="w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
       </div>
     </div>
 
@@ -478,14 +529,15 @@
           <div id="month-filter-tabs" class="inline-flex items-center bg-[#F4F8F4] p-1 rounded-xl border border-[#C5DEC8] gap-1">
             <!-- Rendered dynamically -->
           </div>
-          <div id="roster-view-switch" role="group" aria-label="服事表顯示方式">
+          <div id="roster-view-switch" role="group" aria-label="卡片/表格顯示方式">
             <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
-            <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">電腦</button>
+            <span class="text-[#9BBF9F] font-bold text-xs select-none">/</span>
+            <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">表格</button>
           </div>
+          <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
         </div>
       </div>
 
-      <button type="button" id="roster-search-toggle" class="roster-search-button" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
       <p id="roster-draft-status" role="status" class="text-xs font-bold text-[#46674d]" hidden></p>
       <div id="week-count-badge" class="text-xs font-bold text-[#6C8570]">
         共 14 週聚會
@@ -1301,19 +1353,9 @@
     function showRosterDraftStatus(message) {
       const status = document.getElementById('roster-draft-status');
       const db = getFirestoreDb();
-      const show = Boolean(db) || currentQuarterKey === DRAFT_QUARTER || Boolean(message);
-      status.hidden = !show;
-      if (!show) {
-        status.textContent = '';
-        return;
-      }
-      if (message) {
-        status.textContent = message;
-      } else if (db) {
-        status.textContent = '☁️ Firebase 雲端即時同步中';
-      } else {
-        status.textContent = '免登入編輯 · 自動儲存在此瀏覽器（尚未連線 Firebase）';
-      }
+      const text = message || (db ? '☁️ Firebase 雲端即時同步中' : '');
+      status.hidden = !text;
+      status.textContent = text;
     }
 
     function syncQuarterToFirebase(qKey) {
@@ -1390,10 +1432,7 @@
           localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(quarter().weeks));
         } catch (_) {}
       }
-      const synced = syncQuarterToFirebase(currentQuarterKey);
-      if (!synced && currentQuarterKey === DRAFT_QUARTER) {
-        showRosterDraftStatus('已自動儲存在此瀏覽器');
-      }
+      syncQuarterToFirebase(currentQuarterKey);
     }
 
     const calendar = () => localRosterSettings[currentQuarterKey]?.calendar ?? quarter().calendar ?? (
@@ -2088,7 +2127,7 @@
             activityCell = tdActivity;
             tdActivity.rowSpan = 6;
             const dividerCellClass = isMonthEnd ? 'month-divider-cell' : 'week-divider-cell';
-            tdActivity.className = `sticky-col-left ${dividerCellClass} align-top px-2 pt-1.5 pb-0 leading-normal`;
+            tdActivity.className = `sticky-col-left activity-span-cell ${dividerCellClass} leading-normal`;
 
             const eventsList = Array.isArray(week.events) ? week.events : [];
             const eventsHtml = eventsList.map((ev, evIdx) => {
@@ -2110,7 +2149,7 @@
             }).join('');
 
             tdActivity.innerHTML = `
-              <div class="h-[174px] max-h-[174px] overflow-hidden flex flex-col justify-between relative">
+              <div class="activity-span-inner">
                 <!-- Top Stacked Block: Line 1 Date -> Line 2 Speaker -> Line 3 Topic -->
                 <div class="space-y-1">
                   <!-- Line 1: Month & Day -->
@@ -2343,9 +2382,10 @@
 
     function focusEditableCell(td) {
       if (!td) return;
-      td.focus();
+      const target = td.querySelector('.roster-name-editor') || td;
+      target.focus();
       const range = document.createRange();
-      range.selectNodeContents(td);
+      range.selectNodeContents(target);
       const sel = window.getSelection();
       if (sel) {
         sel.removeAllRanges();
@@ -2377,7 +2417,7 @@
       }
 
       const nextTd = document.querySelector(
-        `#roster-tbody td[data-global-row="${candidateRow}"][data-grid-col="${gridCol}"][contenteditable="true"]`
+        `#roster-tbody td[data-global-row="${candidateRow}"][data-grid-col="${gridCol}"][data-editable-cell="true"]`
       );
       if (nextTd) {
         selectionRange = { startR: candidateRow, startC: gridCol, endR: candidateRow, endC: gridCol };
@@ -2390,18 +2430,19 @@
     function createNameCell(weekIdx, colKey, rowIdx, value, globalRow, gridCol) {
       const weeks = quarter().weeks;
       const td = document.createElement('td');
+      const editor = document.createElement('div');
       const isChanged = weeks[weekIdx].changedCells[`${colKey}:${rowIdx}`];
       const isPraiseExerciseNote = colKey === 'exercise' && (value === '讚美操' || value === '健康操');
+      const editable = canEditRoster();
 
       td.dataset.weekIdx = weekIdx;
       td.dataset.colKey = colKey;
       td.dataset.rowIdx = rowIdx;
       td.dataset.globalRow = globalRow;
       td.dataset.gridCol = gridCol;
-      td.contentEditable = String(canEditRoster());
-      td.textContent = value;
+      td.dataset.editableCell = String(editable);
 
-      td.className = `editable-cell roster-name-cell px-0.5 text-center text-[16px] font-bold tracking-normal ${
+      td.className = `roster-name-cell text-center text-[16px] font-bold tracking-normal ${
         isChanged
           ? 'bg-[#E53E3E] text-white font-black'
           : isPraiseExerciseNote
@@ -2409,26 +2450,31 @@
             : 'text-[#1E3323]'
       }`;
 
-      attachGridCellEvents(td, globalRow, gridCol, canEditRoster());
+      editor.className = 'roster-name-editor';
+      editor.contentEditable = String(editable);
+      editor.textContent = value;
+      td.appendChild(editor);
+
+      attachGridCellEvents(td, globalRow, gridCol, editable);
 
       function storeName() {
         if (!canEditRoster()) return;
         // Preserve internal newlines created by Shift+Enter while stripping trailing empty lines
-        const cleaned = td.innerText.replace(/\r\n/g, '\n').replace(/\n+$/, '');
+        const cleaned = editor.innerText.replace(/\r\n/g, '\n').replace(/\n+$/, '');
         if (weeks[weekIdx][colKey][rowIdx] === cleaned) return;
         weeks[weekIdx][colKey][rowIdx] = cleaned;
         saveRosterDraft();
       }
-      td.oninput = event => { if (!event.isComposing) storeName(); };
-      td.oncompositionend = storeName;
-      td.onblur = () => { storeName(); renderMobileCards(); };
+      editor.oninput = event => { if (!event.isComposing) storeName(); };
+      editor.oncompositionend = storeName;
+      editor.onblur = () => { storeName(); renderMobileCards(); };
 
-      td.addEventListener('keydown', (e) => {
+      editor.addEventListener('keydown', (e) => {
         if (e.isComposing) return;
         if (e.key === 'Enter') {
           e.preventDefault();
           if (e.shiftKey) {
-            // Shift + Enter: insert newline inside cell (fixed 31px height clips overflow)
+            // Shift + Enter: insert newline inside inner div (fixed 31px height clips overflow)
             if (canEditRoster()) {
               insertNewlineInCell();
               storeName();
@@ -2437,12 +2483,12 @@
             // Enter: save and move directly to next cell without inserting newline
             storeName();
             const moved = moveToNextEditableCellInColumn(globalRow, gridCol);
-            if (!moved) td.blur();
+            if (!moved) editor.blur();
           }
         }
       });
 
-      td.onpaste = (e) => {
+      editor.onpaste = (e) => {
         const text = (e.clipboardData || window.clipboardData).getData('text');
         if (text && (text.includes('\n') || text.includes('\t'))) {
           e.preventDefault();
@@ -2463,13 +2509,14 @@
         isTouchInteraction = true;
       }, { passive: true });
 
-      td.addEventListener('touchend', (e) => {
+      td.addEventListener('touchend', () => {
         if (!isEditableName) return;
         // Single tap on touch devices immediately enters inline edit mode and opens keyboard
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
         updateSelectionVisuals();
-        if (document.activeElement !== td) {
-          td.focus();
+        const target = td.querySelector('.roster-name-editor') || td;
+        if (document.activeElement !== target) {
+          target.focus();
         }
       }, { passive: true });
 
@@ -3098,11 +3145,17 @@
       if (firstRow.offsetHeight) viewport.style.setProperty('--roster-first-row',firstRow.getBoundingClientRect().height+'px');
     }
     window.addEventListener('resize',resizeRosterViewport);
-    window.addEventListener('clc-admin-changed', () => {
-      if (!canManageRoster()) toggleSuperUserModal(false);
+    let lastKnownSuperuser = canManageRoster();
+    function syncAdminUiState() {
+      const curr = canManageRoster();
+      if (curr === lastKnownSuperuser) return;
+      lastKnownSuperuser = curr;
+      if (!curr) toggleSuperUserModal(false);
       renderRosterSettings();
       renderDesktopTable();
-    });
+    }
+    window.addEventListener('clc-admin-changed', syncAdminUiState);
+    setInterval(syncAdminUiState, 600);
     window.addEventListener('DOMContentLoaded', () => {
       restoreRosterDraft();
       const params = new URLSearchParams(location.search);
