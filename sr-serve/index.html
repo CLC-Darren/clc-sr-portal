@@ -109,55 +109,55 @@
       vertical-align: top !important;
     }
 
-    /* Folder Tabs (4 Quarters like physical folder dividers) */
+    /* Folder Tabs harmonized with site Forest Green & Sage palette */
     .quarter-folder-tabs {
       display: inline-flex;
       align-items: flex-end;
-      padding-top: 2px;
-      padding-right: 12px;
+      padding-right: 10px;
       user-select: none;
     }
     .folder-tab-btn {
       position: relative;
-      height: 32px;
-      padding: 0 18px 0 15px;
-      margin-right: -10px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 14px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
+      height: 31px;
+      padding: 0 18px 0 14px;
+      margin-right: -8px;
+      border-top-left-radius: 9px;
+      border-top-right-radius: 13px;
+      border: 1px solid #B5D2B9;
       border-bottom: none;
+      background: linear-gradient(180deg, #F5FAF5 0%, #E4F0E5 100%);
+      color: #2C5E34;
       font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.04em;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
       cursor: pointer;
-      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
-      box-shadow: 2px -1px 4px rgba(0, 0, 0, 0.08);
-      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+      transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+      box-shadow: 1px -1px 3px rgba(44, 94, 52, 0.07);
+      clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 100%, 0 100%);
     }
     .folder-tab-btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.03);
+      background: linear-gradient(180deg, #FFFFFF 0%, #DCECDC 100%);
+      transform: translateY(-1px);
     }
     .folder-tab-btn.is-active {
-      height: 35px;
+      height: 34px;
       z-index: 20 !important;
       transform: translateY(0);
-      box-shadow: 0 -2px 8px rgba(30, 51, 35, 0.16), 2px 0 5px rgba(0, 0, 0, 0.08);
+      background: linear-gradient(180deg, #3D7A47 0%, #2C5E34 100%);
+      color: #FEF5DC;
+      border-color: #2C5E34;
+      box-shadow: 0 -2px 6px rgba(44, 94, 52, 0.22), 2px 0 4px rgba(44, 94, 52, 0.1);
       font-weight: 900;
     }
-    .folder-tab-q1 { background: linear-gradient(180deg, #FDE047 0%, #FACC15 100%); color: #3F3205; z-index: 4; }
-    .folder-tab-q2 { background: linear-gradient(180deg, #FB923C 0%, #F97316 100%); color: #FFFFFF; z-index: 3; }
-    .folder-tab-q3 { background: linear-gradient(180deg, #F472B6 0%, #EC4899 100%); color: #FFFFFF; z-index: 2; }
-    .folder-tab-q4 { background: linear-gradient(180deg, #818CF8 0%, #6366F1 100%); color: #FFFFFF; z-index: 1; }
 
     /* Right-click Context Menu for Folder Tabs */
     #folder-tab-context-menu {
       position: fixed;
       z-index: 9999;
-      min-width: 240px;
+      min-width: 220px;
       background: #FCFDFB;
       border: 1.5px solid #3D7A47;
       border-radius: 12px;
@@ -467,7 +467,7 @@
           </svg>
         </div>
 
-        <!-- 4 Quarters Folder Tabs (Right-click to copy URL & shortcut path) -->
+        <!-- 4 Quarters Folder Tabs: Q1, Q2, Q3, Q4 (Right-click to copy short URL & shortcut) -->
         <div id="quarter-folder-tabs" class="quarter-folder-tabs" role="tablist" aria-label="季度分頁">
           <!-- Rendered dynamically -->
         </div>
@@ -494,15 +494,15 @@
   <!-- Folder Tab Right-Click Context Menu -->
   <div id="folder-tab-context-menu" hidden role="menu" aria-label="季度分頁網址與捷徑選單">
     <div id="folder-tab-menu-header" class="px-2.5 py-1 text-[11px] font-black text-[#3D7A47] border-b border-[#E3EDE4] mb-1">
-      2026 年 第4季 (10-12月)
+      2026 Q4
     </div>
     <button type="button" id="ctx-copy-full-url" role="menuitem">
-      <span>🔗 複製此季度完整網址</span>
-      <span id="ctx-full-url-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[260px]"></span>
+      <span>🔗 複製短網址</span>
+      <span id="ctx-full-url-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[240px]"></span>
     </button>
     <button type="button" id="ctx-copy-shortcut-path" role="menuitem">
       <span>📂 複製捷徑路徑</span>
-      <span id="ctx-shortcut-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[260px]"></span>
+      <span id="ctx-shortcut-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[240px]"></span>
     </button>
   </div>
 
@@ -706,10 +706,10 @@
     const EVENT_COLOR_KEYS = ['red', 'green', 'amber', 'blue', 'purple'];
 
     const QUARTER_DEFS = [
-      { q: 'Q1', label: '1-3月', title: '1-3月加樂團契服事表', months: [1, 2, 3], colorCls: 'folder-tab-q1' },
-      { q: 'Q2', label: '4-6月', title: '4-6月加樂團契服事表', months: [4, 5, 6], colorCls: 'folder-tab-q2' },
-      { q: 'Q3', label: '7-9月', title: '7-9月加樂團契服事表', months: [7, 8, 9], colorCls: 'folder-tab-q3' },
-      { q: 'Q4', label: '10-12月', title: '10-12月加樂團契服事表', months: [10, 11, 12], colorCls: 'folder-tab-q4' }
+      { q: 'Q1', label: '1-3月', title: '1-3月加樂團契服事表', months: [1, 2, 3] },
+      { q: 'Q2', label: '4-6月', title: '4-6月加樂團契服事表', months: [4, 5, 6] },
+      { q: 'Q3', label: '7-9月', title: '7-9月加樂團契服事表', months: [7, 8, 9] },
+      { q: 'Q4', label: '10-12月', title: '10-12月加樂團契服事表', months: [10, 11, 12] }
     ];
 
     // Build default bottom-aligned special events per week-of-month (1st, 2nd, 3rd week)
@@ -1333,13 +1333,13 @@
       date.textContent = displayDate(item.date);
       const label = row.insertCell();
       label.colSpan = GRID_COLS.length;
-      label.textContent = CALENDAR_LABELS[item.announcement.type]+' '+item.announcement.label;
+      label.textContent = CALENDAR_LABELS[item.announcement.type]+'　'+item.announcement.label;
       return row;
     }
     function renderMobileAnnouncement(item) {
       const card = document.createElement('div');
       card.className = 'roster-announcement mobile-announcement '+item.announcement.type;
-      card.textContent = displayDate(item.date)+' '+CALENDAR_LABELS[item.announcement.type]+' '+item.announcement.label;
+      card.textContent = displayDate(item.date)+'　'+CALENDAR_LABELS[item.announcement.type]+'　'+item.announcement.label;
       return card;
     }
 
@@ -1386,7 +1386,7 @@
         const row = document.createElement('li');
         const edit = document.createElement('button');
         edit.type = 'button';
-        edit.textContent = displayDate(entry.date)+' '+CALENDAR_LABELS[entry.type]+' '+entry.label;
+        edit.textContent = displayDate(entry.date)+'　'+CALENDAR_LABELS[entry.type]+'　'+entry.label;
         edit.onclick = () => {
           if (!canManageRoster()) return;
           calendarForm.elements.date.value = entry.date;
@@ -1536,7 +1536,7 @@
         const list = document.createElement('ul');
         for (const [role,names] of roles) {
           const li = document.createElement('li');
-          li.textContent = SEARCH_ROLES[role]+(name && role !== 'speaker' ? '' : ' '+[...names].join('、'));
+          li.textContent = SEARCH_ROLES[role]+(name && role !== 'speaker' ? '' : '　'+[...names].join('、'));
           list.append(li);
         }
         section.append(headline,list);
@@ -1742,18 +1742,18 @@
     // =========================================================================
     function getQuarterUrlInfo(qKey) {
       const url = new URL(window.location.href);
-      url.searchParams.set('quarter', qKey);
+      // Remove all existing query params and hash to produce the shortest possible URL (?q=2026-Q4)
+      const shortPath = `${url.pathname}?q=${qKey}`;
+      const shortFullUrl = `${url.origin}${shortPath}`;
       return {
-        fullUrl: url.toString(),
-        shortcutPath: `${url.pathname}?quarter=${qKey}`
+        fullUrl: shortFullUrl,
+        shortcutPath: shortPath
       };
     }
 
     function updateUrlQuarterParam(qKey) {
       try {
-        const url = new URL(window.location.href);
-        url.searchParams.set('quarter', qKey);
-        window.history.replaceState(null, '', url.toString());
+        window.history.replaceState(null, '', `?q=${qKey}`);
       } catch (_) {}
     }
 
@@ -1795,9 +1795,9 @@
         btn.type = 'button';
         btn.role = 'tab';
         btn.setAttribute('aria-selected', String(isActive));
-        btn.className = `folder-tab-btn ${qDef.colorCls}${isActive ? ' is-active' : ''}`;
-        btn.title = `${yearPart} 年 ${qDef.q} (${qDef.label}) — 點擊切換，按右鍵可複製網址與捷徑`;
-        btn.innerHTML = `<span>${qDef.q}</span><span class="opacity-90 text-[12px]">(${qDef.label})</span>`;
+        btn.className = `folder-tab-btn${isActive ? ' is-active' : ''}`;
+        btn.title = `${yearPart} ${qDef.q} — 點擊切換，按右鍵可複製短網址與捷徑`;
+        btn.textContent = qDef.q;
 
         btn.onclick = () => {
           closeFolderTabContextMenu();
@@ -1808,7 +1808,7 @@
 
         btn.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          openFolderTabContextMenu(e.clientX, e.clientY, qKey, `${yearPart} 年 ${qDef.q} (${qDef.label})`);
+          openFolderTabContextMenu(e.clientX, e.clientY, qKey, `${yearPart} ${qDef.q}`);
         });
 
         container.appendChild(btn);
@@ -1852,7 +1852,7 @@
     document.getElementById('ctx-copy-full-url').addEventListener('click', () => {
       if (!contextMenuTargetQKey) return;
       const { fullUrl } = getQuarterUrlInfo(contextMenuTargetQKey);
-      copyToClipboardWithFeedback(fullUrl, `已複製網址：${fullUrl}`);
+      copyToClipboardWithFeedback(fullUrl, `已複製短網址：${fullUrl}`);
       closeFolderTabContextMenu();
     });
 
@@ -2982,7 +2982,8 @@
     });
     window.addEventListener('DOMContentLoaded', () => {
       restoreRosterDraft();
-      const requestedQuarter = new URLSearchParams(location.search).get('quarter');
+      const params = new URLSearchParams(location.search);
+      const requestedQuarter = params.get('q') || params.get('quarter');
       if (requestedQuarter && /^202[67]-Q[1-4]$/.test(requestedQuarter)) {
         currentQuarterKey = requestedQuarter;
       }
