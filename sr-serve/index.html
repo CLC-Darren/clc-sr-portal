@@ -557,9 +557,9 @@
         </h1>
         <div id="version-status-wrap" class="relative inline-flex items-center">
           <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)"
-            class="inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-default">
+            class="relative inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-default">
             <span id="version-status-text">確認版</span>
-            <svg id="version-status-arrow" hidden class="w-3 h-3 self-end mb-0.5 opacity-85" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg id="version-status-arrow" style="display:none" class="w-3 h-3 ml-1 -mr-0.5 translate-y-[2px] opacity-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
             </svg>
           </button>
@@ -593,6 +593,15 @@
           *師母講道時間確認後要 email 通知心怡。
         </span>
       </div>
+
+      <!-- Top-Right Admin Gear Button (Kept for admin permissions & future settings) -->
+      <button id="roster-settings-button" hidden type="button" onclick="onAdminGearClick()" title="管理設定"
+        class="order-2 sm:order-3 self-start ml-auto sm:ml-2 w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
     </div>
 
     <!-- Single-Row Navigation: Q1 Q2 Q3 Q4 | Sliding Pill (卡片 表格) | 搜尋 -->
@@ -733,7 +742,7 @@
     </div>
   </section>
 
-  <!-- WYSIWYG Activity Cell Admin Action Dropdown (休會 / 特殊活動 / 向下新增 / 向上新增) -->
+  <!-- WYSIWYG Activity Cell Admin Action Dropdown (休會 / 特殊活動 / 向下新增 / 向上新增 / 刪除) -->
   <div id="activity-action-menu" hidden role="menu" aria-label="當週活動操作選單"
     class="fixed z-50 min-w-[148px] bg-[#FCFDFB] border-2 border-[#3D7A47] rounded-xl shadow-xl p-1.5 text-[13px] font-bold text-[#1E3323]">
     <button type="button" role="menuitem" onclick="handleActivityMenuAction('pause')"
@@ -752,6 +761,11 @@
     <button type="button" role="menuitem" onclick="handleActivityMenuAction('insertAbove')"
       class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#EEF6EE] text-[#2C5E34] flex items-center gap-2">
       <span>⬆️ 向上新增</span>
+    </button>
+    <div class="my-1 border-t border-[#E3EDE4]"></div>
+    <button type="button" role="menuitem" onclick="handleActivityMenuAction('deleteWeek')"
+      class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FDECEC] text-[#C53030] flex items-center gap-2">
+      <span>🗑️ 刪除</span>
     </button>
   </div>
 
@@ -1518,13 +1532,19 @@
       const entries = getActiveWeeks().map(item => ({
         ...item,date:isoWeek(item.week),month:item.week.month,announcement:weekOverride(item.week)
       }));
-      for (const entry of calendar()) {
+      const specials = calendar().filter(entry => {
         const month = Number(entry.date.slice(5,7));
-        if (entry.type === 'special' && (selectedMonthFilter === 'ALL' || Number(selectedMonthFilter) === month)) {
-          entries.push({date:entry.date,month,announcement:entry});
-        }
+        return entry.type === 'special' && (selectedMonthFilter === 'ALL' || Number(selectedMonthFilter) === month);
+      }).sort((a,b) => a.date.localeCompare(b.date));
+
+      for (const sp of specials) {
+        let insertAt = entries.findIndex(e => e.date && e.date > sp.date);
+        const matchIdx = entries.reduce((acc, e, i) => (e.date === sp.date ? i : acc), -1);
+        if (matchIdx !== -1) insertAt = matchIdx + 1;
+        else if (insertAt === -1) insertAt = entries.length;
+        entries.splice(insertAt, 0, { date: sp.date, month: Number(sp.date.slice(5,7)), announcement: sp });
       }
-      return entries.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+      return entries;
     }
 
     function renderDesktopAnnouncement(item, monthEnd) {
@@ -1586,12 +1606,19 @@
       } catch (_) { return '已套用到目前頁面'; }
     }
 
+    function onAdminGearClick() {
+      if (!canManageRoster()) return;
+      showToast('目前為管理者權限（可直接於表格進行編輯、新增與刪除）');
+    }
+
     function renderRosterSettings() {
       const granted = canManageRoster();
+      const gearBtn = document.getElementById('roster-settings-button');
       const arrowEl = document.getElementById('version-status-arrow');
       const badgeEl = document.getElementById('version-status-badge');
       const remarkEl = document.getElementById('header-remark-text');
-      if (arrowEl) arrowEl.hidden = !granted;
+      if (gearBtn) gearBtn.hidden = !granted;
+      if (arrowEl) arrowEl.style.display = granted ? 'inline-block' : 'none';
       if (badgeEl) {
         badgeEl.classList.toggle('cursor-pointer', granted);
         badgeEl.classList.toggle('cursor-default', !granted);
@@ -2191,7 +2218,9 @@
                   <div class="flex items-center justify-between gap-1">
                     <span contenteditable="${canManageRoster()}"
                       onblur="updateActivityField(${realIdx}, 'date', this.innerText)"
-                      class="editable-cell inline-block text-[16px] font-black text-[#2C5E34] px-1 rounded leading-tight">${escapeHtml(week.date)}</span>
+                      class="editable-cell inline-block text-[16px] font-black px-1 rounded leading-tight min-w-[68px] ${
+                        (week.date || '').trim() ? 'text-[#2C5E34]' : 'text-[#5C7260]/60'
+                      }">${(week.date || '').trim() ? escapeHtml(week.date) : (canManageRoster() ? '輸入日期' : '日期未定')}</span>
                     <button type="button" ${canManageRoster() ? '' : 'hidden'}
                       onclick="openActivityActionMenu(event, ${realIdx})"
                       title="當週活動操作（休會 / 特殊活動 / 向下新增 / 向上新增）"
@@ -3163,17 +3192,29 @@
 
       if (action === 'insertBelow' || action === 'insertAbove') {
         const isBelow = action === 'insertBelow';
-        const suggestedDate = formatSuggestedDate(targetWeek, isBelow ? 7 : -7);
-        const suggestedMonth = inferMonthFromDateStr(suggestedDate, targetWeek.month);
         const newId = `${currentQuarterKey.toLowerCase()}-custom-${Date.now()}`;
-        const blankWeek = createBlankWeek(newId, suggestedMonth, suggestedDate, 4);
+        const blankWeek = createBlankWeek(newId, targetWeek.month, '', 4);
         const insertPos = isBelow ? idx + 1 : idx;
         weeks.splice(insertPos, 0, blankWeek);
         saveRosterDraft();
         updateQuarterHeaderAndTabs();
         renderDesktopTable();
         renderMobileCards();
-        showToast(isBelow ? `已在下方新增空白聚會（${suggestedDate}）` : `已在上方新增空白聚會（${suggestedDate}）`);
+        showToast(isBelow ? '已在該週下方新增一週空白聚會' : '已在該週上方新增一週空白聚會');
+        return;
+      }
+
+      if (action === 'deleteWeek') {
+        const label = (targetWeek.date || '').trim() || '此空白週次';
+        if (!window.confirm(`確定要刪除「${label}」的整週服事排班嗎？此操作無法復原。`)) {
+          return;
+        }
+        weeks.splice(idx, 1);
+        saveRosterDraft();
+        updateQuarterHeaderAndTabs();
+        renderDesktopTable();
+        renderMobileCards();
+        showToast(`已刪除「${label}」`);
       }
     }
 
@@ -3221,8 +3262,18 @@
       if (!canManageRoster()) return;
       const weeks = quarter().weeks;
       const cleaned = val.trim();
-      weeks[weekIdx][field] = cleaned === '輸入講員' ? '' : cleaned;
+      if (field === 'speaker' && cleaned === '輸入講員') {
+        weeks[weekIdx][field] = '';
+      } else if (field === 'date' && (cleaned === '輸入日期' || cleaned === '日期未定')) {
+        weeks[weekIdx][field] = '';
+      } else {
+        weeks[weekIdx][field] = cleaned;
+        if (field === 'date') {
+          weeks[weekIdx].month = inferMonthFromDateStr(cleaned, weeks[weekIdx].month);
+        }
+      }
       saveRosterDraft();
+      renderDesktopTable();
       renderMobileCards();
     }
 
@@ -3395,7 +3446,7 @@
           <!-- Card Header: Date + Speaker + Topic + Events -->
           <div class="p-5 bg-[#FCFDFB] border-b border-[#E3EDE4] space-y-2.5">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-[24px] font-black text-[#2C5E34] tracking-tight">${escapeHtml(week.date)}</span>
+              <span class="text-[24px] font-black text-[#2C5E34] tracking-tight">${escapeHtml(week.date) || '日期未定'}</span>
               <span class="text-[18px] font-black px-3.5 py-1 rounded-2xl border-2 ${spStyle.cls}">
                 ${escapeHtml(week.speaker) || '講員待定'}
               </span>
