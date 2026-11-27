@@ -92,21 +92,23 @@
     }
 
     .roster-row {
-      height: 31px;
-      max-height: 31px;
+      height: 31px !important;
+      max-height: 31px !important;
       line-height: 31px;
     }
 
-    /* Fixed-height spreadsheet name cell: Shift+Enter keeps newline inside without expanding row height */
+    /* Fixed-height spreadsheet name cell: strictly uniform 31px across all rows & weeks */
     .roster-name-cell {
       height: 31px !important;
       max-height: 31px !important;
+      min-height: 31px !important;
       overflow: hidden !important;
       white-space: pre !important;
-      line-height: 1.25 !important;
+      line-height: 21px !important;
       padding-top: 5px !important;
       padding-bottom: 5px !important;
-      vertical-align: top !important;
+      vertical-align: middle !important;
+      box-sizing: border-box !important;
     }
 
     /* Folder Tabs harmonized with site Forest Green & Sage palette */
@@ -1266,7 +1268,22 @@
     const canManageRoster = () => window.isSuperuser === true;
     const DRAFT_QUARTER = '2027-Q1';
     const DRAFT_STORAGE_KEY = 'clc-sr-roster-2027-q1-draft-v1';
+    const FIREBASE_COLLECTION = 'clc_sr_roster_quarters';
     const canEditRoster = () => currentQuarterKey === DRAFT_QUARTER || canManageRoster();
+
+    let firebaseSyncTimer = null;
+    let firebaseUnsubscribe = null;
+    let isApplyingRemoteSnapshot = false;
+
+    function getFirestoreDb() {
+      try {
+        if (window.db) return window.db;
+        if (window.firebase && firebase.apps && firebase.apps.length > 0 && firebase.firestore) {
+          return firebase.firestore();
+        }
+      } catch (_) {}
+      return null;
+    }
 
     function restoreRosterDraft() {
       try {
@@ -1283,16 +1300,99 @@
 
     function showRosterDraftStatus(message) {
       const status = document.getElementById('roster-draft-status');
-      status.hidden = currentQuarterKey !== DRAFT_QUARTER;
-      status.textContent = status.hidden ? '' : message || '免登入編輯 · 自動儲存在此瀏覽器';
+      const db = getFirestoreDb();
+      const show = Boolean(db) || currentQuarterKey === DRAFT_QUARTER || Boolean(message);
+      status.hidden = !show;
+      if (!show) {
+        status.textContent = '';
+        return;
+      }
+      if (message) {
+        status.textContent = message;
+      } else if (db) {
+        status.textContent = '☁️ Firebase 雲端即時同步中';
+      } else {
+        status.textContent = '免登入編輯 · 自動儲存在此瀏覽器（尚未連線 Firebase）';
+      }
     }
+
+    function syncQuarterToFirebase(qKey) {
+      const db = getFirestoreDb();
+      if (!db) return false;
+      clearTimeout(firebaseSyncTimer);
+      showRosterDraftStatus('☁️ 正在儲存至 Firebase...');
+      firebaseSyncTimer = setTimeout(async () => {
+        try {
+          const targetQ = ensureQuarterExists(qKey);
+          const payload = {
+            year: targetQ.year,
+            title: targetQ.title,
+            months: targetQ.months,
+            weeks: JSON.parse(JSON.stringify(targetQ.weeks)),
+            updatedAt: firebase.firestore.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+          };
+          await db.collection(FIREBASE_COLLECTION).doc(qKey).set(payload, { merge: true });
+          showRosterDraftStatus('☁️ 已同步儲存至 Firebase');
+        } catch (err) {
+          console.error('Firebase save error:', err);
+          showRosterDraftStatus('⚠️ Firebase 同步失敗，已暫存於本機瀏覽器');
+        }
+      }, 450);
+      return true;
+    }
+
+    function subscribeQuarterFromFirebase(qKey) {
+      if (firebaseUnsubscribe) {
+        firebaseUnsubscribe();
+        firebaseUnsubscribe = null;
+      }
+      const db = getFirestoreDb();
+      if (!db) {
+        showRosterDraftStatus();
+        return;
+      }
+      showRosterDraftStatus('☁️ 正在載入 Firebase 資料...');
+      firebaseUnsubscribe = db.collection(FIREBASE_COLLECTION).doc(qKey).onSnapshot(
+        (doc) => {
+          if (!doc.exists) {
+            showRosterDraftStatus('☁️ Firebase 已連線（雲端尚無修改紀錄）');
+            return;
+          }
+          const data = doc.data();
+          if (data && Array.isArray(data.weeks) && data.weeks.length > 0) {
+            // Avoid overwriting cell currently being typed into
+            const activeEl = document.activeElement;
+            const isEditing = activeEl && (activeEl.isContentEditable || activeEl.tagName === 'INPUT');
+            isApplyingRemoteSnapshot = true;
+            ensureQuarterExists(qKey).weeks = data.weeks;
+            if (qKey === DRAFT_QUARTER) {
+              try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data.weeks)); } catch (_) {}
+            }
+            if (!isEditing) {
+              renderDesktopTable();
+              renderMobileCards();
+            }
+            isApplyingRemoteSnapshot = false;
+            showRosterDraftStatus('☁️ 已從 Firebase 載入最新資料');
+          }
+        },
+        (err) => {
+          console.warn('Firebase listener error:', err);
+          showRosterDraftStatus('⚠️ 無法讀取 Firebase，目前顯示本機資料');
+        }
+      );
+    }
+
     function saveRosterDraft() {
-      if (currentQuarterKey !== DRAFT_QUARTER) return;
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify(quarter().weeks));
+      if (isApplyingRemoteSnapshot) return;
+      if (currentQuarterKey === DRAFT_QUARTER) {
+        try {
+          localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(quarter().weeks));
+        } catch (_) {}
+      }
+      const synced = syncQuarterToFirebase(currentQuarterKey);
+      if (!synced && currentQuarterKey === DRAFT_QUARTER) {
         showRosterDraftStatus('已自動儲存在此瀏覽器');
-      } catch (_) {
-        showRosterDraftStatus('無法自動儲存，修改只留在目前頁面');
       }
     }
 
@@ -1771,6 +1871,7 @@
       if (syncUrl) updateUrlQuarterParam(qKey);
 
       showRosterDraftStatus();
+      subscribeQuarterFromFirebase(qKey);
       renderRosterSettings();
       resetRosterSearch();
       selectedMonthFilter = 'ALL';
@@ -2009,7 +2110,7 @@
             }).join('');
 
             tdActivity.innerHTML = `
-              <div class="h-[180px] flex flex-col justify-between relative">
+              <div class="h-[174px] max-h-[174px] overflow-hidden flex flex-col justify-between relative">
                 <!-- Top Stacked Block: Line 1 Date -> Line 2 Speaker -> Line 3 Topic -->
                 <div class="space-y-1">
                   <!-- Line 1: Month & Day -->
@@ -2355,13 +2456,35 @@
     // =========================================================================
     // 4. GOOGLE SHEETS RECTANGULAR MULTI-CELL SELECTION, CTRL+C & CTRL+V
     // =========================================================================
+    let isTouchInteraction = false;
+
     function attachGridCellEvents(td, globalRow, gridCol, isEditableName) {
+      td.addEventListener('touchstart', () => {
+        isTouchInteraction = true;
+      }, { passive: true });
+
+      td.addEventListener('touchend', (e) => {
+        if (!isEditableName) return;
+        // Single tap on touch devices immediately enters inline edit mode and opens keyboard
+        selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+        updateSelectionVisuals();
+        if (document.activeElement !== td) {
+          td.focus();
+        }
+      }, { passive: true });
+
       td.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
-        // Double-click enters inline text editing mode for that single cell
-        if (e.detail >= 2 && isEditableName) return;
+        // On touch devices (synthetic mousedown after touchstart) or double-click on desktop, allow native focus & keyboard
+        if ((isTouchInteraction || e.detail >= 2) && isEditableName) {
+          isTouchInteraction = false;
+          selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+          updateSelectionVisuals();
+          return;
+        }
+        isTouchInteraction = false;
 
-        // Prevent native browser blue text highlight on grid selection
+        // Prevent native browser blue text highlight on desktop drag grid selection
         e.preventDefault();
         const winSel = window.getSelection();
         if (winSel) winSel.removeAllRanges();
@@ -2990,6 +3113,9 @@
       ensureQuarterExists(currentQuarterKey);
       document.getElementById('year-selector').value = currentQuarterKey.split('-')[0];
       showRosterDraftStatus();
+      // Wait briefly if header.js initializes Firebase asynchronously, then subscribe
+      subscribeQuarterFromFirebase(currentQuarterKey);
+      setTimeout(() => { if (!firebaseUnsubscribe) subscribeQuarterFromFirebase(currentQuarterKey); }, 1200);
       setVersionStatus(versionStatus, false);
       renderRosterSettings();
       resetRosterSearch();
