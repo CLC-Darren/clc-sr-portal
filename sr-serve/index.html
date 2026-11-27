@@ -544,7 +544,7 @@
       <div id="roster-brand-line" class="flex items-baseline gap-2 flex-wrap">
         <div class="relative inline-flex items-baseline">
           <select id="year-selector" onchange="switchYear(this.value)" aria-label="選擇年份" title="點擊切換年份"
-            class="appearance-none bg-transparent border-0 p-0 pr-4 text-lg sm:text-2xl font-black text-[#3D7A47] hover:text-[#2C5E34] tracking-tight leading-none cursor-pointer focus:outline-none">
+            class="appearance-none bg-transparent border-0 p-0 pr-4 text-3xl sm:text-4xl font-black text-[#3D7A47] hover:text-[#2C5E34] tracking-tight leading-none cursor-pointer focus:outline-none">
             <option value="2026" class="text-sm font-bold bg-[#FCFDFB] text-[#1E3323]">2026</option>
             <option value="2027" class="text-sm font-bold bg-[#FCFDFB] text-[#1E3323]">2027</option>
           </select>
@@ -555,19 +555,27 @@
         <h1 id="header-title-display" class="text-lg sm:text-2xl font-black text-[#1E3323] tracking-tight">
           10-12月加樂團契服事表
         </h1>
-        <span id="version-status-badge" class="px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40">
-          確認版
-        </span>
+        <div id="version-status-wrap" class="relative inline-flex items-center">
+          <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)"
+            class="inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-default">
+            <span id="version-status-text">確認版</span>
+            <svg id="version-status-arrow" hidden class="w-3 h-3 self-end mb-0.5 opacity-85" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div id="version-status-menu" hidden role="menu" aria-label="切換服事表版本狀態"
+            class="absolute left-0 top-full mt-1 z-50 min-w-[104px] bg-[#FCFDFB] border border-[#3D7A47] rounded-xl shadow-lg p-1 text-xs font-black">
+            <button type="button" role="menuitem" onclick="selectVersionStatus('確認版')"
+              class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#EEF6EE] text-[#2C5E34] flex items-center justify-between">
+              <span>確認版</span>
+            </button>
+            <button type="button" role="menuitem" onclick="selectVersionStatus('初稿')"
+              class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FEF5DC] text-[#9A6700] flex items-center justify-between">
+              <span>初稿</span>
+            </button>
+          </div>
+        </div>
       </div>
-
-      <!-- Top-Right Super User Gear Button (Always pinned top-right when admin logged in) -->
-      <button id="roster-settings-button" hidden type="button" onclick="toggleSuperUserModal(true)" title="管理設定"
-        class="order-2 sm:order-3 self-start ml-auto sm:ml-2 w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
 
       <!-- Right: Color Legend + Week Count + Remark -->
       <div class="order-3 sm:order-2 flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-auto">
@@ -581,7 +589,7 @@
           </span>
         </div>
 
-        <span id="header-remark-text" class="text-xs font-bold text-[#4A6650]">
+        <span id="header-remark-text" onblur="updateHeaderRemark(this.innerText)" class="editable-cell text-xs font-bold text-[#4A6650] px-1 rounded">
           *師母講道時間確認後要 email 通知心怡。
         </span>
       </div>
@@ -725,83 +733,27 @@
     </div>
   </section>
 
-  <!-- ===================================================================== -->
-  <!-- SUPER USER SETTINGS MODAL (TRIGGERED BY TOP-RIGHT GEAR ICON)          -->
-  <!-- ===================================================================== -->
-  <div id="superuser-modal" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-[1px] flex items-center justify-center p-4">
-    <div class="bg-[#FCFDFB] w-full max-w-md rounded-2xl border-2 border-[#3D7A47] shadow-2xl roster-manager-panel">
-      <div class="bg-[#3D7A47] text-white px-5 py-3.5 flex items-center justify-between">
-        <div class="flex items-center gap-2 font-black text-lg">
-          <span>⚙️ 管理設定</span>
-        </div>
-        <button type="button" onclick="toggleSuperUserModal(false)" class="text-white/80 hover:text-white text-xl font-bold leading-none">
-          ✕
-        </button>
-      </div>
-
-      <div class="p-5 space-y-5 text-sm">
-        <!-- 1. Version Status Selector (確認版 vs 初稿) -->
-        <div>
-          <label class="block font-black text-[#2C5E34] mb-2">1. 服事表版本狀態</label>
-          <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" id="opt-status-confirmed" onclick="setVersionStatus('確認版')" class="py-2.5 px-3 rounded-xl font-black border-2 border-[#3D7A47] bg-[#3D7A47] text-white transition-all">
-              ✓ 確認版
-            </button>
-            <button type="button" id="opt-status-draft" onclick="setVersionStatus('初稿')" class="py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all">
-              ✎ 初稿
-            </button>
-          </div>
-        </div>
-
-        <!-- 2. Top-Right Remark Editor -->
-        <div>
-          <label for="input-header-remark" class="block font-black text-[#2C5E34] mb-1.5">2. 右上角備註文字</label>
-          <input id="input-header-remark" type="text" value="*師母講道時間確認後要 email 通知心怡。" oninput="updateHeaderRemark(this.value)" class="w-full px-3 py-2 rounded-xl border border-[#C5DEC8] focus:border-[#3D7A47] focus:outline-none font-medium text-[#1E3323]">
-        </div>
-
-        <details class="roster-settings-block">
-          <summary>表頭與負責人</summary>
-          <form id="roster-leader-settings" hidden>
-            <details><summary>欄位標題</summary><div id="roster-heading-settings"></div></details>
-            <p class="roster-settings-note">負責人</p>
-            <label>敬拜／樂手<input maxlength="20"></label>
-            <label>投影片／音控<input maxlength="20"></label>
-            <label>攝影<input maxlength="20"></label>
-            <label>招待<input maxlength="20"></label>
-            <label>愛宴<input maxlength="20"></label>
-            <label>接送<input maxlength="20"></label>
-            <label>點名<input maxlength="20"></label>
-            <label>交誼廳<input maxlength="20"></label>
-            <label>體操<input maxlength="20"></label>
-            <label>值班<input maxlength="20"></label>
-            <button type="submit">儲存表頭與負責人</button>
-          </form>
-        </details>
-        <details class="roster-settings-block">
-          <summary>休會、出遊與特別活動</summary>
-          <form id="roster-calendar-form" hidden>
-            <label>日期<input type="date" name="date" required></label>
-            <label>類型<select name="type"><option value="pause">休會</option><option value="outing">出遊</option><option value="special">特別活動</option></select></label>
-            <label>原因或活動名稱<input name="label" maxlength="100" required></label>
-            <p id="roster-calendar-error" role="alert"></p>
-            <button type="submit">儲存活動</button>
-          </form>
-          <ul id="roster-calendar-list"></ul>
-          <p class="roster-settings-note">活動與負責人設定先保存在此瀏覽器。可下載 HTML 備份。</p>
-        </details>
-
-        <div class="pt-1 flex items-center justify-between gap-3">
-          <button type="button" onclick="downloadSelfHtml()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#F4BD3E] hover:bg-[#eab02b] text-[#1E3323] font-black shadow-xs transition-colors flex items-center justify-center gap-1.5">
-            <span>⬇️ 下載最新 HTML 檔案</span>
-          </button>
-          <button type="button" onclick="toggleSuperUserModal(false)" class="py-2.5 px-4 rounded-xl bg-[#EEF6EE] hover:bg-[#dcecdc] text-[#2C5E34] font-bold">
-            完成
-          </button>
-        </div>
-      </div>
-    </div>
+  <!-- WYSIWYG Activity Cell Admin Action Dropdown (休會 / 特殊活動 / 向下新增 / 向上新增) -->
+  <div id="activity-action-menu" hidden role="menu" aria-label="當週活動操作選單"
+    class="fixed z-50 min-w-[148px] bg-[#FCFDFB] border-2 border-[#3D7A47] rounded-xl shadow-xl p-1.5 text-[13px] font-bold text-[#1E3323]">
+    <button type="button" role="menuitem" onclick="handleActivityMenuAction('pause')"
+      class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FAE5E4] text-[#8A2626] flex items-center gap-2">
+      <span>⏸️ 休會</span>
+    </button>
+    <button type="button" role="menuitem" onclick="handleActivityMenuAction('special')"
+      class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#FEF5DC] text-[#7A4B12] flex items-center gap-2">
+      <span>✨ 特殊活動</span>
+    </button>
+    <div class="my-1 border-t border-[#E3EDE4]"></div>
+    <button type="button" role="menuitem" onclick="handleActivityMenuAction('insertBelow')"
+      class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#EEF6EE] text-[#2C5E34] flex items-center gap-2">
+      <span>⬇️ 向下新增</span>
+    </button>
+    <button type="button" role="menuitem" onclick="handleActivityMenuAction('insertAbove')"
+      class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-[#EEF6EE] text-[#2C5E34] flex items-center gap-2">
+      <span>⬆️ 向上新增</span>
+    </button>
   </div>
-
 
   <!-- Toast Notification -->
   <div id="toast-box" class="fixed bottom-5 right-5 z-50 transition-all duration-300 pointer-events-none translate-y-24 opacity-0">
@@ -1330,8 +1282,9 @@
     let currentQuarterKey = '2026-Q4';
     let selectedMonthFilter = 'ALL';
     let versionStatus = '確認版';
-    // Rectangular selection state across the entire 17-column grid (editable + fixed columns)
+    // Rectangular & Ctrl multi-range selection state across the 17-column grid
     let selectionRange = { startR: 0, startC: 12, endR: 0, endC: 12 };
+    let extraRanges = []; // Additional non-contiguous ranges added via Ctrl/Cmd + Click/Drag
     let isDraggingSelection = false;
 
     // Exact 17-column mapping matching the 17 body columns (after 當週活動 rowspan="6")
@@ -1368,18 +1321,6 @@
     };
     const CALENDAR_LABELS = { pause:'休會', outing:'出遊', special:'特別活動' };
     const CALENDAR_KEY = 'clc-sr-roster-calendar-v1';
-    const titleElements = [...document.querySelectorAll('.roster-table thead tr:first-child th')]
-      .map(cell => cell.querySelector('div') || cell);
-    const defaultTitles = ['當週活動','敬拜','樂手','投影片','音控','攝影','招待','愛宴','接送','點名','交誼廳','體操','值班'];
-    const headingInputs = defaultTitles.map(title => {
-      const row = document.createElement('label');
-      const input = document.createElement('input');
-      input.maxLength = 20;
-      row.append(title,input);
-      document.getElementById('roster-heading-settings').append(row);
-      return input;
-    });
-    const DEFAULT_LEADERS = ['夢凌','佳珍','琮玲','培榮','品頤','振隆','翊婕','惠玲','夢凌','培榮'];
     let localRosterSettings = {};
     try { localRosterSettings = JSON.parse(localStorage.getItem(CALENDAR_KEY)) || {}; } catch (_) {}
     const quarter = () => ensureQuarterExists(currentQuarterKey);
@@ -1485,6 +1426,8 @@
             title: targetQ.title,
             months: targetQ.months,
             weeks: JSON.parse(JSON.stringify(targetQ.weeks)),
+            calendar: JSON.parse(JSON.stringify(calendar())),
+            versionStatus: versionStatus,
             updatedAt: firebase.firestore.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
           };
           await db.collection(FIREBASE_COLLECTION).doc(qKey).set(payload, { merge: true });
@@ -1521,6 +1464,13 @@
             const isEditing = activeEl && (activeEl.isContentEditable || activeEl.tagName === 'INPUT');
             isApplyingRemoteSnapshot = true;
             ensureQuarterExists(qKey).weeks = data.weeks;
+            if (Array.isArray(data.calendar)) {
+              ensureQuarterExists(qKey).calendar = data.calendar;
+              localRosterSettings[qKey] = { ...(localRosterSettings[qKey] || {}), calendar: data.calendar };
+            }
+            if (typeof data.versionStatus === 'string' && (data.versionStatus === '確認版' || data.versionStatus === '初稿')) {
+              setVersionStatus(data.versionStatus, false);
+            }
             if (qKey === DRAFT_QUARTER) {
               try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data.weeks)); } catch (_) {}
             }
@@ -1552,8 +1502,7 @@
     const calendar = () => localRosterSettings[currentQuarterKey]?.calendar ?? quarter().calendar ?? (
       currentQuarterKey === '2027-Q1' ? [{date:'2027-02-04',type:'pause',label:'農曆春節休會'}] : []
     );
-    const leaders = () => localRosterSettings[currentQuarterKey]?.leaders ?? quarter().leaders ?? DEFAULT_LEADERS;
-    const titles = () => localRosterSettings[currentQuarterKey]?.titles ?? quarter().titles ?? defaultTitles;
+
 
     function isoWeek(week) {
       const match = /^(\d{1,2})月\s*(\d{1,2})日$/.exec(week.date.trim());
@@ -1586,7 +1535,40 @@
       date.textContent = displayDate(item.date);
       const label = row.insertCell();
       label.colSpan = GRID_COLS.length;
-      label.textContent = CALENDAR_LABELS[item.announcement.type]+'　'+item.announcement.label;
+      const canEdit = canManageRoster();
+      const wrap = document.createElement('div');
+      wrap.className = 'flex items-center justify-between gap-2';
+      const textSpan = document.createElement('span');
+      textSpan.innerHTML = `<strong>${CALENDAR_LABELS[item.announcement.type]}</strong>　`;
+      const editableLabel = document.createElement('span');
+      editableLabel.contentEditable = String(canEdit);
+      editableLabel.className = canEdit ? 'editable-cell px-1.5 py-0.5 rounded min-w-[120px] inline-block' : '';
+      editableLabel.textContent = item.announcement.label;
+      if (canEdit) {
+        editableLabel.onblur = () => {
+          const nextText = editableLabel.innerText.trim();
+          if (!nextText) {
+            updateCalendar(calendar().filter(entry => entry !== item.announcement));
+          } else if (nextText !== item.announcement.label) {
+            const updated = calendar().map(entry => entry === item.announcement ? { ...entry, label: nextText } : entry);
+            updateCalendar(updated);
+          }
+        };
+      }
+      textSpan.append(editableLabel);
+      wrap.append(textSpan);
+      if (canEdit) {
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = item.announcement.type === 'special' ? '✕ 移除' : '↺ 恢復聚會';
+        removeBtn.className = 'text-xs font-black px-2 py-0.5 rounded bg-white/80 hover:bg-white border border-current/30 shrink-0';
+        removeBtn.onclick = () => {
+          updateCalendar(calendar().filter(entry => entry !== item.announcement));
+          showToast(item.announcement.type === 'special' ? '已移除特殊活動' : '已恢復該週聚會');
+        };
+        wrap.append(removeBtn);
+      }
+      label.append(wrap);
       return row;
     }
     function renderMobileAnnouncement(item) {
@@ -1604,93 +1586,39 @@
       } catch (_) { return '已套用到目前頁面'; }
     }
 
-    const calendarForm = document.getElementById('roster-calendar-form');
-    const calendarList = document.getElementById('roster-calendar-list');
     function renderRosterSettings() {
       const granted = canManageRoster();
-      document.getElementById('roster-settings-button').hidden = !granted;
-      document.getElementById('roster-leader-settings').hidden = !granted;
-      calendarForm.hidden = !granted;
-      calendarList.replaceChildren();
-      document.querySelectorAll('[data-roster-leader]').forEach((cell,index) => {
-        cell.textContent = leaders()[index] || '—';
-      });
-      titleElements.forEach((element,index) => { element.textContent = titles()[index] || defaultTitles[index]; });
-      if (!granted) return;
-      headingInputs.forEach((input,index) => { input.value = titles()[index] || defaultTitles[index]; });
-      const date = calendarForm.elements.date;
-      const months = quarter().months;
-      const firstMonth = Number(months[0]);
-      const lastMonth = Number(months[months.length-1]);
-      date.min = quarter().year+'-'+String(firstMonth).padStart(2,'0')+'-01';
-      date.max = new Date(Date.UTC(quarter().year,lastMonth,0)).toISOString().slice(0,10);
-      date.value = '';
-      calendarForm.elements.label.value = '';
-      renderCalendarList();
-      document.querySelectorAll('#roster-leader-settings > label input').forEach((input,index) => {
-        input.value = leaders()[index] || '';
-      });
-    }
-
-    function renderCalendarList() {
-      calendarList.replaceChildren();
-      const ordered = [...calendar()].sort((a,b) => a.date.localeCompare(b.date));
-      for (const entry of ordered) {
-        const row = document.createElement('li');
-        const edit = document.createElement('button');
-        edit.type = 'button';
-        edit.textContent = displayDate(entry.date)+'　'+CALENDAR_LABELS[entry.type]+'　'+entry.label;
-        edit.onclick = () => {
-          if (!canManageRoster()) return;
-          calendarForm.elements.date.value = entry.date;
-          calendarForm.elements.type.value = entry.type;
-          calendarForm.elements.label.value = entry.label;
-          calendarForm.elements.label.focus();
-        };
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.textContent = entry.type === 'special' ? '移除' : '恢復聚會';
-        remove.onclick = () => {
-          if (!canManageRoster()) return;
-          updateCalendar(calendar().filter(item => item !== entry));
-        };
-        row.append(edit,remove);
-        calendarList.append(row);
+      const arrowEl = document.getElementById('version-status-arrow');
+      const badgeEl = document.getElementById('version-status-badge');
+      const remarkEl = document.getElementById('header-remark-text');
+      if (arrowEl) arrowEl.hidden = !granted;
+      if (badgeEl) {
+        badgeEl.classList.toggle('cursor-pointer', granted);
+        badgeEl.classList.toggle('cursor-default', !granted);
+        badgeEl.title = granted ? '點擊切換確認版 / 初稿' : '';
+      }
+      if (remarkEl) {
+        remarkEl.contentEditable = String(granted);
+      }
+      if (!granted) {
+        closeVersionDropdown();
+        closeActivityActionMenu();
       }
     }
+
     function updateCalendar(entries) {
-      const status = saveRosterSetting({calendar:entries});
-      selectionRange = {startR:0,startC:0,endR:0,endC:0};
+      localRosterSettings[currentQuarterKey] = { ...(localRosterSettings[currentQuarterKey] || {}), calendar: entries };
+      try {
+        localStorage.setItem(CALENDAR_KEY, JSON.stringify(localRosterSettings));
+      } catch (_) {}
+      // Also persist calendar entries inside quarterStore & sync to Firebase
+      quarter().calendar = entries;
+      saveRosterDraft();
+      selectionRange = { startR: 0, startC: 0, endR: 0, endC: 0 };
       updateQuarterHeaderAndTabs();
       renderDesktopTable();
       renderMobileCards();
-      renderCalendarList();
-      showToast(status);
     }
-    calendarForm.addEventListener('submit', event => {
-      event.preventDefault();
-      if (!canManageRoster()) return;
-      const date = calendarForm.elements.date.value;
-      const type = calendarForm.elements.type.value;
-      const label = calendarForm.elements.label.value.trim();
-      if (!label || !date || !calendarForm.checkValidity()) return;
-      if (type !== 'special' && !quarter().weeks.some(week => isoWeek(week) === date)) {
-        document.getElementById('roster-calendar-error').textContent = '休會或出遊請選目前班表已有的聚會日期。其他日期可選「特別活動」。';
-        return;
-      }
-      document.getElementById('roster-calendar-error').textContent = '';
-      const entries = calendar().filter(item => item.date !== date || (item.type === 'special') !== (type === 'special'));
-      updateCalendar([...entries,{date,type,label}]);
-      calendarForm.reset();
-    });
-    document.getElementById('roster-leader-settings').addEventListener('submit', event => {
-      event.preventDefault();
-      if (!canManageRoster()) return;
-      const names = Array.from(event.currentTarget.querySelectorAll(':scope > label input'),input => input.value.trim());
-      const headingNames = headingInputs.map((input,index) => input.value.trim() || defaultTitles[index]);
-      showToast(saveRosterSetting({leaders:names,titles:headingNames}));
-      renderRosterSettings();
-    });
 
     const searchPanel = document.getElementById('roster-search');
     const searchForm = document.getElementById('roster-search-form');
@@ -2259,11 +2187,19 @@
               <div class="activity-span-inner">
                 <!-- Top Stacked Block: Line 1 Date -> Line 2 Speaker -> Line 3 Topic -->
                 <div class="space-y-1">
-                  <!-- Line 1: Month & Day -->
-                  <div>
+                  <!-- Line 1: Month & Day + Top-Right Admin Action Down Arrow -->
+                  <div class="flex items-center justify-between gap-1">
                     <span contenteditable="${canManageRoster()}"
                       onblur="updateActivityField(${realIdx}, 'date', this.innerText)"
                       class="editable-cell inline-block text-[16px] font-black text-[#2C5E34] px-1 rounded leading-tight">${escapeHtml(week.date)}</span>
+                    <button type="button" ${canManageRoster() ? '' : 'hidden'}
+                      onclick="openActivityActionMenu(event, ${realIdx})"
+                      title="當週活動操作（休會 / 特殊活動 / 向下新增 / 向上新增）"
+                      class="w-5 h-5 rounded-md bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
 
                   <!-- Line 2: Speaker -->
@@ -2445,7 +2381,8 @@
             tdVerticalRecLabel.dataset.globalRowEnd = displayIdx * 6 + 5;
             tdVerticalRecLabel.dataset.gridCol = 11;
             tdVerticalRecLabel.dataset.isFixed = 'true';
-            tdVerticalRecLabel.className = 'bg-[#EEF6EE] text-[#2C5E34] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#DCECDC] leading-none';
+            const vDividerClass = isMonthEnd ? 'month-divider-cell' : 'week-divider-cell';
+            tdVerticalRecLabel.className = `bg-[#EEF6EE] ${vDividerClass} text-[#2C5E34] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#DCECDC] leading-none`;
             attachGridCellEvents(tdVerticalRecLabel, displayIdx * 6, 11, false);
             tdVerticalRecLabel.innerHTML = `<div class="vertical-zh-single mx-auto">交誼廳接待</div>`;
             tr.appendChild(tdVerticalRecLabel);
@@ -2459,7 +2396,8 @@
             tdVerticalBpLabel.dataset.globalRowEnd = displayIdx * 6 + 5;
             tdVerticalBpLabel.dataset.gridCol = 13;
             tdVerticalBpLabel.dataset.isFixed = 'true';
-            tdVerticalBpLabel.className = 'bg-[#E6F4F6] text-[#23626E] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#D3ECF0] leading-none';
+            const bpDividerClass = isMonthEnd ? 'month-divider-cell' : 'week-divider-cell';
+            tdVerticalBpLabel.className = `bg-[#E6F4F6] ${bpDividerClass} text-[#23626E] font-bold text-[12px] text-center align-middle py-1 select-none cursor-pointer hover:bg-[#D3ECF0] leading-none`;
             attachGridCellEvents(tdVerticalBpLabel, displayIdx * 6, 13, false);
             tdVerticalBpLabel.innerHTML = `<div class="vertical-zh-single mx-auto">量血壓</div>`;
             tr.appendChild(tdVerticalBpLabel);
@@ -2592,6 +2530,23 @@
             const moved = moveToNextEditableCellInColumn(globalRow, gridCol);
             if (!moved) editor.blur();
           }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          storeName();
+          editor.blur();
+          extraRanges = [];
+          selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+          updateSelectionVisuals();
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          storeName();
+          editor.blur();
+          navigateGridByArrow(e.shiftKey ? 'ArrowLeft' : 'ArrowRight', false, true);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          storeName();
+          editor.blur();
+          navigateGridByArrow(e.key, false, false);
         }
       });
 
@@ -2607,7 +2562,7 @@
     }
 
     // =========================================================================
-    // 4. GOOGLE SHEETS RECTANGULAR MULTI-CELL SELECTION, CTRL+C & CTRL+V
+    // 4. GOOGLE SHEETS SELECTION, ARROW NAVIGATION, CTRL MULTI-SELECT, COPY & PASTE
     // =========================================================================
     let isTouchInteraction = false;
 
@@ -2619,6 +2574,7 @@
       td.addEventListener('touchend', () => {
         if (!isEditableName) return;
         // Single tap on touch devices immediately enters inline edit mode and opens keyboard
+        extraRanges = [];
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
         updateSelectionVisuals();
         const target = td.querySelector('.roster-name-editor') || td;
@@ -2632,6 +2588,7 @@
         // On touch devices (synthetic mousedown after touchstart) or double-click on desktop, allow native focus & keyboard
         if ((isTouchInteraction || e.detail >= 2) && isEditableName) {
           isTouchInteraction = false;
+          extraRanges = [];
           selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
           updateSelectionVisuals();
           return;
@@ -2653,7 +2610,17 @@
           return;
         }
 
+        if (e.ctrlKey || e.metaKey) {
+          // Ctrl/Cmd + Click: keep previous ranges and start an additional selection range
+          extraRanges.push({ ...selectionRange });
+          selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+          isDraggingSelection = true;
+          updateSelectionVisuals();
+          return;
+        }
+
         // Start a fresh rectangular selection
+        extraRanges = [];
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
         isDraggingSelection = true;
         updateSelectionVisuals();
@@ -2673,18 +2640,27 @@
       }
     });
 
-    function getNormalizedRange() {
+    function normalizeOneRange(r) {
       return {
-        minR: Math.min(selectionRange.startR, selectionRange.endR),
-        maxR: Math.max(selectionRange.startR, selectionRange.endR),
-        minC: Math.min(selectionRange.startC, selectionRange.endC),
-        maxC: Math.max(selectionRange.startC, selectionRange.endC)
+        minR: Math.min(r.startR, r.endR),
+        maxR: Math.max(r.startR, r.endR),
+        minC: Math.min(r.startC, r.endC),
+        maxC: Math.max(r.startC, r.endC)
       };
     }
 
+    function getNormalizedRange() {
+      return normalizeOneRange(selectionRange);
+    }
+
+    function getAllNormalizedRanges() {
+      return [...extraRanges.map(normalizeOneRange), normalizeOneRange(selectionRange)];
+    }
+
     function updateSelectionVisuals() {
-      const { minR, maxR, minC, maxC } = getNormalizedRange();
-      const isSingleCell = minR === maxR && minC === maxC;
+      const allRanges = getAllNormalizedRanges();
+      const activeNorm = getNormalizedRange();
+      const isSingleActiveCell = activeNorm.minR === activeNorm.maxR && activeNorm.minC === activeNorm.maxC;
 
       document.querySelectorAll('#roster-tbody td').forEach(td => {
         td.classList.remove(
@@ -2709,17 +2685,84 @@
           return;
         }
 
-        const intersects = !(rEnd < minR || rStart > maxR || cEnd < minC || cStart > maxC);
-        if (!intersects) return;
+        const inAnyRange = allRanges.some(rng => !(rEnd < rng.minR || rStart > rng.maxR || cEnd < rng.minC || cStart > rng.maxC));
+        if (!inAnyRange) return;
 
-        if (isSingleCell && rStart === minR && rEnd === maxR && cStart === minC && cEnd === maxC) {
-          // Single cell: clean 2px Forest Green border + corner handle
+        const isExactActiveSingle = isSingleActiveCell &&
+          rStart === activeNorm.minR && rEnd === activeNorm.maxR &&
+          cStart === activeNorm.minC && cEnd === activeNorm.maxC;
+
+        if (isExactActiveSingle) {
           td.classList.add('gs-selected-cell', 'gs-range-corner');
         } else {
-          // Multi-cell range: pure soft sage background only, NO outer border lines
           td.classList.add('gs-in-range');
         }
       });
+    }
+
+    function scrollCellIntoViewIfNeeded(globalRow, gridCol) {
+      const td = document.querySelector(`#roster-tbody td[data-global-row="${globalRow}"][data-grid-col="${gridCol}"]`) ||
+        document.querySelector(`#roster-tbody td[data-global-row="${globalRow}"]`);
+      if (td && td.scrollIntoView) {
+        td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    }
+
+    function getTotalGridRows() {
+      const visibleWeeks = rosterSchedule().filter(item => !item.announcement);
+      return visibleWeeks.length * 6;
+    }
+
+    function navigateGridByArrow(key, extendShift = false, editableOnly = false) {
+      const totalRows = getTotalGridRows();
+      if (totalRows <= 0) return;
+      const maxCol = GRID_COLS.length - 1;
+
+      let r = extendShift ? selectionRange.endR : selectionRange.startR;
+      let c = extendShift ? selectionRange.endC : selectionRange.startC;
+
+      const stepR = key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0;
+      const stepC = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0;
+
+      let nextR = Math.max(0, Math.min(totalRows - 1, r + stepR));
+      let nextC = Math.max(0, Math.min(maxCol, c + stepC));
+
+      // Skip merged song rows (rows 3..5 in cols 0..3) cleanly when navigating vertically or horizontally
+      if (stepR !== 0 && nextC <= 3 && (nextR % 6) >= 3) {
+        const weekBase = Math.floor(nextR / 6) * 6;
+        if (stepR > 0) {
+          nextR = Math.min(totalRows - 1, weekBase + 6);
+        } else {
+          nextR = Math.max(0, weekBase + 2);
+        }
+      }
+      if (stepC !== 0 && nextC <= 3 && (nextR % 6) >= 3) {
+        nextC = stepC < 0 ? 16 : 4;
+      }
+
+      if (editableOnly) {
+        let guard = 0;
+        while (guard++ < 40 && !resolveGridCoordinate(nextR, nextC)) {
+          if (stepC !== 0) {
+            nextC += stepC;
+            if (nextC > maxCol) { nextC = 0; nextR = Math.min(totalRows - 1, nextR + 1); }
+            if (nextC < 0) { nextC = maxCol; nextR = Math.max(0, nextR - 1); }
+          } else {
+            nextR = Math.max(0, Math.min(totalRows - 1, nextR + stepR));
+            break;
+          }
+        }
+      }
+
+      if (extendShift) {
+        selectionRange.endR = nextR;
+        selectionRange.endC = nextC;
+      } else {
+        extraRanges = [];
+        selectionRange = { startR: nextR, startC: nextC, endR: nextR, endC: nextC };
+      }
+      updateSelectionVisuals();
+      scrollCellIntoViewIfNeeded(nextR, nextC);
     }
 
     // Resolve a (globalRow, gridCol) coordinate to an editable cell or null if fixed/skipped
@@ -2741,26 +2784,57 @@
     }
 
     function buildSelectedRangeTsv() {
-      const { minR, maxR, minC, maxC } = getNormalizedRange();
+      const allRanges = getAllNormalizedRanges();
       const weeks = quarter().weeks;
+
+      // Single rectangular range (standard behavior)
+      if (allRanges.length === 1) {
+        const { minR, maxR, minC, maxC } = allRanges[0];
+        const tsvRows = [];
+        for (let r = minR; r <= maxR; r++) {
+          const rowVals = [];
+          for (let c = minC; c <= maxC; c++) {
+            const target = resolveGridCoordinate(r, c);
+            rowVals.push(target ? (weeks[target.weekIdx][target.colKey][target.rowIdx] || '') : '');
+          }
+          tsvRows.push(rowVals.join('	'));
+        }
+        return {
+          tsvText: tsvRows.join('
+'),
+          rowCount: maxR - minR + 1,
+          colCount: maxC - minC + 1
+        };
+      }
+
+      // Multiple Ctrl-selected ranges: bounding box TSV of selected cells
+      const minR = Math.min(...allRanges.map(r => r.minR));
+      const maxR = Math.max(...allRanges.map(r => r.maxR));
+      const minC = Math.min(...allRanges.map(r => r.minC));
+      const maxC = Math.max(...allRanges.map(r => r.maxC));
       const tsvRows = [];
+      let selectedCount = 0;
 
       for (let r = minR; r <= maxR; r++) {
         const rowVals = [];
         for (let c = minC; c <= maxC; c++) {
-          const target = resolveGridCoordinate(r, c);
-          if (!target) {
+          const isPicked = allRanges.some(rng => r >= rng.minR && r <= rng.maxR && c >= rng.minC && c <= rng.maxC);
+          if (!isPicked) {
             rowVals.push('');
-          } else {
-            rowVals.push(weeks[target.weekIdx][target.colKey][target.rowIdx] || '');
+            continue;
           }
+          selectedCount++;
+          const target = resolveGridCoordinate(r, c);
+          rowVals.push(target ? (weeks[target.weekIdx][target.colKey][target.rowIdx] || '') : '');
         }
-        tsvRows.push(rowVals.join('\t'));
+        tsvRows.push(rowVals.join('	'));
       }
       return {
-        tsvText: tsvRows.join('\n'),
+        tsvText: tsvRows.join('
+'),
         rowCount: maxR - minR + 1,
-        colCount: maxC - minC + 1
+        colCount: maxC - minC + 1,
+        selectedCount
       };
     }
 
@@ -2777,42 +2851,62 @@
       document.body.removeChild(ta);
     }
 
-    // Standard Ctrl+C / Cmd+C for rectangular selection (copies full selected rectangle)
+    // Standard Ctrl+C / Cmd+C for rectangular or Ctrl multi-cell selection
     document.addEventListener('copy', (e) => {
       const desktopSection = document.getElementById('desktop-table-section');
       if (!desktopSection || desktopSection.offsetParent === null) return;
       if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
-      // Only defer to native copy if user double-clicked into a cell and highlighted specific text
       const winSel = window.getSelection();
       if (winSel && winSel.toString().length > 0 && document.activeElement && document.activeElement.isContentEditable) {
         return;
       }
 
-      const { tsvText, rowCount, colCount } = buildSelectedRangeTsv();
+      const { tsvText, rowCount, colCount, selectedCount } = buildSelectedRangeTsv();
       e.preventDefault();
       if (e.clipboardData) {
         e.clipboardData.setData('text/plain', tsvText);
       } else {
         copyTextFallback(tsvText);
       }
-      showToast(`已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+      showToast(selectedCount ? `已複製 ${selectedCount} 格跳選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
     });
 
-    // Ensure Ctrl+C / Cmd+C & Enter work when a grid cell is selected (not yet in inline edit mode)
+    // Google Sheets keyboard shortcuts: Arrow navigation, Shift+Arrow range, Ctrl+A, Ctrl+C, F2 / direct typing, Delete
     document.addEventListener('keydown', (e) => {
       const desktopSection = document.getElementById('desktop-table-section');
       if (!desktopSection || desktopSection.offsetParent === null) return;
       if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
       if (document.activeElement && document.activeElement.isContentEditable) return;
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-        const { tsvText, rowCount, colCount } = buildSelectedRangeTsv();
-        copyTextFallback(tsvText);
-        showToast(`已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+      // Arrow keys: move active cell or extend range with Shift
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        navigateGridByArrow(e.key, e.shiftKey, false);
         return;
       }
 
+      // Ctrl+A / Cmd+A: select entire table grid
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        const totalRows = getTotalGridRows();
+        if (totalRows > 0) {
+          e.preventDefault();
+          extraRanges = [];
+          selectionRange = { startR: 0, startC: 0, endR: totalRows - 1, endC: GRID_COLS.length - 1 };
+          updateSelectionVisuals();
+        }
+        return;
+      }
+
+      // Ctrl+C / Cmd+C
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        const { tsvText, rowCount, colCount, selectedCount } = buildSelectedRangeTsv();
+        copyTextFallback(tsvText);
+        showToast(selectedCount ? `已複製 ${selectedCount} 格跳選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+        return;
+      }
+
+      // Enter: move down one cell
       if (e.key === 'Enter' && !e.shiftKey) {
         const { minR, minC } = getNormalizedRange();
         const moved = moveToNextEditableCellInColumn(minR, minC);
@@ -2820,17 +2914,36 @@
         return;
       }
 
+      // F2: enter inline edit mode on selected cell
+      if (e.key === 'F2' && canEditRoster()) {
+        const td = document.querySelector(
+          `#roster-tbody td[data-global-row="${selectionRange.startR}"][data-grid-col="${selectionRange.startC}"][data-editable-cell="true"]`
+        );
+        if (td) {
+          e.preventDefault();
+          focusEditableCell(td);
+        }
+        return;
+      }
+
+      // Delete / Backspace: clear all selected cells (including Ctrl multi-selected ranges)
       if (canEditRoster() && (e.key === 'Delete' || e.key === 'Backspace')) {
-        const { minR, maxR, minC, maxC } = getNormalizedRange();
+        const allRanges = getAllNormalizedRanges();
         const weeks = quarter().weeks;
+        const visited = new Set();
         let cleared = 0;
 
-        for (let r = minR; r <= maxR; r++) {
-          for (let c = minC; c <= maxC; c++) {
-            const target = resolveGridCoordinate(r, c);
-            if (!target) continue;
-            weeks[target.weekIdx][target.colKey][target.rowIdx] = '';
-            cleared++;
+        for (const rng of allRanges) {
+          for (let r = rng.minR; r <= rng.maxR; r++) {
+            for (let c = rng.minC; c <= rng.maxC; c++) {
+              const key = `${r}:${c}`;
+              if (visited.has(key)) continue;
+              visited.add(key);
+              const target = resolveGridCoordinate(r, c);
+              if (!target) continue;
+              weeks[target.weekIdx][target.colKey][target.rowIdx] = '';
+              cleared++;
+            }
           }
         }
         if (cleared > 0) {
@@ -2840,43 +2953,79 @@
           renderMobileCards();
           showToast(`已清除選取範圍內 ${cleared} 格姓名`);
         }
+        return;
+      }
+
+      // Direct typing into selected cell (like Google Sheets) when pressing a printable character
+      if (canEditRoster() && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+        const td = document.querySelector(
+          `#roster-tbody td[data-global-row="${selectionRange.startR}"][data-grid-col="${selectionRange.startC}"][data-editable-cell="true"]`
+        );
+        const editor = td && td.querySelector('.roster-name-editor');
+        if (editor) {
+          editor.textContent = '';
+          editor.focus();
+        }
       }
     });
 
-    // Multi-row & multi-column rectangular paste (automatically skips fixed columns & song rows)
+    // Multi-row & multi-column rectangular paste (supports filling Ctrl multi-selected cells if 1 value copied)
     function applyRectangularPaste(rawText) {
       if (!canEditRoster()) return;
       const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\n$/, '');
       if (!cleanText) return;
 
       const matrix = cleanText.split('\n').map(row => row.split('\t'));
-      const { minR, minC } = getNormalizedRange();
       const weeks = quarter().weeks;
       const flashedCoords = [];
       let pastedCount = 0;
 
-      for (let rOff = 0; rOff < matrix.length; rOff++) {
-        for (let cOff = 0; cOff < matrix[rOff].length; cOff++) {
-          const targetR = minR + rOff;
-          const targetC = minC + cOff;
-          const target = resolveGridCoordinate(targetR, targetC);
-          if (!target) continue; // Automatically skip fixed labels & song rows
+      // If user Ctrl-selected multiple cells and copied a single cell value, fill all selected cells
+      if (extraRanges.length > 0 && matrix.length === 1 && matrix[0].length === 1) {
+        const fillVal = (matrix[0][0] || '').trim();
+        const visited = new Set();
+        for (const rng of getAllNormalizedRanges()) {
+          for (let r = rng.minR; r <= rng.maxR; r++) {
+            for (let c = rng.minC; c <= rng.maxC; c++) {
+              const key = `${r}:${c}`;
+              if (visited.has(key)) continue;
+              visited.add(key);
+              const target = resolveGridCoordinate(r, c);
+              if (!target) continue;
+              weeks[target.weekIdx][target.colKey][target.rowIdx] = fillVal;
+              flashedCoords.push(target);
+              pastedCount++;
+            }
+          }
+        }
+      } else {
+        const { minR, minC } = getNormalizedRange();
+        for (let rOff = 0; rOff < matrix.length; rOff++) {
+          for (let cOff = 0; cOff < matrix[rOff].length; cOff++) {
+            const targetR = minR + rOff;
+            const targetC = minC + cOff;
+            const target = resolveGridCoordinate(targetR, targetC);
+            if (!target) continue; // Automatically skip fixed labels & song rows
 
-          const val = (matrix[rOff][cOff] || '').trim();
-          weeks[target.weekIdx][target.colKey][target.rowIdx] = val;
-          flashedCoords.push(target);
-          pastedCount++;
+            const val = (matrix[rOff][cOff] || '').trim();
+            weeks[target.weekIdx][target.colKey][target.rowIdx] = val;
+            flashedCoords.push(target);
+            pastedCount++;
+          }
+        }
+        if (pastedCount > 0) {
+          extraRanges = [];
+          selectionRange = {
+            startR: minR,
+            startC: minC,
+            endR: minR + matrix.length - 1,
+            endC: minC + Math.max(...matrix.map(r => r.length)) - 1
+          };
         }
       }
 
       if (pastedCount > 0) {
         saveRosterDraft();
-        selectionRange = {
-          startR: minR,
-          startC: minC,
-          endR: minR + matrix.length - 1,
-          endC: minC + Math.max(...matrix.map(r => r.length)) - 1
-        };
         renderDesktopTable();
         renderMobileCards();
 
@@ -2904,81 +3053,146 @@
     });
 
     // =========================================================================
-    // 5. SUPER USER SETTINGS & HTML EXPORT
+    // 5. WYSIWYG ADMIN CONTROLS (VERSION STATUS & WEEKLY ACTIVITY DROPDOWN)
     // =========================================================================
-    function toggleSuperUserModal(show) {
-      if (show && !canManageRoster()) return;
-      if (show) renderRosterSettings();
-      const modal = document.getElementById('superuser-modal');
-      if (show) {
-        modal.classList.remove('hidden');
-      } else {
-        modal.classList.add('hidden');
-      }
+    const versionMenu = document.getElementById('version-status-menu');
+    const activityActionMenu = document.getElementById('activity-action-menu');
+    let activityMenuTargetWeekIdx = -1;
+
+    function toggleVersionDropdown(e) {
+      if (!canManageRoster()) return;
+      e.stopPropagation();
+      closeActivityActionMenu();
+      versionMenu.hidden = !versionMenu.hidden;
+    }
+
+    function closeVersionDropdown() {
+      if (versionMenu) versionMenu.hidden = true;
+    }
+
+    function selectVersionStatus(status) {
+      if (!canManageRoster()) return;
+      closeVersionDropdown();
+      setVersionStatus(status, true);
+      saveRosterDraft();
     }
 
     function setVersionStatus(status, notify = true) {
       versionStatus = status;
       const badge = document.getElementById('version-status-badge');
-      const btnConfirmed = document.getElementById('opt-status-confirmed');
-      const btnDraft = document.getElementById('opt-status-draft');
+      const textEl = document.getElementById('version-status-text');
+      if (textEl) textEl.textContent = status;
 
-      badge.textContent = status;
-      if (status === '確認版') {
-        badge.className = 'px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40';
-        btnConfirmed.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#3D7A47] bg-[#3D7A47] text-white transition-all';
-        btnDraft.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all';
-      } else {
-        badge.className = 'px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E]';
-        btnDraft.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#F4BD3E] bg-[#F4BD3E] text-[#1E3323] transition-all';
-        btnConfirmed.className = 'py-2.5 px-3 rounded-xl font-black border-2 border-[#C5DEC8] bg-white text-[#2C5E34] hover:bg-[#EEF6EE] transition-all';
+      if (badge) {
+        if (status === '確認版') {
+          badge.className = `inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 ${canManageRoster() ? 'cursor-pointer' : 'cursor-default'}`;
+        } else {
+          badge.className = `inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E] ${canManageRoster() ? 'cursor-pointer' : 'cursor-default'}`;
+        }
       }
       if (notify) showToast(`已切換狀態為「${status}」`);
     }
 
     function updateHeaderRemark(val) {
-      document.getElementById('header-remark-text').textContent = val;
+      if (!canManageRoster()) return;
+      const cleaned = val.trim();
+      document.getElementById('header-remark-text').textContent = cleaned;
     }
 
-    function downloadSelfHtml() {
-      const clonedDoc = document.documentElement.cloneNode(true);
-      const modal = clonedDoc.querySelector('#superuser-modal');
-      if (modal) modal.classList.add('hidden');
+    function openActivityActionMenu(e, weekIdx) {
+      if (!canManageRoster()) return;
+      e.stopPropagation();
+      closeVersionDropdown();
+      activityMenuTargetWeekIdx = weekIdx;
 
-      const scriptEl = clonedDoc.querySelector('#roster-seed-script');
-      if (scriptEl) {
-        let code = scriptEl.textContent;
-        const exported = Object.fromEntries(Object.entries(quarterStore).map(([key,value]) => [
-          key,{...value,...(localRosterSettings[key] || {})}
-        ]));
-        code = code.replace(
-          /const INITIAL_QUARTER_STORE = \{[\s\S]*?\n    \};/,
-          () => `const INITIAL_QUARTER_STORE = ${JSON.stringify(exported, null, 6).replace(/</g, '\\u003c')};`
-        );
-        code = code.replace(
-          /let currentQuarterKey = '.*?';/,
-          `let currentQuarterKey = '${currentQuarterKey}';`
-        );
-        code = code.replace(
-          /let versionStatus = '.*?';/,
-          `let versionStatus = '${versionStatus}';`
-        );
-        scriptEl.textContent = code;
+      const btnRect = e.currentTarget.getBoundingClientRect();
+      activityActionMenu.hidden = false;
+      const menuRect = activityActionMenu.getBoundingClientRect();
+      const left = Math.min(btnRect.left, window.innerWidth - menuRect.width - 10);
+      const top = Math.min(btnRect.bottom + 4, window.innerHeight - menuRect.height - 10);
+      activityActionMenu.style.left = `${Math.max(8, left)}px`;
+      activityActionMenu.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function closeActivityActionMenu() {
+      if (activityActionMenu) activityActionMenu.hidden = true;
+    }
+
+    function formatSuggestedDate(baseWeek, offsetDays) {
+      const iso = isoWeek(baseWeek);
+      if (!iso) return baseWeek.date || '新聚會日';
+      const d = new Date(iso + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + offsetDays);
+      return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日`;
+    }
+
+    function inferMonthFromDateStr(dateStr, fallbackMonth) {
+      const m = /^(\d{1,2})月/.exec((dateStr || '').trim());
+      return m ? Number(m[1]) : fallbackMonth;
+    }
+
+    function handleActivityMenuAction(action) {
+      if (!canManageRoster()) return;
+      const idx = activityMenuTargetWeekIdx;
+      closeActivityActionMenu();
+      const weeks = quarter().weeks;
+      const targetWeek = weeks[idx];
+      if (!targetWeek) return;
+
+      if (action === 'pause') {
+        const iso = isoWeek(targetWeek);
+        if (!iso) {
+          showToast('請先確認該週日期格式（例如：10月1日）');
+          return;
+        }
+        const entries = calendar().filter(item => !(item.date === iso && item.type !== 'special'));
+        updateCalendar([...entries, { date: iso, type: 'pause', label: '本週休會' }]);
+        showToast(`已將 ${targetWeek.date} 設為「休會」（可直接點擊文字修改）`);
+        return;
       }
 
-      const q = quarter();
-      const fullHtml = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
-      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${q.year}_${q.title}_${versionStatus}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast(`已下載「${q.year}_${q.title}_${versionStatus}.html」`);
+      if (action === 'special') {
+        const iso = isoWeek(targetWeek);
+        if (!iso) {
+          showToast('請先確認該週日期格式（例如：10月1日）');
+          return;
+        }
+        const entries = calendar().filter(item => !(item.date === iso && item.type === 'special'));
+        updateCalendar([...entries, { date: iso, type: 'special', label: '特別活動' }]);
+        showToast(`已於 ${targetWeek.date} 新增「特殊活動」（可直接點擊文字修改）`);
+        return;
+      }
+
+      if (action === 'insertBelow' || action === 'insertAbove') {
+        const isBelow = action === 'insertBelow';
+        const suggestedDate = formatSuggestedDate(targetWeek, isBelow ? 7 : -7);
+        const suggestedMonth = inferMonthFromDateStr(suggestedDate, targetWeek.month);
+        const newId = `${currentQuarterKey.toLowerCase()}-custom-${Date.now()}`;
+        const blankWeek = createBlankWeek(newId, suggestedMonth, suggestedDate, 4);
+        const insertPos = isBelow ? idx + 1 : idx;
+        weeks.splice(insertPos, 0, blankWeek);
+        saveRosterDraft();
+        updateQuarterHeaderAndTabs();
+        renderDesktopTable();
+        renderMobileCards();
+        showToast(isBelow ? `已在下方新增空白聚會（${suggestedDate}）` : `已在上方新增空白聚會（${suggestedDate}）`);
+      }
     }
+
+    document.addEventListener('click', (e) => {
+      if (versionMenu && !versionMenu.hidden && !document.getElementById('version-status-wrap')?.contains(e.target)) {
+        closeVersionDropdown();
+      }
+      if (activityActionMenu && !activityActionMenu.hidden && !activityActionMenu.contains(e.target)) {
+        closeActivityActionMenu();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeVersionDropdown();
+        closeActivityActionMenu();
+      }
+    });
 
     // =========================================================================
     // 6. INTERACTIVE FIELD EDITING HELPERS
@@ -3257,7 +3471,6 @@
       const curr = canManageRoster();
       if (curr === lastKnownSuperuser) return;
       lastKnownSuperuser = curr;
-      if (!curr) toggleSuperUserModal(false);
       renderRosterSettings();
       renderDesktopTable();
     }
