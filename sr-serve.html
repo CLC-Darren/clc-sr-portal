@@ -308,6 +308,12 @@
     .roster-search-header h2 { font-size:23px;font-weight:850 }
     .roster-search-header p { font-size:14px }
     .roster-search-dates { display:grid;grid-template-columns:1fr 1fr;gap:8px }
+    .roster-voice-field { display:flex;align-items:center;gap:6px }
+    .roster-voice-field input { flex:1 }
+    #roster-voice-button { min-width:44px;min-height:44px;display:grid;place-items:center }
+    #roster-voice-button[hidden],#roster-voice-status:empty { display:none }
+    #roster-voice-button[aria-pressed="true"] { background:#fce8e6;color:#a33236;border-color:#c37e7f }
+    #roster-voice-status { color:#45624a;font-size:14px;margin:2px 0 8px }
     #roster-search-results { margin-top:12px }
     #roster-search-results section { margin-top:8px;padding:8px 0;border-top:1px solid #d4e4d6 }
     #roster-search-results h3,#roster-search-results h4 { font-weight:850 }
@@ -395,7 +401,17 @@
       <div><h2 id="roster-search-title">搜尋服事</h2><p id="roster-search-quarter"></p></div>
     </header>
     <form id="roster-search-form">
-      <label>姓名<input name="member" type="search" placeholder="例如：林家祥" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="roster-name-suggestions" aria-describedby="roster-name-hint"></label>
+      <label for="roster-search-name">姓名</label>
+      <div class="roster-voice-field">
+        <input id="roster-search-name" name="member" type="search" placeholder="例如：林家祥" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="roster-name-suggestions" aria-describedby="roster-name-hint">
+        <button id="roster-voice-button" type="button" aria-label="語音輸入姓名" aria-pressed="false" title="語音輸入姓名" hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-3 0h6"/>
+          </svg>
+        </button>
+      </div>
+      <p id="roster-voice-status" role="status"></p>
+
       <p class="roster-search-hint" id="roster-name-hint">輸入姓名的部分文字也能搜尋，同音、近音和相關字會顯示提示。</p>
       <div id="roster-name-suggestions" role="listbox" aria-label="相近姓名"></div>
       <label>服事項目<select name="role"><option value="">全部服事項目</option></select></label>
@@ -403,7 +419,6 @@
         <label>開始日期<input name="from" type="date"></label>
         <label>結束日期<input name="to" type="date"></label>
       </div>
-      <button type="submit">搜尋</button>
     </form>
     <div id="roster-search-results" aria-live="polite"></div>
   </section>
@@ -1389,7 +1404,7 @@
       }
       searchName.setAttribute('aria-expanded',String(choices.length > 0));
     }
-    function runRosterSearch() {
+    function runRosterSearch(showSuggestions = false) {
       const term = searchName.value.trim();
       const role = searchRoles.value;
       const from = searchForm.elements.from.value, to = searchForm.elements.to.value;
@@ -1404,14 +1419,19 @@
       const exact = choices.filter(choice => choice.score === 0);
       const picked = selectedSearchName === term ? term : exact.length === 1 ? exact[0].name : choices.length === 1 ? choices[0].name : '';
       if (picked) {
-        clearSuggestions();
+        if (showSuggestions) renderSuggestions(choices);
+        else clearSuggestions();
         renderSearch(picked,data.filter(item => item.name === picked));
       } else if (!choices.length) {
         clearSuggestions();
         renderSearch('',[]);
       } else {
         renderSuggestions(choices);
-        searchResults.textContent = '請先從上方提示選擇姓名。';
+        const names = new Set(choices.slice(0,8).map(choice => choice.name));
+        renderSearch('',data.filter(item => names.has(item.name)));
+        const instruction = document.createElement('p');
+        instruction.textContent = '以下是可能符合的服事。點上方姓名可縮小範圍。';
+        searchResults.prepend(instruction);
       }
     }
     function quarterSearchBounds() {
@@ -1421,6 +1441,7 @@
         new Date(Date.UTC(year,months.at(-1),0)).toISOString().slice(0,10)];
     }
     function resetRosterSearch() {
+      cancelRosterVoice();
       clearSuggestions();
       searchResults.replaceChildren();
       searchForm.reset();
@@ -1437,6 +1458,7 @@
       document.getElementById('roster-search-quarter').textContent = quarter().year+' 年 '+quarter().title;
     }
     function setRosterSearchOpen(open) {
+      if (!open) cancelRosterVoice();
       searchPanel.hidden = !open;
       document.getElementById('roster-search-toggle').setAttribute('aria-expanded',String(open));
       resizeRosterViewport();
@@ -1445,7 +1467,7 @@
     function refreshSuggestions(event) {
       if (event.isComposing) return;
       selectedSearchName = '';
-      renderSuggestions(candidatesFor(searchName.value));
+      runRosterSearch(true);
       resizeRosterViewport();
     }
     searchName.addEventListener('input',refreshSuggestions);
@@ -1466,11 +1488,74 @@
         suggestions.children[activeSuggestion].click();
       }
     });
-    searchForm.elements.to.addEventListener('change',() => { endDateEdited = Boolean(searchForm.elements.to.value); });
-    searchForm.elements.from.addEventListener('change',() => {
-      if (!endDateEdited) searchForm.elements.to.value = quarterSearchBounds()[1];
+    searchForm.addEventListener('change', event => {
+      if (event.target === searchName) return;
+      if (event.target === searchForm.elements.to) endDateEdited = Boolean(event.target.value);
+      if (event.target === searchForm.elements.from && !endDateEdited) {
+        searchForm.elements.to.value = quarterSearchBounds()[1];
+      }
+      runRosterSearch();
+      resizeRosterViewport();
     });
     searchForm.addEventListener('submit',event => { event.preventDefault(); runRosterSearch(); resizeRosterViewport(); });
+    const voiceButton = document.getElementById('roster-voice-button');
+    const voiceStatus = document.getElementById('roster-voice-status');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rosterVoice;
+
+    function rosterVoiceState(active, message = '') {
+      voiceButton.setAttribute('aria-pressed',String(active));
+      voiceButton.setAttribute('aria-label',active ? '停止語音輸入' : '語音輸入姓名');
+      voiceButton.title = active ? '停止語音輸入' : '語音輸入姓名';
+      voiceStatus.textContent = message;
+    }
+    function cancelRosterVoice() {
+      if (!rosterVoice) return;
+      const active = rosterVoice;
+      rosterVoice = null;
+      active.abort();
+      rosterVoiceState(false);
+    }
+    if (SpeechRecognition) {
+      voiceButton.hidden = false;
+      voiceButton.addEventListener('click',() => {
+        if (rosterVoice) { rosterVoice.stop(); return; }
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'zh-TW';
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
+          recognition.onresult = event => {
+            if (rosterVoice !== recognition) return;
+            const text = Array.from(event.results,result => result[0].transcript).join('')
+              .replace(/[。，,.！!？?\s]+$/u,'').trim();
+            if (!text) return;
+            searchName.value = text;
+            searchName.dispatchEvent(new Event('input',{bubbles:true}));
+          };
+          recognition.onerror = event => {
+            if (rosterVoice !== recognition) return;
+            rosterVoice = null;
+            const message = ['not-allowed','service-not-allowed'].includes(event.error)
+              ? '請允許瀏覽器使用麥克風，或直接輸入姓名。'
+              : event.error === 'no-speech' ? '沒有聽到聲音，請再按一次麥克風。'
+              : '語音輸入暫時無法使用，請直接輸入姓名。';
+            rosterVoiceState(false,message);
+          };
+          recognition.onend = () => {
+            if (rosterVoice !== recognition) return;
+            rosterVoice = null;
+            rosterVoiceState(false);
+          };
+          rosterVoice = recognition;
+          recognition.start();
+          rosterVoiceState(true,'聆聽中，請說出姓名。');
+        } catch (_) {
+          rosterVoice = null;
+          rosterVoiceState(false,'語音輸入暫時無法使用，請直接輸入姓名。');
+        }
+      });
+    }
 
     // =========================================================================
     // 2. QUARTER & MONTH NAVIGATION LOGIC
