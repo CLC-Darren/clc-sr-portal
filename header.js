@@ -242,7 +242,7 @@ function renderHeaderComponent() {
             <button type="button" onclick="clcEnterGuestView()" class="w-full text-left px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👁️ 檢視模式
             </button>
-            <a id="adminUsersLink" href="${window.CLC_PAGE_ROOT}admin-users.html" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
+            <a id="adminUsersLink" href="${window.CLC_PAGE_ROOT}admin-users" class="block px-4 py-2.5 text-sm sm:text-[15px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">
               👤 權限管理
             </a>
 
