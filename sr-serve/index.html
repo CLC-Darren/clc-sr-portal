@@ -237,6 +237,62 @@
       background-color: #EEF6EE;
     }
 
+    /* Cell Context Menu (Desktop Right-Click & Mobile Long-Press: 複製 / 貼上 / 清除) */
+    #cell-context-menu {
+      position: fixed;
+      z-index: 9999;
+      min-width: 164px;
+      background: #FCFDFB;
+      border: 1.5px solid #3D7A47;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(30, 51, 35, 0.24);
+      padding: 5px;
+      color: #1E3323;
+      user-select: none;
+    }
+    #cell-context-menu[hidden] {
+      display: none !important;
+    }
+    #cell-context-menu button {
+      width: 100%;
+      text-align: left;
+      padding: 8px 11px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background-color 0.1s ease;
+    }
+    #cell-context-menu button:hover:not(:disabled) {
+      background-color: #EEF6EE;
+    }
+    #cell-context-menu button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    #cell-context-menu button kbd {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      color: #6C8570;
+    }
+    @media (pointer: coarse), (max-width: 899px) {
+      #cell-context-menu {
+        min-width: 184px;
+        padding: 6px;
+      }
+      #cell-context-menu button {
+        padding: 11px 14px;
+        font-size: 16px;
+      }
+      #cell-context-menu button kbd {
+        display: none;
+      }
+    }
+
     /* Crisp dark full-width week separator (extends through 當週活動 rowspan="6") */
     .roster-table tr.week-divider td,
     .roster-table td.week-divider-cell {
@@ -361,9 +417,6 @@
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
-      }
-      #header-title-display .title-fellowship-word {
-        display: none !important;
       }
       #version-status-badge {
         padding: 1px 7px !important;
@@ -615,7 +668,7 @@
           </svg>
         </div>
         <h1 id="header-title-display" class="text-lg sm:text-2xl font-black text-[#1E3323] tracking-tight">
-          10-12月加樂<span class="title-fellowship-word">團契</span>服事表
+          10-12月加樂團契服事表
         </h1>
         <div id="version-status-wrap" class="relative inline-flex items-center">
           <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)" aria-haspopup="menu" aria-expanded="false" title="點擊切換確認版 / 初稿"
@@ -698,6 +751,23 @@
     <button type="button" id="ctx-copy-shortcut-path" role="menuitem">
       <span>📂 複製捷徑路徑</span>
       <span id="ctx-shortcut-preview" class="text-[11px] font-normal text-[#6C8570] truncate max-w-[240px]"></span>
+    </button>
+  </div>
+
+  <!-- Cell Right-Click / Long-Press Context Menu -->
+  <div id="cell-context-menu" hidden role="menu" aria-label="儲存格操作選單">
+    <button type="button" id="cell-ctx-copy" role="menuitem">
+      <span>📋 複製</span>
+      <kbd>Ctrl+C</kbd>
+    </button>
+    <button type="button" id="cell-ctx-paste" role="menuitem">
+      <span>📥 貼上</span>
+      <kbd>Ctrl+V</kbd>
+    </button>
+    <div class="my-1 border-t border-[#E3EDE4]"></div>
+    <button type="button" id="cell-ctx-clear" role="menuitem" class="text-[#C53030] hover:bg-[#FDECEC]">
+      <span>🧹 清除</span>
+      <kbd>Del</kbd>
     </button>
   </div>
 
@@ -1366,6 +1436,9 @@
     let touchStartX = 0;
     let touchStartY = 0;
     let touchMovedSignificantly = false;
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    let internalClipboardTsv = '';
 
     // Exact 17-column mapping matching the 17 body columns (after 當週活動 rowspan="6")
     const GRID_COLS = [
@@ -2181,16 +2254,11 @@
         .filter(item => selectedMonthFilter === 'ALL' || item.week.month === Number(selectedMonthFilter));
     }
 
-    function renderFormattedHeaderTitle(rawTitle) {
-      const escaped = escapeHtml(rawTitle);
-      return escaped.replace('團契', '<span class="title-fellowship-word">團契</span>');
-    }
-
     function updateQuarterHeaderAndTabs() {
       const q = quarter();
       const yearSelEl = document.getElementById('year-selector');
       if (yearSelEl) yearSelEl.value = q.year;
-      document.getElementById('header-title-display').innerHTML = renderFormattedHeaderTitle(q.title);
+      document.getElementById('header-title-display').textContent = q.title;
       document.title = `${q.year} ${q.title}`;
       renderQuarterFolderTabs();
 
@@ -2668,8 +2736,16 @@
     }
 
     function isCoordInCurrentSelection(r, c) {
-      const norm = getNormalizedRange();
-      return r >= norm.minR && r <= norm.maxR && c >= norm.minC && c <= norm.maxC;
+      return getAllNormalizedRanges().some(norm =>
+        r >= norm.minR && r <= norm.maxR && c >= norm.minC && c <= norm.maxC
+      );
+    }
+
+    function clearLongPressTimer() {
+      if (longPressTimer !== null) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
     }
 
     function updateSelectionByClientPoint(clientX, clientY) {
@@ -2773,11 +2849,34 @@
     function attachGridCellEvents(td, globalRow, gridCol, isEditableName) {
       td.addEventListener('touchstart', (e) => {
         isTouchInteraction = true;
+        longPressTriggered = false;
+        clearLongPressTimer();
         if (!e.touches || e.touches.length !== 1) return;
         const touch = e.touches[0];
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
         touchMovedSignificantly = false;
+
+        // Mobile Long-Press (480ms): select cell if not already in selection and open 複製 / 貼上 / 清除 menu
+        longPressTimer = setTimeout(() => {
+          longPressTimer = null;
+          if (touchMovedSignificantly) return;
+          longPressTriggered = true;
+          isTouchExtendingRange = false;
+          const viewport = document.getElementById('roster-scroll');
+          if (viewport) viewport.style.touchAction = '';
+          const winSel = window.getSelection();
+          if (winSel) winSel.removeAllRanges();
+          if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+          }
+          if (!isCoordInCurrentSelection(globalRow, gridCol)) {
+            extraRanges = [];
+            selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+            updateSelectionVisuals();
+          }
+          openCellContextMenu(touchStartX, touchStartY);
+        }, 480);
 
         // On mobile table view: if user touches inside an already-selected cell/range,
         // lock container scroll and extend the selection range in any direction (up/down/left/right)
@@ -2797,21 +2896,30 @@
         const touch = e.touches[0];
         if (Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY) > 6) {
           touchMovedSignificantly = true;
+          clearLongPressTimer();
         }
-        if (isTouchExtendingRange) {
+        if (isTouchExtendingRange && !longPressTriggered) {
           if (e.cancelable) e.preventDefault();
           updateSelectionByClientPoint(touch.clientX, touch.clientY);
         }
       }, { passive: false });
 
-      td.addEventListener('touchend', () => {
+      td.addEventListener('touchend', (e) => {
+        clearLongPressTimer();
         const viewport = document.getElementById('roster-scroll');
         if (viewport) viewport.style.touchAction = '';
+
+        if (longPressTriggered) {
+          longPressTriggered = false;
+          if (e.cancelable) e.preventDefault();
+          return;
+        }
 
         if (isTouchExtendingRange) {
           isTouchExtendingRange = false;
           // If user simply tapped (without dragging) on an already-selected editable cell, open keyboard to edit
           if (!touchMovedSignificantly && isEditableName) {
+            closeCellContextMenu();
             const target = td.querySelector('.roster-name-editor') || td;
             if (document.activeElement !== target) {
               target.focus();
@@ -2821,6 +2929,7 @@
         }
 
         if (touchMovedSignificantly) return;
+        closeCellContextMenu();
         // First tap on a cell selects it (disabling scroll on that selected cell so next drag extends range)
         extraRanges = [];
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
@@ -2831,10 +2940,34 @@
             target.focus();
           }
         }
-      }, { passive: true });
+      }, { passive: false });
+
+      // Suppress native browser contextmenu on mobile long-press / desktop right-click and show custom menu
+      td.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearLongPressTimer();
+        const winSel = window.getSelection();
+        if (winSel) winSel.removeAllRanges();
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
+        // If right-clicked outside existing selection (single or multi-range), select this cell;
+        // otherwise keep the existing single or multi-range selection intact!
+        if (!isCoordInCurrentSelection(globalRow, gridCol)) {
+          extraRanges = [];
+          selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
+          updateSelectionVisuals();
+        }
+        openCellContextMenu(e.clientX, e.clientY);
+      });
 
       td.addEventListener('mousedown', (e) => {
+        if (e.button === 2) {
+          return;
+        }
         if (e.button !== 0) return;
+        closeCellContextMenu();
         // On touch devices (synthetic mousedown after touchstart) or double-click on desktop, allow native focus & keyboard
         if ((isTouchInteraction || e.detail >= 2) && isEditableName) {
           isTouchInteraction = false;
@@ -2899,7 +3032,9 @@
     });
 
     document.addEventListener('touchcancel', () => {
+      clearLongPressTimer();
       isTouchExtendingRange = false;
+      longPressTriggered = false;
       const viewport = document.getElementById('roster-scroll');
       if (viewport) viewport.style.touchAction = '';
     });
@@ -3061,7 +3196,7 @@
             const target = resolveGridCoordinate(r, c);
             rowVals.push(target ? (weeks[target.weekIdx][target.colKey][target.rowIdx] || '') : '');
           }
-          tsvRows.push(rowVals.join('	'));
+          tsvRows.push(rowVals.join('\t'));
         }
         return {
           tsvText: tsvRows.join('\n'),
@@ -3070,35 +3205,161 @@
         };
       }
 
-      // Multiple Ctrl-selected ranges: bounding box TSV of selected cells
-      const minR = Math.min(...allRanges.map(r => r.minR));
-      const maxR = Math.max(...allRanges.map(r => r.maxR));
-      const minC = Math.min(...allRanges.map(r => r.minC));
-      const maxC = Math.max(...allRanges.map(r => r.maxC));
-      const tsvRows = [];
-      let selectedCount = 0;
+      // Google Sheets multi-range copy behavior:
+      // Extract only active rows & columns containing selected cells (compacts gaps cleanly)
+      const activeRowsSet = new Set();
+      const activeColsSet = new Set();
+      const pickedCoords = new Set();
 
-      for (let r = minR; r <= maxR; r++) {
+      for (const rng of allRanges) {
+        for (let r = rng.minR; r <= rng.maxR; r++) {
+          activeRowsSet.add(r);
+          for (let c = rng.minC; c <= rng.maxC; c++) {
+            activeColsSet.add(c);
+            pickedCoords.add(`${r}:${c}`);
+          }
+        }
+      }
+
+      const sortedRows = [...activeRowsSet].sort((a, b) => a - b);
+      const sortedCols = [...activeColsSet].sort((a, b) => a - b);
+      const tsvRows = [];
+
+      for (const r of sortedRows) {
         const rowVals = [];
-        for (let c = minC; c <= maxC; c++) {
-          const isPicked = allRanges.some(rng => r >= rng.minR && r <= rng.maxR && c >= rng.minC && c <= rng.maxC);
-          if (!isPicked) {
+        for (const c of sortedCols) {
+          if (!pickedCoords.has(`${r}:${c}`)) {
             rowVals.push('');
             continue;
           }
-          selectedCount++;
           const target = resolveGridCoordinate(r, c);
           rowVals.push(target ? (weeks[target.weekIdx][target.colKey][target.rowIdx] || '') : '');
         }
-        tsvRows.push(rowVals.join('	'));
+        tsvRows.push(rowVals.join('\t'));
       }
+
       return {
         tsvText: tsvRows.join('\n'),
-        rowCount: maxR - minR + 1,
-        colCount: maxC - minC + 1,
-        selectedCount
+        rowCount: sortedRows.length,
+        colCount: sortedCols.length,
+        selectedCount: pickedCoords.size
       };
     }
+
+    function performSelectionCopy() {
+      const { tsvText, rowCount, colCount, selectedCount } = buildSelectedRangeTsv();
+      internalClipboardTsv = tsvText;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(tsvText).catch(() => copyTextFallback(tsvText));
+      } else {
+        copyTextFallback(tsvText);
+      }
+      showToast(selectedCount ? `已複製 ${selectedCount} 格多選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+    }
+
+    async function performSelectionPaste() {
+      if (!canEditRoster()) {
+        showToast('目前為唯讀檢視模式');
+        return;
+      }
+      let clipText = '';
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        try {
+          clipText = await navigator.clipboard.readText();
+        } catch (_) {}
+      }
+      if (!clipText && internalClipboardTsv) {
+        clipText = internalClipboardTsv;
+      }
+      if (!clipText) {
+        showToast('剪貼簿目前沒有可貼上的文字');
+        return;
+      }
+      applyRectangularPaste(clipText);
+    }
+
+    function performSelectionClear() {
+      if (!canEditRoster()) {
+        showToast('目前為唯讀檢視模式');
+        return false;
+      }
+      const allRanges = getAllNormalizedRanges();
+      const weeks = quarter().weeks;
+      const visited = new Set();
+      let cleared = 0;
+
+      for (const rng of allRanges) {
+        for (let r = rng.minR; r <= rng.maxR; r++) {
+          for (let c = rng.minC; c <= rng.maxC; c++) {
+            const key = `${r}:${c}`;
+            if (visited.has(key)) continue;
+            visited.add(key);
+            const target = resolveGridCoordinate(r, c);
+            if (!target) continue;
+            weeks[target.weekIdx][target.colKey][target.rowIdx] = '';
+            cleared++;
+          }
+        }
+      }
+      if (cleared > 0) {
+        saveRosterDraft();
+        renderDesktopTable();
+        renderMobileCards();
+        showToast(`已清除選取範圍內 ${cleared} 格姓名`);
+        return true;
+      }
+      return false;
+    }
+
+    const cellContextMenu = document.getElementById('cell-context-menu');
+
+    function openCellContextMenu(x, y) {
+      if (!cellContextMenu) return;
+      closeFolderTabContextMenu();
+      closeVersionDropdown();
+      closeActivityActionMenu();
+
+      const editable = canEditRoster();
+      const pasteBtn = document.getElementById('cell-ctx-paste');
+      const clearBtn = document.getElementById('cell-ctx-clear');
+      if (pasteBtn) pasteBtn.disabled = !editable;
+      if (clearBtn) clearBtn.disabled = !editable;
+
+      cellContextMenu.hidden = false;
+      const rect = cellContextMenu.getBoundingClientRect();
+      const left = Math.min(x, window.innerWidth - rect.width - 10);
+      const top = Math.min(y, window.innerHeight - rect.height - 10);
+      cellContextMenu.style.left = `${Math.max(8, left)}px`;
+      cellContextMenu.style.top = `${Math.max(8, top)}px`;
+    }
+
+    function closeCellContextMenu() {
+      if (cellContextMenu) cellContextMenu.hidden = true;
+    }
+
+    document.getElementById('cell-ctx-copy').addEventListener('click', () => {
+      closeCellContextMenu();
+      performSelectionCopy();
+    });
+
+    document.getElementById('cell-ctx-paste').addEventListener('click', () => {
+      closeCellContextMenu();
+      performSelectionPaste();
+    });
+
+    document.getElementById('cell-ctx-clear').addEventListener('click', () => {
+      closeCellContextMenu();
+      performSelectionClear();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (cellContextMenu && !cellContextMenu.hidden && !cellContextMenu.contains(e.target)) {
+        closeCellContextMenu();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCellContextMenu();
+    });
 
     function copyTextFallback(text) {
       const ta = document.createElement('textarea');
@@ -3125,13 +3386,14 @@
       }
 
       const { tsvText, rowCount, colCount, selectedCount } = buildSelectedRangeTsv();
+      internalClipboardTsv = tsvText;
       e.preventDefault();
       if (e.clipboardData) {
         e.clipboardData.setData('text/plain', tsvText);
       } else {
         copyTextFallback(tsvText);
       }
-      showToast(selectedCount ? `已複製 ${selectedCount} 格跳選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+      showToast(selectedCount ? `已複製 ${selectedCount} 格多選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
     });
 
     // Google Sheets keyboard shortcuts: Arrow navigation, Shift+Arrow range, Ctrl+A, Ctrl+C, F2 / direct typing, Delete
@@ -3162,9 +3424,7 @@
 
       // Ctrl+C / Cmd+C
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-        const { tsvText, rowCount, colCount, selectedCount } = buildSelectedRangeTsv();
-        copyTextFallback(tsvText);
-        showToast(selectedCount ? `已複製 ${selectedCount} 格跳選資料` : `已複製 ${rowCount} 列 × ${colCount} 欄矩形資料`);
+        performSelectionCopy();
         return;
       }
 
@@ -3190,30 +3450,8 @@
 
       // Delete / Backspace: clear all selected cells (including Ctrl multi-selected ranges)
       if (canEditRoster() && (e.key === 'Delete' || e.key === 'Backspace')) {
-        const allRanges = getAllNormalizedRanges();
-        const weeks = quarter().weeks;
-        const visited = new Set();
-        let cleared = 0;
-
-        for (const rng of allRanges) {
-          for (let r = rng.minR; r <= rng.maxR; r++) {
-            for (let c = rng.minC; c <= rng.maxC; c++) {
-              const key = `${r}:${c}`;
-              if (visited.has(key)) continue;
-              visited.add(key);
-              const target = resolveGridCoordinate(r, c);
-              if (!target) continue;
-              weeks[target.weekIdx][target.colKey][target.rowIdx] = '';
-              cleared++;
-            }
-          }
-        }
-        if (cleared > 0) {
-          saveRosterDraft();
+        if (performSelectionClear()) {
           e.preventDefault();
-          renderDesktopTable();
-          renderMobileCards();
-          showToast(`已清除選取範圍內 ${cleared} 格姓名`);
         }
         return;
       }
