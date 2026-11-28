@@ -773,7 +773,7 @@
     </div>
   </div>
 
-  <script src="https://clc-sr-portal.pages.dev/js/vendor/pinyin-pro-3.29.5.js"></script>
+  <script src="../js/vendor/pinyin-pro-3.29.5.js"></script>
   <script id="roster-seed-script">
     // =========================================================================
     // 1. MULTI-QUARTER ROSTER STORE (2026 Q1-Q4 + 2027 Q1-Q4 WITH MONTHLY PRESETS)
@@ -3524,7 +3524,7 @@
       ensureQuarterExists(currentQuarterKey);
       document.getElementById('year-selector').value = currentQuarterKey.split('-')[0];
       showRosterDraftStatus();
-      // Connect to Firebase initialized by /header.js as soon as ready
+      // Connect to Firebase initialized by the SR header as soon as ready
       subscribeQuarterFromFirebase(currentQuarterKey);
       let editingListener = watchRosterEditing();
       let fbRetryCount = 0;
@@ -3551,5 +3551,6 @@
     });
   </script>
 
-  <script src="/header.js?v=20261126-serve"></script>
+  <script>window.CLC_PAGE_ROOT = "../";</script>
+  <script src="../header.js?v=20261128-sr-serve"></script>
 </body></html>
