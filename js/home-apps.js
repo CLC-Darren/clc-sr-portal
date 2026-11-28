@@ -125,7 +125,7 @@
     return `<span class="ha-mono" style="background:${MONO_COLORS[h % MONO_COLORS.length]}">${esc(t)}</span>`;
   }
   function iconHtml(app) {
-    const icon = String(app.icon || '').trim();
+    const icon = String(app.icon || '').trim() || window.clcAppEntries?.libraryIcon?.(app.url, app.name) || '';
     if (isImage(icon) && safeIcon(icon) && !isGoogleIcon(icon)) return `<span class="ha-icon" aria-hidden="true"><img alt="" src="${esc(safeIcon(icon))}" data-mono="${esc(monoHtml(app))}"></span>`;
     if (icon && !isImage(icon)) return `<span class="ha-icon" aria-hidden="true">${esc(icon)}</span>`;
     return `<span class="ha-icon" aria-hidden="true">${monoHtml(app)}</span>`;
@@ -403,7 +403,7 @@
     if (seq !== fetchSeq) return;
     status(info && info.ok ? '' : '讀取不到網站資訊，請自行填寫（圖示可留空）。');
     if (!info) return;
-    const name = String(info.name || '').trim().slice(0, 20), icon = info.ok && !isGoogleIcon(info.icon) ? safeUrl(info.icon) : '';
+    const name = String(info.name || '').trim().slice(0, 20), icon = window.clcAppEntries?.libraryIcon?.(url, name) || (info.ok && !isGoogleIcon(info.icon) ? safeUrl(info.icon) : '');
     if (name && (!$('name').value.trim() || $('name').value === auto.name)) { $('name').value = name; auto.name = name; }
     if (!uploadedIcon && (!$('icon').value.trim() || $('icon').value === auto.icon)) { $('icon').value = icon; auto.icon = icon; }
     preview();
