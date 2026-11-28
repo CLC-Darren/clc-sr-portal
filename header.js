@@ -502,6 +502,7 @@ function clcCancelLogoPress() {
 document.addEventListener('pointerdown', function(e) {
   const link = e.target.closest && e.target.closest('#clcLogoLink');
   if (!link || !clcCanSwitchSites || !window.isSuperuser) return;
+  if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return; // 電腦用右鍵開選單，滑鼠按住不跳
   clcLogoLongPressed = false;
   clcCancelLogoPress();
   clcLogoPressStart = { x: e.clientX, y: e.clientY };
@@ -519,8 +520,15 @@ document.addEventListener('pointermove', function(e) {
 document.addEventListener('pointerup', clcCancelLogoPress);
 document.addEventListener('pointercancel', clcCancelLogoPress);
 document.addEventListener('contextmenu', function(e) {
-  // 長按時不要跳出系統的連結選單。
-  if ((clcLogoPressTimer || clcLogoLongPressed) && e.target.closest && e.target.closest('#clcLogoLink')) e.preventDefault();
+  const link = e.target.closest && e.target.closest('#clcLogoLink');
+  if (!link) return;
+  // 手機長按時不要跳出系統的連結選單。
+  if (clcLogoPressTimer || clcLogoLongPressed) { e.preventDefault(); return; }
+  // 電腦：右鍵開站台選單（同手機長按）
+  if (!clcCanSwitchSites || !window.isSuperuser) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (clcLogoClickTimer) { clearTimeout(clcLogoClickTimer); clcLogoClickTimer = null; }
+  clcShowSiteSwitcher(false);
 });
 
 function toggleAdminDropdown() {
