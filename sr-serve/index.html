@@ -75,6 +75,17 @@
       min-width: 1230px;
     }
 
+    .roster-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .roster-table tbody {
+      position: relative;
+      z-index: 1;
+    }
+
     .roster-table th {
       border: 1px solid #B8D1BA;
       box-sizing: border-box;
@@ -109,6 +120,7 @@
     .roster-table tbody tr.roster-row > td.activity-span-cell {
       position: sticky !important;
       left: 0;
+      z-index: 15;
       height: 186px !important;
       max-height: 186px !important;
       padding: 0 !important;
@@ -241,17 +253,17 @@
     .sticky-header-top {
       position: sticky;
       top: 0;
-      z-index: 30;
+      z-index: 40;
     }
     .sticky-header-sub {
       position: sticky;
       top: var(--roster-first-row, 34px);
-      z-index: 30;
+      z-index: 40;
     }
     .sticky-col-left {
       position: sticky;
       left: 0;
-      z-index: 20;
+      z-index: 15;
       background-color: #FCFDFB;
       box-shadow: 4px 0 10px -2px rgba(61, 122, 71, 0.12);
     }
@@ -259,7 +271,7 @@
       position: sticky;
       left: 0;
       top: 0;
-      z-index: 40;
+      z-index: 50;
       box-shadow: 4px 0 10px -2px rgba(44, 94, 52, 0.25);
     }
 
@@ -325,18 +337,21 @@
       body.roster-table-view #desktop-table-section { display:block !important }
       body.roster-table-view #mobile-cards-section { display:none !important }
 
-      /* Compact single-row mobile tabs + sliding pill + search button */
+      /* Compact single-row mobile tabs + week count + sliding pill + search button */
       #roster-nav { flex-wrap: nowrap !important; gap: 4px !important; }
-      .quarter-folder-tabs { padding-right: 6px !important; }
+      .quarter-folder-tabs { padding-right: 4px !important; }
       .folder-tab-btn {
         height: 28px !important;
-        padding: 0 11px 0 8px !important;
-        margin-right: -6px !important;
+        padding: 0 10px 0 7px !important;
+        margin-right: -5px !important;
         font-size: 12px !important;
         clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 100%, 0 100%) !important;
       }
       .folder-tab-btn.is-active {
         height: 30px !important;
+      }
+      #week-count-badge {
+        font-size: 11px !important;
       }
 
       /* Sliding Pill Switch (卡片 / 表格) without middle divider line */
@@ -555,10 +570,10 @@
           10-12月加樂團契服事表
         </h1>
         <div id="version-status-wrap" class="relative inline-flex items-center">
-          <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)"
-            class="relative inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-default">
+          <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)" aria-haspopup="menu" aria-expanded="false" title="點擊切換確認版 / 初稿"
+            class="relative inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-pointer">
             <span id="version-status-text">確認版</span>
-            <svg id="version-status-arrow" style="display:none" class="w-3 h-3 ml-1 -mr-0.5 translate-y-[2px] opacity-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg id="version-status-arrow" class="w-3 h-3 ml-1 -mr-0.5 translate-y-[1px] opacity-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
             </svg>
           </button>
@@ -593,32 +608,32 @@
       </dialog>
     </div>
 
-    <!-- Single-Row Navigation: Q1 Q2 Q3 Q4 | Sliding Pill (卡片 表格) | 搜尋 -->
+    <!-- Single-Row Navigation: Q1 Q2 Q3 Q4 + 共幾週 (Left) | 卡片/表格 + 搜尋 (Right) -->
     <div id="roster-nav" class="max-w-full mx-auto mt-2 pt-2 border-t border-[#E3EDE4] flex items-center justify-between gap-1.5 sm:gap-2">
       <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
         <!-- 4 Quarters Folder Tabs: Q1, Q2, Q3, Q4 (Left-aligned, right-click to copy short URL & shortcut) -->
         <div id="quarter-folder-tabs" class="quarter-folder-tabs shrink-0" role="tablist" aria-label="季度分頁">
           <!-- Rendered dynamically -->
         </div>
+        <span id="week-count-badge" class="text-xs font-bold text-[#6C8570] whitespace-nowrap shrink-0"></span>
+      </div>
 
-        <!-- Sliding Pill Toggle for Mobile/Tablet (卡片 | 表格, no middle line) -->
+      <div class="flex items-center justify-end gap-1.5 sm:gap-2 ml-auto shrink-0">
+        <!-- Sliding Pill Toggle for Mobile/Tablet (卡片 | 表格, right-aligned beside 搜尋) -->
         <div id="roster-view-switch" class="shrink-0" role="group" aria-label="卡片表格顯示方式">
           <span class="view-switch-thumb" aria-hidden="true"></span>
           <button type="button" data-roster-view="cards" aria-pressed="true" aria-controls="mobile-cards-section">卡片</button>
           <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">表格</button>
         </div>
-      </div>
 
-      <div class="flex items-center justify-end gap-2 ml-auto flex-wrap">
-        <span id="week-count-badge" class="text-xs font-bold text-[#6C8570] whitespace-nowrap"></span>
-        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold flex-wrap">
+        <div id="roster-legend" hidden class="hidden">
           <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
           <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
           <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
           <span class="px-2 py-0.5 rounded bg-[#BAE6FD] text-[#1E3323] border border-[#8BC3CB]">其他講員</span>
         </div>
         <p id="roster-draft-status" role="status" class="sr-only" hidden></p>
-        <button type="button" id="roster-search-toggle" class="roster-search-button whitespace-nowrap" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
+        <button type="button" id="roster-search-toggle" class="roster-search-button whitespace-nowrap shrink-0" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
       </div>
     </div>
   </header>
@@ -1615,14 +1630,13 @@
       const arrowEl = document.getElementById('version-status-arrow');
       const badgeEl = document.getElementById('version-status-badge');
       if (gearBtn) gearBtn.hidden = window.isSuperuser !== true;
-      if (arrowEl) arrowEl.style.display = granted ? 'inline-block' : 'none';
+      if (arrowEl) arrowEl.style.display = 'inline-block';
       if (badgeEl) {
-        badgeEl.classList.toggle('cursor-pointer', granted);
-        badgeEl.classList.toggle('cursor-default', !granted);
-        badgeEl.title = granted ? '點擊切換確認版 / 初稿' : '';
+        badgeEl.classList.add('cursor-pointer');
+        badgeEl.classList.remove('cursor-default');
+        badgeEl.title = '點擊切換確認版 / 初稿';
       }
       if (!granted) {
-        closeVersionDropdown();
         closeActivityActionMenu();
       }
     }
@@ -3081,21 +3095,26 @@
     let activityMenuTargetWeekIdx = -1;
 
     function toggleVersionDropdown(e) {
-      if (!canManageRoster()) return;
       e.stopPropagation();
       closeActivityActionMenu();
-      versionMenu.hidden = !versionMenu.hidden;
+      const nextHidden = !versionMenu.hidden;
+      versionMenu.hidden = nextHidden;
+      const badge = document.getElementById('version-status-badge');
+      if (badge) badge.setAttribute('aria-expanded', String(!nextHidden));
     }
 
     function closeVersionDropdown() {
       if (versionMenu) versionMenu.hidden = true;
+      const badge = document.getElementById('version-status-badge');
+      if (badge) badge.setAttribute('aria-expanded', 'false');
     }
 
     function selectVersionStatus(status) {
-      if (!canManageRoster()) return;
       closeVersionDropdown();
       setVersionStatus(status, true);
-      saveRosterDraft();
+      if (canManageRoster()) {
+        saveRosterDraft();
+      }
     }
 
     function setVersionStatus(status, notify = true) {
@@ -3106,9 +3125,9 @@
 
       if (badge) {
         if (status === '確認版') {
-          badge.className = `inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 ${canManageRoster() ? 'cursor-pointer' : 'cursor-default'}`;
+          badge.className = 'relative inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#EEF6EE] text-[#2C5E34] border border-[#3D7A47]/40 cursor-pointer';
         } else {
-          badge.className = `inline-flex items-baseline gap-0.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E] ${canManageRoster() ? 'cursor-pointer' : 'cursor-default'}`;
+          badge.className = 'relative inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-black bg-[#FEF5DC] text-[#9A6700] border border-[#F4BD3E] cursor-pointer';
         }
       }
       if (notify) showToast(`已切換狀態為「${status}」`);
@@ -3406,17 +3425,21 @@
           : '';
 
         // Roles list in clean iOS Inset Grouped / Material 3 List style (all >= 16px)
+        // Trailing comma attached to each item (except last) so wrapped lines never start with a comma
         const rolesHtml = roleBlocks.length > 0
           ? roleBlocks.map(block => {
-              const peopleHtml = block.items.map(it => {
+              const peopleHtml = block.items.map((it, idx) => {
+                const trailingComma = idx < block.items.length - 1
+                  ? '<span class="text-[17px] text-[#9BBF9F] mr-1.5">、</span>'
+                  : '';
                 const tagBadge = it.tag
                   ? `<span class="inline-block ml-1.5 px-2.5 py-0.5 rounded-lg bg-[#EEF6EE] text-[#2C5E34] border border-[#C5DEC8] text-[16px] font-bold">${escapeHtml(it.tag)}</span>`
                   : '';
                 if (it.isChanged) {
-                  return `<span class="inline-flex items-center flex-wrap bg-[#E53E3E] text-white px-2.5 py-0.5 rounded-xl text-[17px] font-black">${escapeHtml(it.name)}・異動</span>${tagBadge}`;
+                  return `<span class="inline-flex items-center flex-wrap"><span class="bg-[#E53E3E] text-white px-2.5 py-0.5 rounded-xl text-[17px] font-black">${escapeHtml(it.name)}・異動</span>${tagBadge}${trailingComma}</span>`;
                 }
-                return `<span class="inline-flex items-center flex-wrap"><span class="text-[18px] font-bold text-[#1E3323]">${escapeHtml(it.name)}</span>${tagBadge}</span>`;
-              }).join('<span class="text-[17px] text-[#9BBF9F] mx-1.5">、</span>');
+                return `<span class="inline-flex items-center flex-wrap"><span class="text-[18px] font-bold text-[#1E3323]">${escapeHtml(it.name)}</span>${tagBadge}${trailingComma}</span>`;
+              }).join('');
 
               return `
                 <div class="py-3.5 px-4 border-b border-[#EDF3EE] last:border-b-0 flex flex-col gap-1.5">
@@ -3424,7 +3447,7 @@
                     <span>${block.icon}</span>
                     <span>${block.label}</span>
                   </div>
-                  <div class="pl-7 leading-relaxed">${peopleHtml}</div>
+                  <div class="pl-7 leading-relaxed flex flex-wrap items-center gap-y-1">${peopleHtml}</div>
                 </div>
               `;
             }).join('')
