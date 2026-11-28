@@ -395,6 +395,10 @@
     }
 
     #roster-view-switch { display:none }
+    /* 電腦版：共 N 週聚會＋圖例放在搜尋旁邊；手機版用左邊的 week-count-badge，不顯示圖例 */
+    #week-count-badge { display:none }
+    #roster-legend { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; white-space:nowrap }
+    #roster-legend #week-count-desktop { color:#6C8570; margin-right:2px }
     /* Modern iOS HIG & Android Material 3 Mobile/Tablet Portrait Switch (< 900px or portrait tablet) */
     @media (max-width:899px), (max-width:1024px) and (orientation:portrait), (max-width:1100px) and (orientation:landscape) and (pointer:coarse) {
       #roster-heading {
@@ -452,8 +456,10 @@
         height: 30px !important;
       }
       #week-count-badge {
+        display: inline;
         font-size: 11px !important;
       }
+      #roster-legend { display: none !important; }
 
       /* Sliding Pill Switch (卡片 / 表格) without middle divider line */
       #roster-view-switch {
@@ -727,7 +733,8 @@
           <button type="button" data-roster-view="table" aria-pressed="false" aria-controls="desktop-table-section">表格</button>
         </div>
 
-        <div id="roster-legend" hidden class="hidden">
+        <div id="roster-legend">
+          <span id="week-count-desktop"></span>
           <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
           <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
           <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
@@ -2263,7 +2270,9 @@
       renderQuarterFolderTabs();
 
       const activeWeeks = rosterSchedule().filter(item => !item.announcement);
-      document.getElementById('week-count-badge').textContent = `共 ${activeWeeks.length} 週聚會`;
+      const weekCountText = `共 ${activeWeeks.length} 週聚會`;
+      document.getElementById('week-count-badge').textContent = weekCountText;
+      document.getElementById('week-count-desktop').textContent = weekCountText;
     }
 
     // =========================================================================
