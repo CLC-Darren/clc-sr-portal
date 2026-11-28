@@ -307,6 +307,19 @@
       pointer-events: none;
       z-index: 15;
     }
+    @media (pointer: coarse), (max-width: 899px) {
+      .gs-range-corner::after {
+        width: 10px;
+        height: 10px;
+        right: -1px;
+        bottom: -1px;
+        border-radius: 50%;
+      }
+      .gs-selected-cell,
+      .gs-in-range {
+        touch-action: none !important;
+      }
+    }
 
     .editable-cell {
       outline: none;
@@ -328,6 +341,41 @@
     #roster-view-switch { display:none }
     /* Modern iOS HIG & Android Material 3 Mobile/Tablet Portrait Switch (< 900px or portrait tablet) */
     @media (max-width:899px), (max-width:1024px) and (orientation:portrait), (max-width:1100px) and (orientation:landscape) and (pointer:coarse) {
+      #roster-heading {
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+      }
+      #roster-brand-line {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+      }
+      #year-selector {
+        font-size: 22px !important;
+        padding-right: 12px !important;
+      }
+      #header-title-display {
+        font-size: 16px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      #header-title-display .title-fellowship-word {
+        display: none !important;
+      }
+      #version-status-badge {
+        padding: 1px 7px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+      }
+      #roster-settings-button {
+        width: 30px !important;
+        height: 30px !important;
+        margin-left: 4px !important;
+        align-self: center !important;
+      }
       #desktop-table-section {
         display: none !important;
       }
@@ -567,7 +615,7 @@
           </svg>
         </div>
         <h1 id="header-title-display" class="text-lg sm:text-2xl font-black text-[#1E3323] tracking-tight">
-          10-12月加樂團契服事表
+          10-12月加樂<span class="title-fellowship-word">團契</span>服事表
         </h1>
         <div id="version-status-wrap" class="relative inline-flex items-center">
           <button type="button" id="version-status-badge" onclick="toggleVersionDropdown(event)" aria-haspopup="menu" aria-expanded="false" title="點擊切換確認版 / 初稿"
@@ -1311,6 +1359,13 @@
     let selectionRange = { startR: 0, startC: 12, endR: 0, endC: 12 };
     let extraRanges = []; // Additional non-contiguous ranges added via Ctrl/Cmd + Click/Drag
     let isDraggingSelection = false;
+    let lastDragClientX = 0;
+    let lastDragClientY = 0;
+    let autoScrollRafId = null;
+    let isTouchExtendingRange = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMovedSignificantly = false;
 
     // Exact 17-column mapping matching the 17 body columns (after 當週活動 rowspan="6")
     const GRID_COLS = [
@@ -2126,11 +2181,16 @@
         .filter(item => selectedMonthFilter === 'ALL' || item.week.month === Number(selectedMonthFilter));
     }
 
+    function renderFormattedHeaderTitle(rawTitle) {
+      const escaped = escapeHtml(rawTitle);
+      return escaped.replace('團契', '<span class="title-fellowship-word">團契</span>');
+    }
+
     function updateQuarterHeaderAndTabs() {
       const q = quarter();
       const yearSelEl = document.getElementById('year-selector');
       if (yearSelEl) yearSelEl.value = q.year;
-      document.getElementById('header-title-display').textContent = q.title;
+      document.getElementById('header-title-display').innerHTML = renderFormattedHeaderTitle(q.title);
       document.title = `${q.year} ${q.title}`;
       renderQuarterFolderTabs();
 
@@ -2603,20 +2663,173 @@
     // =========================================================================
     let isTouchInteraction = false;
 
+    function isMobileTableMode() {
+      return document.body.classList.contains('roster-table-view') || window.innerWidth < 900;
+    }
+
+    function isCoordInCurrentSelection(r, c) {
+      const norm = getNormalizedRange();
+      return r >= norm.minR && r <= norm.maxR && c >= norm.minC && c <= norm.maxC;
+    }
+
+    function updateSelectionByClientPoint(clientX, clientY) {
+      const viewport = document.getElementById('roster-scroll');
+      if (!viewport) return;
+      const vpRect = viewport.getBoundingClientRect();
+      // Clamp sample point inside the visible table area (avoid sticky left column overlap)
+      const stickyCol = viewport.querySelector('.sticky-corner');
+      const stickyRight = stickyCol ? stickyCol.getBoundingClientRect().right : vpRect.left + 188;
+      const headerEl = viewport.querySelector('thead');
+      const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : vpRect.top + 60;
+
+      const sampleX = Math.max(stickyRight + 4, Math.min(vpRect.right - 4, clientX));
+      const sampleY = Math.max(headerBottom + 4, Math.min(vpRect.bottom - 4, clientY));
+
+      const el = document.elementFromPoint(sampleX, sampleY);
+      const td = el && el.closest('#roster-tbody td');
+      if (!td) return;
+
+      let targetR, targetC;
+      if (td.dataset.globalRow !== undefined && td.dataset.gridCol !== undefined) {
+        targetR = Number(td.dataset.globalRow);
+        targetC = Number(td.dataset.gridCol);
+      } else if (td.dataset.globalRowStart !== undefined && td.dataset.gridCol !== undefined) {
+        targetR = Number(td.dataset.globalRowStart);
+        targetC = Number(td.dataset.gridCol);
+      } else if (td.dataset.globalRow !== undefined && td.dataset.gridColStart !== undefined) {
+        targetR = Number(td.dataset.globalRow);
+        targetC = Number(td.dataset.gridColStart);
+      } else {
+        return;
+      }
+
+      if (selectionRange.endR !== targetR || selectionRange.endC !== targetC) {
+        selectionRange.endR = targetR;
+        selectionRange.endC = targetC;
+        updateSelectionVisuals();
+      }
+    }
+
+    function startDesktopDragAutoScroll() {
+      if (autoScrollRafId !== null) return;
+      const step = () => {
+        if (!isDraggingSelection) {
+          autoScrollRafId = null;
+          return;
+        }
+        const viewport = document.getElementById('roster-scroll');
+        if (viewport) {
+          const rect = viewport.getBoundingClientRect();
+          const stickyCol = viewport.querySelector('.sticky-corner');
+          const leftBound = stickyCol ? stickyCol.getBoundingClientRect().right : rect.left;
+          const headerEl = viewport.querySelector('thead');
+          const topBound = headerEl ? headerEl.getBoundingClientRect().bottom : rect.top;
+          const edgeThreshold = 44;
+          const maxSpeed = 18;
+          let dx = 0;
+          let dy = 0;
+
+          if (lastDragClientX > rect.right - edgeThreshold) {
+            const ratio = Math.min(1.5, (lastDragClientX - (rect.right - edgeThreshold)) / edgeThreshold);
+            dx = Math.ceil(maxSpeed * ratio);
+          } else if (lastDragClientX < leftBound + edgeThreshold) {
+            const ratio = Math.min(1.5, ((leftBound + edgeThreshold) - lastDragClientX) / edgeThreshold);
+            dx = -Math.ceil(maxSpeed * ratio);
+          }
+
+          if (lastDragClientY > rect.bottom - edgeThreshold) {
+            const ratio = Math.min(1.5, (lastDragClientY - (rect.bottom - edgeThreshold)) / edgeThreshold);
+            dy = Math.ceil(maxSpeed * ratio);
+          } else if (lastDragClientY < topBound + edgeThreshold) {
+            const ratio = Math.min(1.5, ((topBound + edgeThreshold) - lastDragClientY) / edgeThreshold);
+            dy = -Math.ceil(maxSpeed * ratio);
+          }
+
+          if (dx !== 0 || dy !== 0) {
+            viewport.scrollLeft += dx;
+            viewport.scrollTop += dy;
+            updateSelectionByClientPoint(lastDragClientX, lastDragClientY);
+          }
+        }
+        autoScrollRafId = requestAnimationFrame(step);
+      };
+      autoScrollRafId = requestAnimationFrame(step);
+    }
+
+    function stopDesktopDragAutoScroll() {
+      if (autoScrollRafId !== null) {
+        cancelAnimationFrame(autoScrollRafId);
+        autoScrollRafId = null;
+      }
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDraggingSelection) return;
+      lastDragClientX = e.clientX;
+      lastDragClientY = e.clientY;
+      updateSelectionByClientPoint(e.clientX, e.clientY);
+    });
+
     function attachGridCellEvents(td, globalRow, gridCol, isEditableName) {
-      td.addEventListener('touchstart', () => {
+      td.addEventListener('touchstart', (e) => {
         isTouchInteraction = true;
+        if (!e.touches || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchMovedSignificantly = false;
+
+        // On mobile table view: if user touches inside an already-selected cell/range,
+        // lock container scroll and extend the selection range in any direction (up/down/left/right)
+        if (isMobileTableMode() && isCoordInCurrentSelection(globalRow, gridCol)) {
+          isTouchExtendingRange = true;
+          const viewport = document.getElementById('roster-scroll');
+          if (viewport) viewport.style.touchAction = 'none';
+          const winSel = window.getSelection();
+          if (winSel) winSel.removeAllRanges();
+        } else {
+          isTouchExtendingRange = false;
+        }
       }, { passive: true });
 
+      td.addEventListener('touchmove', (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        if (Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY) > 6) {
+          touchMovedSignificantly = true;
+        }
+        if (isTouchExtendingRange) {
+          if (e.cancelable) e.preventDefault();
+          updateSelectionByClientPoint(touch.clientX, touch.clientY);
+        }
+      }, { passive: false });
+
       td.addEventListener('touchend', () => {
-        if (!isEditableName) return;
-        // Single tap on touch devices immediately enters inline edit mode and opens keyboard
+        const viewport = document.getElementById('roster-scroll');
+        if (viewport) viewport.style.touchAction = '';
+
+        if (isTouchExtendingRange) {
+          isTouchExtendingRange = false;
+          // If user simply tapped (without dragging) on an already-selected editable cell, open keyboard to edit
+          if (!touchMovedSignificantly && isEditableName) {
+            const target = td.querySelector('.roster-name-editor') || td;
+            if (document.activeElement !== target) {
+              target.focus();
+            }
+          }
+          return;
+        }
+
+        if (touchMovedSignificantly) return;
+        // First tap on a cell selects it (disabling scroll on that selected cell so next drag extends range)
         extraRanges = [];
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
         updateSelectionVisuals();
-        const target = td.querySelector('.roster-name-editor') || td;
-        if (document.activeElement !== target) {
-          target.focus();
+        if (isEditableName && !isMobileTableMode()) {
+          const target = td.querySelector('.roster-name-editor') || td;
+          if (document.activeElement !== target) {
+            target.focus();
+          }
         }
       }, { passive: true });
 
@@ -2640,6 +2853,9 @@
           document.activeElement.blur();
         }
 
+        lastDragClientX = e.clientX;
+        lastDragClientY = e.clientY;
+
         if (e.shiftKey) {
           selectionRange.endR = globalRow;
           selectionRange.endC = gridCol;
@@ -2652,6 +2868,7 @@
           extraRanges.push({ ...selectionRange });
           selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
           isDraggingSelection = true;
+          startDesktopDragAutoScroll();
           updateSelectionVisuals();
           return;
         }
@@ -2660,11 +2877,14 @@
         extraRanges = [];
         selectionRange = { startR: globalRow, startC: gridCol, endR: globalRow, endC: gridCol };
         isDraggingSelection = true;
+        startDesktopDragAutoScroll();
         updateSelectionVisuals();
       });
 
-      td.addEventListener('mouseenter', () => {
+      td.addEventListener('mouseenter', (e) => {
         if (!isDraggingSelection) return;
+        lastDragClientX = e.clientX;
+        lastDragClientY = e.clientY;
         selectionRange.endR = globalRow;
         selectionRange.endC = gridCol;
         updateSelectionVisuals();
@@ -2674,7 +2894,14 @@
     document.addEventListener('mouseup', () => {
       if (isDraggingSelection) {
         isDraggingSelection = false;
+        stopDesktopDragAutoScroll();
       }
+    });
+
+    document.addEventListener('touchcancel', () => {
+      isTouchExtendingRange = false;
+      const viewport = document.getElementById('roster-scroll');
+      if (viewport) viewport.style.touchAction = '';
     });
 
     function normalizeOneRange(r) {
