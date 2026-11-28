@@ -207,7 +207,7 @@ function renderHeaderComponent() {
 
   const page = getCurrentPageType();
 
-  headerContainer.className = "border-b border-slate-200 dark:border-white/10 backdrop-blur-xl bg-white/70 dark:bg-[#090A0F]/70 sticky top-0 z-40";
+  headerContainer.className = "dark border-b border-white/10 backdrop-blur-xl bg-[#090A0F] text-slate-100 sticky top-0 z-50";
   headerContainer.innerHTML = `
     <div class="w-full mx-auto flex items-center justify-between">
 
