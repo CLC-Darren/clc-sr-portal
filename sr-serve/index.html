@@ -324,7 +324,6 @@
       }
       body.roster-table-view #desktop-table-section { display:block !important }
       body.roster-table-view #mobile-cards-section { display:none !important }
-      #header-remark-text { display: none !important; }
 
       /* Compact single-row mobile tabs + sliding pill + search button */
       #roster-nav { flex-wrap: nowrap !important; gap: 4px !important; }
@@ -414,7 +413,7 @@
       #roster-brand-line { gap:6px }
       #year-selector { font-size:22px; min-height:auto }
       #header-title-display { font-size:16px;line-height:1.2 }
-      #roster-legend,#header-remark-text,#week-count-badge { display:none }
+      #roster-legend,#week-count-badge { display:none }
       #roster-settings-button { width:28px;height:28px }
       #roster-nav { margin-top:3px;padding-top:3px;gap:3px 7px }
       #roster-nav > div { gap:4px }
@@ -577,23 +576,6 @@
         </div>
       </div>
 
-      <!-- Right: Color Legend + Week Count + Remark -->
-      <div class="order-3 sm:order-2 flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-auto">
-        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold flex-wrap">
-          <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
-          <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
-          <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
-          <span class="px-2 py-0.5 rounded bg-[#BAE6FD] text-[#1E3323] border border-[#8BC3CB]">其他講員</span>
-          <span id="week-count-badge" class="text-xs font-bold text-[#6C8570] ml-1 whitespace-nowrap">
-            共 14 週聚會
-          </span>
-        </div>
-
-        <span id="header-remark-text" onblur="updateHeaderRemark(this.innerText)" class="editable-cell text-xs font-bold text-[#4A6650] px-1 rounded">
-          *師母講道時間確認後要 email 通知心怡。
-        </span>
-      </div>
-
       <!-- Top-Right Admin Gear Button (Kept for admin permissions & future settings) -->
       <button id="roster-settings-button" hidden type="button" onclick="onAdminGearClick()" title="管理設定"
         class="order-2 sm:order-3 self-start ml-auto sm:ml-2 w-9 h-9 rounded-full bg-[#EEF6EE] hover:bg-[#3D7A47] text-[#2C5E34] hover:text-white border border-[#C5DEC8] flex items-center justify-center transition-colors shadow-2xs shrink-0">
@@ -602,6 +584,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
+      <dialog id="roster-edit-settings" class="m-auto rounded-xl border border-[#C5DEC8] bg-white p-5 text-[#2C5E34]" aria-label="排班管理">
+        <label class="flex items-center gap-2">
+          <input id="roster-edit-enabled" type="checkbox" onchange="setRosterEditing(this.checked)">
+          開放訪客編輯
+        </label>
+        <form method="dialog"><button class="mt-3 font-bold">關閉</button></form>
+      </dialog>
     </div>
 
     <!-- Single-Row Navigation: Q1 Q2 Q3 Q4 | Sliding Pill (卡片 表格) | 搜尋 -->
@@ -620,8 +609,15 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 ml-auto shrink-0">
-        <p id="roster-draft-status" role="status" class="hidden sm:inline text-xs font-bold text-[#46674d]" hidden></p>
+      <div class="flex items-center justify-end gap-2 ml-auto flex-wrap">
+        <span id="week-count-badge" class="text-xs font-bold text-[#6C8570] whitespace-nowrap"></span>
+        <div id="roster-legend" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold flex-wrap">
+          <span class="px-2 py-0.5 rounded bg-[#E53E3E] text-white">調整異動</span>
+          <span class="px-2 py-0.5 rounded bg-[#BBF7D0] text-[#1E3323] border border-[#7EB55C]">加樂出遊</span>
+          <span class="px-2 py-0.5 rounded bg-[#FDE68A] text-[#1E3323] border border-[#F4BD3E]">教會講員</span>
+          <span class="px-2 py-0.5 rounded bg-[#BAE6FD] text-[#1E3323] border border-[#8BC3CB]">其他講員</span>
+        </div>
+        <p id="roster-draft-status" role="status" class="sr-only" hidden></p>
         <button type="button" id="roster-search-toggle" class="roster-search-button whitespace-nowrap" onclick="openRosterSearch()" aria-controls="roster-search" aria-expanded="false">搜尋</button>
       </div>
     </div>
@@ -1338,61 +1334,31 @@
     let localRosterSettings = {};
     try { localRosterSettings = JSON.parse(localStorage.getItem(CALENDAR_KEY)) || {}; } catch (_) {}
     const quarter = () => ensureQuarterExists(currentQuarterKey);
-    let firebaseClaimAdmin = false;
-    const canManageRoster = () => (
-      window.isSuperuser === true ||
-      window.isAdmin === true ||
-      window.clcAdmin === true ||
-      document.body?.dataset?.superuser === 'true' ||
-      document.documentElement?.dataset?.superuser === 'true' ||
-      firebaseClaimAdmin === true
-    );
-
-    function initFirebaseAdminWatcher() {
-      try {
-        if (!window.firebase || !firebase.apps || !firebase.apps.length || !firebase.auth) return true;
-        firebase.auth().onAuthStateChanged(async (user) => {
-          if (!user) {
-            firebaseClaimAdmin = false;
-            syncAdminUiState();
-            return;
-          }
-          try {
-            const tokenRes = await user.getIdTokenResult();
-            const claims = tokenRes?.claims || {};
-            if (claims.superuser === true || claims.admin === true || claims.role === 'admin' || claims.role === 'superuser') {
-              firebaseClaimAdmin = true;
-              syncAdminUiState();
-              return;
-            }
-            const db = getFirestoreDb();
-            if (db) {
-              for (const col of ['admins', 'superusers', 'users']) {
-                const snap = await db.collection(col).doc(user.uid).get();
-                if (snap.exists) {
-                  const d = snap.data() || {};
-                  if (col !== 'users' || d.isSuperuser === true || d.isAdmin === true || d.role === 'admin' || d.role === 'superuser') {
-                    firebaseClaimAdmin = true;
-                    syncAdminUiState();
-                    return;
-                  }
-                }
-              }
-            }
-          } catch (_) {}
-          syncAdminUiState();
-        });
-        return true;
-      } catch (_) {
-        return false;
-      }
-    }
     const DRAFT_QUARTER = '2027-Q1';
     const DRAFT_STORAGE_KEY = 'clc-sr-roster-2027-q1-draft-v1';
     const FIREBASE_COLLECTION = 'clc_sr_roster_quarters';
-    const canEditRoster = () => currentQuarterKey === DRAFT_QUARTER || canManageRoster();
+    let rosterEditingEnabled = false;
+    let rosterLoaded = false;
+    const canManageRoster = () => rosterEditingEnabled && rosterLoaded;
+    const canEditRoster = canManageRoster;
 
-    let firebaseSyncTimer = null;
+    function watchRosterEditing() {
+      const db = getFirestoreDb();
+      if (!db) return;
+      return db.collection('system_config').doc('roster_editing').onSnapshot({ includeMetadataChanges: true }, (doc) => {
+        if (doc.metadata.hasPendingWrites) return;
+        rosterEditingEnabled = !doc.metadata.fromCache && (!doc.exists || doc.data().enabled === true);
+        const input = document.getElementById('roster-edit-enabled');
+        if (!input.disabled) input.checked = rosterEditingEnabled;
+        syncAdminUiState();
+      }, (err) => {
+        console.warn('Roster settings listener error:', err);
+        rosterEditingEnabled = false;
+        syncAdminUiState();
+      });
+    }
+
+    const firebaseSyncTimers = new Map();
     let firebaseUnsubscribe = null;
     let isApplyingRemoteSnapshot = false;
 
@@ -1429,32 +1395,46 @@
 
     function syncQuarterToFirebase(qKey) {
       const db = getFirestoreDb();
-      if (!db) return false;
-      clearTimeout(firebaseSyncTimer);
+      if (!db || !canEditRoster()) return false;
+      clearTimeout(firebaseSyncTimers.get(qKey));
       showRosterDraftStatus('☁️ 正在儲存至 Firebase...');
-      firebaseSyncTimer = setTimeout(async () => {
+      const { year, title, months, weeks } = ensureQuarterExists(qKey);
+      const payload = {
+        year, title, months, versionStatus,
+        weeks: JSON.parse(JSON.stringify(weeks)),
+        calendar: JSON.parse(JSON.stringify(calendar())),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      firebaseSyncTimers.set(qKey, setTimeout(async () => {
+        firebaseSyncTimers.delete(qKey);
+        if (!rosterEditingEnabled) return;
         try {
-          const targetQ = ensureQuarterExists(qKey);
-          const payload = {
-            year: targetQ.year,
-            title: targetQ.title,
-            months: targetQ.months,
-            weeks: JSON.parse(JSON.stringify(targetQ.weeks)),
-            calendar: JSON.parse(JSON.stringify(calendar())),
-            versionStatus: versionStatus,
-            updatedAt: firebase.firestore.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
-          };
           await db.collection(FIREBASE_COLLECTION).doc(qKey).set(payload, { merge: true });
           showRosterDraftStatus('☁️ 已同步儲存至 Firebase');
         } catch (err) {
           console.error('Firebase save error:', err);
-          showRosterDraftStatus('⚠️ Firebase 同步失敗，已暫存於本機瀏覽器');
+          showToast('Firebase 同步失敗');
         }
-      }, 450);
+      }, 450));
       return true;
     }
 
+    function validRosterWeeks(weeks) {
+      const template = createBlankWeek('', 1, '');
+      return Array.isArray(weeks) && weeks.every(week => week && Object.entries(template).every(([key, value]) => {
+        const field = week[key];
+        if (key === 'events') return Array.isArray(field) && field.every(event =>
+          event && typeof event.text === 'string' && EVENT_COLOR_KEYS.includes(event.color));
+        if (Array.isArray(value)) return Array.isArray(field) && field.every(item => typeof item === 'string');
+        if (key === 'songs') return field && Object.keys(value).every(song => typeof field[song] === 'string');
+        if (key === 'changedCells') return field && typeof field === 'object' && !Array.isArray(field);
+        if (key === 'speakerType') return typeof field === 'string' && Object.hasOwn(SPEAKER_STYLES, field);
+        return typeof field === typeof value;
+      }));
+    }
+
     function subscribeQuarterFromFirebase(qKey) {
+      rosterLoaded = false;
       if (firebaseUnsubscribe) {
         firebaseUnsubscribe();
         firebaseUnsubscribe = null;
@@ -1465,20 +1445,24 @@
         return;
       }
       showRosterDraftStatus('☁️ 正在載入 Firebase 資料...');
-      firebaseUnsubscribe = db.collection(FIREBASE_COLLECTION).doc(qKey).onSnapshot(
+      firebaseUnsubscribe = db.collection(FIREBASE_COLLECTION).doc(qKey).onSnapshot({ includeMetadataChanges: true },
         (doc) => {
+          if (doc.metadata.fromCache || doc.metadata.hasPendingWrites) return;
+          const wasLoaded = rosterLoaded;
+          rosterLoaded = true;
           if (!doc.exists) {
+            syncAdminUiState();
             showRosterDraftStatus('☁️ Firebase 已連線（雲端尚無修改紀錄）');
             return;
           }
           const data = doc.data();
-          if (data && Array.isArray(data.weeks) && data.weeks.length > 0) {
+          if (data && validRosterWeeks(data.weeks)) {
             // Avoid overwriting cell currently being typed into
             const activeEl = document.activeElement;
             const isEditing = activeEl && (activeEl.isContentEditable || activeEl.tagName === 'INPUT');
             isApplyingRemoteSnapshot = true;
             ensureQuarterExists(qKey).weeks = data.weeks;
-            if (Array.isArray(data.calendar)) {
+            if (Array.isArray(data.calendar) && data.calendar.every(entry => entry && typeof entry.date === 'string' && typeof entry.label === 'string' && Object.hasOwn(CALENDAR_LABELS, entry.type))) {
               ensureQuarterExists(qKey).calendar = data.calendar;
               localRosterSettings[qKey] = { ...(localRosterSettings[qKey] || {}), calendar: data.calendar };
             }
@@ -1488,23 +1472,27 @@
             if (qKey === DRAFT_QUARTER) {
               try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data.weeks)); } catch (_) {}
             }
-            if (!isEditing) {
+            if (!isEditing || !wasLoaded) {
+              updateQuarterHeaderAndTabs();
               renderDesktopTable();
               renderMobileCards();
             }
             isApplyingRemoteSnapshot = false;
             showRosterDraftStatus('☁️ 已從 Firebase 載入最新資料');
           }
+          syncAdminUiState();
         },
         (err) => {
+          rosterLoaded = false;
+          syncAdminUiState();
           console.warn('Firebase listener error:', err);
-          showRosterDraftStatus('⚠️ 無法讀取 Firebase，目前顯示本機資料');
+          showRosterDraftStatus('');
         }
       );
     }
 
     function saveRosterDraft() {
-      if (isApplyingRemoteSnapshot) return;
+      if (isApplyingRemoteSnapshot || !canEditRoster()) return;
       if (currentQuarterKey === DRAFT_QUARTER) {
         try {
           localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(quarter().weeks));
@@ -1598,17 +1586,27 @@
       return card;
     }
 
-    function saveRosterSetting(patch) {
-      localRosterSettings[currentQuarterKey] = { ...(localRosterSettings[currentQuarterKey] || {}),...patch };
-      try {
-        localStorage.setItem(CALENDAR_KEY,JSON.stringify(localRosterSettings));
-        return '已儲存在此瀏覽器';
-      } catch (_) { return '已套用到目前頁面'; }
+    function onAdminGearClick() {
+      if (window.isSuperuser !== true) return;
+      document.getElementById('roster-edit-enabled').checked = rosterEditingEnabled;
+      document.getElementById('roster-edit-settings').showModal();
     }
 
-    function onAdminGearClick() {
-      if (!canManageRoster()) return;
-      showToast('目前為管理者權限（可直接於表格進行編輯、新增與刪除）');
+    async function setRosterEditing(enabled) {
+      if (window.isSuperuser !== true) return;
+      const input = document.getElementById('roster-edit-enabled');
+      input.disabled = true;
+      try {
+        await getFirestoreDb().collection('system_config').doc('roster_editing').set({ enabled });
+        input.checked = rosterEditingEnabled;
+        showToast(enabled ? '已開放訪客編輯' : '已關閉編輯');
+      } catch (err) {
+        console.warn('Roster settings save error:', err);
+        input.checked = rosterEditingEnabled;
+        showToast('無法儲存編輯設定');
+      } finally {
+        input.disabled = false;
+      }
     }
 
     function renderRosterSettings() {
@@ -1616,16 +1614,12 @@
       const gearBtn = document.getElementById('roster-settings-button');
       const arrowEl = document.getElementById('version-status-arrow');
       const badgeEl = document.getElementById('version-status-badge');
-      const remarkEl = document.getElementById('header-remark-text');
-      if (gearBtn) gearBtn.hidden = !granted;
+      if (gearBtn) gearBtn.hidden = window.isSuperuser !== true;
       if (arrowEl) arrowEl.style.display = granted ? 'inline-block' : 'none';
       if (badgeEl) {
         badgeEl.classList.toggle('cursor-pointer', granted);
         badgeEl.classList.toggle('cursor-default', !granted);
         badgeEl.title = granted ? '點擊切換確認版 / 初稿' : '';
-      }
-      if (remarkEl) {
-        remarkEl.contentEditable = String(granted);
       }
       if (!granted) {
         closeVersionDropdown();
@@ -3120,12 +3114,6 @@
       if (notify) showToast(`已切換狀態為「${status}」`);
     }
 
-    function updateHeaderRemark(val) {
-      if (!canManageRoster()) return;
-      const cleaned = val.trim();
-      document.getElementById('header-remark-text').textContent = cleaned;
-    }
-
     function openActivityActionMenu(e, weekIdx) {
       if (!canManageRoster()) return;
       e.stopPropagation();
@@ -3515,13 +3503,14 @@
       if (firstRow.offsetHeight) viewport.style.setProperty('--roster-first-row',firstRow.getBoundingClientRect().height+'px');
     }
     window.addEventListener('resize',resizeRosterViewport);
-    let lastKnownSuperuser = canManageRoster();
+    let lastKnownEditState;
     function syncAdminUiState() {
-      const curr = canManageRoster();
-      if (curr === lastKnownSuperuser) return;
-      lastKnownSuperuser = curr;
+      const state = `${canEditRoster()}:${window.isSuperuser === true}`;
+      if (state === lastKnownEditState) return;
+      lastKnownEditState = state;
       renderRosterSettings();
       renderDesktopTable();
+      renderMobileCards();
     }
     window.addEventListener('clc-admin-changed', syncAdminUiState);
     setInterval(syncAdminUiState, 600);
@@ -3537,14 +3526,14 @@
       showRosterDraftStatus();
       // Connect to Firebase initialized by /header.js as soon as ready
       subscribeQuarterFromFirebase(currentQuarterKey);
-      let watchedAuth = initFirebaseAdminWatcher();
+      let editingListener = watchRosterEditing();
       let fbRetryCount = 0;
       const fbBootTimer = setInterval(() => {
         fbRetryCount++;
         if (!firebaseUnsubscribe) subscribeQuarterFromFirebase(currentQuarterKey);
-        if (!watchedAuth) watchedAuth = initFirebaseAdminWatcher();
+        if (!editingListener) editingListener = watchRosterEditing();
         syncAdminUiState();
-        if ((firebaseUnsubscribe && watchedAuth) || fbRetryCount >= 15) {
+        if ((firebaseUnsubscribe && editingListener) || fbRetryCount >= 15) {
           clearInterval(fbBootTimer);
         }
       }, 300);
