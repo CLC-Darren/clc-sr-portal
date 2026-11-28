@@ -43,7 +43,7 @@
       .slot-cell.slot-source { opacity:.2; }
       .slot-cell.slot-source-icon { visibility:hidden; }
       .slot-floating.slot-floating-icon { background:none !important; box-shadow:none !important; }
-      .slot-grid .slot-target { outline:2px solid #00A3B4; outline-offset:3px; border-radius:22%; }
+      .slot-grid .slot-target { outline:2px solid #00A3B4; outline-offset:3px; border-radius:26% / 22%; } @supports (corner-shape: squircle) { .slot-grid .slot-target { border-radius:42%; corner-shape:squircle; } }
       .slot-floating { position:fixed !important; margin:0 !important; pointer-events:none; z-index:2147483646; will-change:transform; aspect-ratio:auto !important; }
       .slot-floating > :first-child { animation:none !important; transform:translateY(-10px) scale(1.22) rotate(-3deg); transition:transform .18s cubic-bezier(.2,.8,.3,1.2); }
       .slot-floating.slot-landing > :first-child { transform:scale(1) rotate(0); box-shadow:none; transition:transform .16s ease-out, box-shadow .16s; }

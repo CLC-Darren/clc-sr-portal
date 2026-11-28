@@ -8,7 +8,7 @@
 (function () {
   if (window.clcIconUploader) return;
   const SIZE = 160, MAX_CHARS = 45000; // 單一圖示約 30KB 以內，40 個 App 也不會超過 Firestore 單筆 1MB
-  const RADIUS = '22%';                // 與四站 App 圖示的圓角相同
+  const RADIUS = '26% / 22%';                // 與四站 App 圖示的圓角相同
 
   window.clcIsDataIcon = v => /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(String(v || ''));
 
@@ -110,13 +110,13 @@
       .clc-crop-stage{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:#000;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
       .clc-crop-stage.drag{cursor:grabbing}
       .clc-crop-stage img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;pointer-events:none;-webkit-user-drag:none}
-      .clc-crop-hole{position:absolute;left:10%;top:10%;width:80%;height:80%;border-radius:${RADIUS};box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:1.5px solid rgba(255,255,255,.85);pointer-events:none}
+      .clc-crop-hole{position:absolute;left:10%;top:10%;width:80%;height:80%;border-radius:${RADIUS};corner-shape:squircle;box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:1.5px solid rgba(255,255,255,.85);pointer-events:none}
       .clc-crop-zoom{display:flex;align-items:center;gap:12px;padding:14px 18px 4px}
       .clc-crop-zoom button{width:32px;height:32px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;border-radius:50%}
       .clc-crop-zoom input{flex:1;accent-color:#06C755}
       .clc-crop-foot{display:flex;align-items:center;gap:16px;padding:12px 18px 18px;padding-bottom:max(18px,env(safe-area-inset-bottom))}
       .clc-crop-prev{display:flex;flex-direction:column;align-items:center;gap:6px;width:76px;flex:none}
-      .clc-crop-prev canvas{width:60px;height:60px;border-radius:${RADIUS};background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+      .clc-crop-prev canvas{width:60px;height:60px;border-radius:${RADIUS};corner-shape:squircle;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
       .clc-crop-prev span{font-size:12px;font-weight:700;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
       .clc-crop-tip{flex:1;font-size:12px;line-height:1.5;color:rgba(255,255,255,.65)}
       .clc-crop-ok{flex:none;height:42px;padding:0 22px;border:0;border-radius:10px;background:#06C755;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
