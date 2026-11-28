@@ -105,10 +105,36 @@ service cloud.firestore {
       allow delete: if isAdmin() && !isBootstrapId(email);
     }
 
+    // 排班編輯總開關：缺少設定時預設開啟，只有 Superuser 可切換。
+    match /system_config/roster_editing {
+      allow get: if true;
+      allow create, update: if bootstrapAdmin()
+        && request.resource.data.keys().hasOnly(['enabled'])
+        && request.resource.data.enabled is bool;
+    }
+    function rosterEditingEnabled() {
+      let config = /databases/$(database)/documents/system_config/roster_editing;
+      return !exists(config) || get(config).data.enabled == true;
+    }
+    function validRoster(d, quarter) {
+      return d.keys().hasOnly(['year', 'title', 'months', 'weeks', 'calendar', 'versionStatus', 'updatedAt'])
+        && d.year in ['2026', '2027'] && quarter.matches('^' + d.year + '-Q[1-4]$')
+        && d.title is string && d.title.size() <= 100
+        && d.months is list && d.months.size() == 3 && d.months.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12])
+        && d.weeks is list && d.weeks.size() <= 53
+        && d.calendar is list && d.calendar.size() <= 53
+        && d.versionStatus in ['確認版', '初稿'] && d.updatedAt == request.time;
+    }
+    match /clc_sr_roster_quarters/{quarter} {
+      allow get: if quarter.matches('^202[67]-Q[1-4]$');
+      allow create, update: if quarter.matches('^202[67]-Q[1-4]$')
+        && rosterEditingEnabled() && validRoster(request.resource.data, quarter);
+    }
+
     // ---------- 系統設定（首頁背景影片等）：所有人可讀，僅 Admin 可寫 ----------
     match /system_config/{doc} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if doc != 'roster_editing' && isAdmin();
     }
 
     // ---------- SR 名單資料 ----------
