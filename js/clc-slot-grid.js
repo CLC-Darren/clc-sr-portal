@@ -350,6 +350,7 @@
       const cell = e.target.closest('.slot-cell');
       if (!cell || !grid.contains(cell)) return;
       g = { cell, x, y, touch, at: Date.now(), held: false, dragging: false, editingAtStart: editing, target: null };
+      if (o.onManage && !touch) return; // 電腦用右鍵開選單；滑鼠按住不放不跳選單（按住拖曳仍可排序）
       cell.classList.add('slot-pressing');
       g.timer = setTimeout(() => {
         if (!g) return;
