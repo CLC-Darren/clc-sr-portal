@@ -180,7 +180,7 @@ function renderHeaderComponent() {
       }
       #clc-header #adminDropdown #adminEmailDisplay {
         padding: 7.5px 15px !important;
-        font-size: 11.25px !important;
+        font-size: 12px !important;
         line-height: 15px !important;
       }
       #clc-header #adminDropdown > div:not(#adminEmailDisplay) {
@@ -217,7 +217,7 @@ function renderHeaderComponent() {
           <div class="logo-badge shadow-sm">CLC SR</div>
         </a>
         <div id="siteSwitcher" class="hidden absolute left-0 bg-white dark:bg-[#161924] shadow-2xl border border-slate-200 dark:border-brand-border text-left">
-          <div class="px-4 py-1.5 text-[11px] font-bold text-slate-400">切換站台</div>
+          <div class="px-4 py-1.5 text-xs font-bold text-slate-400">切換站台</div>
           ${window.CLC_SITES.filter(s => s.key !== window.CLC_SITE_KEY).map(s => `
             <a href="${s.url}" class="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition">${window.clcEscapeHtml(s.label)}</a>
           `).join('')}
