@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>CLC SR | 詩歌歌詞下載</title>
+  <script>
+    // 從 SR 網站內點進來（同網域來源、?app=sr）才顯示 SR Header；直接打開這個網址（別人收到的分享連結）
+    // 會轉到沒有 Header 的單獨歌詞頁。同一分頁之後重新整理仍保留 Header。
+    (function () {
+      let inSr = false;
+      try {
+        const ref = document.referrer ? new URL(document.referrer) : null;
+        inSr = new URLSearchParams(location.search).get('app') === 'sr' || sessionStorage.getItem('hymnInSr') === '1' ||
+          !!(ref && ref.origin === location.origin && !/hymn-lyrics/.test(ref.pathname));
+      } catch (_) {}
+      if (inSr) { try { sessionStorage.setItem('hymnInSr', '1'); } catch (_) {} return; }
+      location.replace(location.pathname.indexOf('/sr/') === 0 ? '/ya/hymn-lyrics' : 'https://clc-ya-portal.pages.dev/hymn-lyrics');
+    })();
+  </script>
   <meta name="theme-color" content="#007E8A">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="favicon.svg?v=sr-icon-20261109-v2" type="image/svg+xml">
